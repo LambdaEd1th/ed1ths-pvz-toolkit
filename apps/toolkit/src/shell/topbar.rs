@@ -38,11 +38,6 @@ pub(crate) fn TopBar(
                 }
             }
 
-            div { class: "tk-appbar-context",
-                span { class: "tk-context-dot" }
-                span { "{active_route.label()}" }
-            }
-
             div { class: "tk-appbar-actions",
                 IconButton {
                     class: "tk-settings-button".to_string(),
