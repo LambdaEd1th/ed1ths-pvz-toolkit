@@ -5,8 +5,9 @@ summary-no-output = Нет
 summary-not-generated = Не создано
 summary-text-input = Текст
 summary-raw-bytes = сырые байты
+page-eyebrow = Рабочая область данных
+page-description = Открывайте, исследуйте, редактируйте и экспортируйте структурированные данные PvZ.
 
-toolbar-label = Панель инструментов редактора RTON
 toolbar-group-file = Файл
 toolbar-group-edit = Правка
 toolbar-group-format = Формат

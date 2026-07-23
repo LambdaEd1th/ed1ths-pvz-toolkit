@@ -18,8 +18,8 @@ use crate::actions::{input_files_from_dioxus, load_inputs};
 use crate::i18n::tr;
 use crate::state::{AppContext, BoundaryEdge, StageDrag, ViewerTab};
 
+use super::page_actions::LoadButton;
 use super::primitives::icon;
-use super::toolbar::LoadButton;
 
 const CANVAS_ID: &str = "pam-stage-canvas";
 #[cfg(target_arch = "wasm32")]

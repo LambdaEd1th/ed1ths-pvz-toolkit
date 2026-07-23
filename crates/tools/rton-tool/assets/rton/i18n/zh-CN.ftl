@@ -5,8 +5,9 @@ summary-no-output = 无
 summary-not-generated = 未生成
 summary-text-input = 文本
 summary-raw-bytes = raw bytes
+page-eyebrow = 数据工作区
+page-description = 打开、检查、编辑并导出 PvZ 结构化数据。
 
-toolbar-label = RTON Editor 工具栏
 toolbar-group-file = 文件
 toolbar-group-edit = 编辑
 toolbar-group-format = 格式

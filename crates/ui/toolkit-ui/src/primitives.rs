@@ -12,51 +12,6 @@ pub fn UiStyles() -> Element {
 }
 
 #[component]
-pub fn Island(
-    #[props(default)] class: String,
-    #[props(default)] aria_label: Option<String>,
-    children: Element,
-) -> Element {
-    rsx! {
-        section {
-            class: "ui-island {class}",
-            aria_label,
-            {children}
-        }
-    }
-}
-
-#[component]
-pub fn CommandIsland(
-    #[props(default)] class: String,
-    #[props(default)] aria_label: Option<String>,
-    children: Element,
-) -> Element {
-    rsx! {
-        header {
-            class: "ui-island ui-command-island {class}",
-            aria_label,
-            {children}
-        }
-    }
-}
-
-#[component]
-pub fn StatusIsland(
-    #[props(default)] class: String,
-    #[props(default)] aria_label: Option<String>,
-    children: Element,
-) -> Element {
-    rsx! {
-        footer {
-            class: "ui-island ui-status-island {class}",
-            aria_label,
-            {children}
-        }
-    }
-}
-
-#[component]
 pub fn PillTabs(#[props(default)] class: String, aria_label: String, children: Element) -> Element {
     rsx! {
         div {

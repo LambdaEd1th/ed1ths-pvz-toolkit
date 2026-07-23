@@ -1,9 +1,9 @@
-//! Shared layout pieces for the RTON workbench view.
+//! Shared content pieces for the RTON editor page.
 
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{LdActivity, LdFileArchive, LdFolderOpen};
 use rton_editor_core::ValueStats;
-use toolkit_ui::StatusIsland;
+use toolkit_ui::InlineNotice;
 
 use crate::app_constants::LOADABLE_FILE_HINT;
 use crate::components::{MetaItem, PanelHeader, StatsGrid, lucide_icon};
@@ -69,14 +69,14 @@ pub(crate) fn FileSummaryPanel(
 }
 
 #[component]
-pub(crate) fn StatusBar(
+pub(crate) fn DocumentNotice(
     i18n: I18n,
     active_file_label: String,
     output_value: String,
     status: Status,
 ) -> Element {
     rsx! {
-        StatusIsland { class: "status-bar {status.tone.class()}",
+        InlineNotice { class: "rton-document-notice", tone: status.tone.class().to_string(),
             span { class: "status-file",
                 "{active_file_label}"
             }

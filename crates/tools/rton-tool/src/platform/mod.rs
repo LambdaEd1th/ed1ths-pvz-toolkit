@@ -29,8 +29,8 @@ pub use i18n_sources::read_i18n_sources_async;
 pub use preferences::save_window_size_preference;
 pub use preferences::{
     read_editor_mode_preference, read_line_wrapping_preference, read_locale_preference,
-    read_toolbar_layout_preference, save_editor_mode_preference, save_line_wrapping_preference,
-    save_locale_preference, save_toolbar_layout_preference, system_locale,
+    save_editor_mode_preference, save_line_wrapping_preference, save_locale_preference,
+    system_locale,
 };
 pub use save::{save_bytes, save_text};
 #[cfg(not(target_arch = "wasm32"))]

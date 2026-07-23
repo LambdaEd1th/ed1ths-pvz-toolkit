@@ -9,21 +9,22 @@ use dioxus::prelude::*;
 use rton_editor_core::TextFormat;
 
 use crate::components::FileSelection;
-use crate::domain::{EditorMode, Status, ToolbarGroupId};
+use crate::domain::{EditorMode, Status};
 use crate::file_import::LoadedFileState;
 use crate::i18n::I18n;
 
-use edit::EditToolbarGroup;
-use file::FileToolbarGroup;
+use super::ActionGroupId;
+use edit::EditActions;
+use file::FileActions;
 pub(super) use file::WebFileOpenControl;
-use preferences::PreferencesToolbarGroup;
-use rton_export::RtonExportToolbarGroup;
+use preferences::PreferencesActions;
+use rton_export::RtonExportActions;
 pub(super) use settings::SettingsDialog;
-use text_export::TextExportToolbarGroup;
+use text_export::TextExportActions;
 
 #[component]
-pub(super) fn ToolbarGroupContent(
-    group_id: ToolbarGroupId,
+pub(super) fn ActionGroupContent(
+    group_id: ActionGroupId,
     i18n: I18n,
     active_mode_snapshot: Option<EditorMode>,
     active_file_label: String,
@@ -51,8 +52,8 @@ pub(super) fn ToolbarGroupContent(
     export_rton: EventHandler<()>,
 ) -> Element {
     match group_id {
-        ToolbarGroupId::File => rsx! {
-            FileToolbarGroup {
+        ActionGroupId::File => rsx! {
+            FileActions {
                 i18n,
                 active_file_label,
                 loaded_files,
@@ -64,8 +65,8 @@ pub(super) fn ToolbarGroupContent(
                 on_files_staged
             }
         },
-        ToolbarGroupId::Edit => rsx! {
-            EditToolbarGroup {
+        ActionGroupId::Edit => rsx! {
+            EditActions {
                 i18n,
                 can_undo_snapshot,
                 can_redo_snapshot,
@@ -73,14 +74,14 @@ pub(super) fn ToolbarGroupContent(
                 redo_edit
             }
         },
-        ToolbarGroupId::TextExport => rsx! {
-            TextExportToolbarGroup {
+        ActionGroupId::TextExport => rsx! {
+            TextExportActions {
                 active: active_mode_snapshot.is_some(),
                 export_text
             }
         },
-        ToolbarGroupId::RtonExport => rsx! {
-            RtonExportToolbarGroup {
+        ActionGroupId::RtonExport => rsx! {
+            RtonExportActions {
                 i18n,
                 active: active_mode_snapshot.is_some(),
                 compact_snapshot,
@@ -91,8 +92,8 @@ pub(super) fn ToolbarGroupContent(
                 export_rton
             }
         },
-        ToolbarGroupId::Preferences => rsx! {
-            PreferencesToolbarGroup {
+        ActionGroupId::Preferences => rsx! {
+            PreferencesActions {
                 i18n,
                 active: active_mode_snapshot.is_some(),
                 line_wrapping_snapshot,

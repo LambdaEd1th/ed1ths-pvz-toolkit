@@ -10,7 +10,7 @@ use crate::actions::{
     set_all_sprites_visible, set_image_visible, set_sprite_visible,
 };
 use crate::i18n::tr;
-use crate::state::{AppContext, PanelResize, PanelSide, ViewerTab};
+use crate::state::{AppContext, ViewerTab};
 
 use super::primitives::icon;
 
@@ -37,7 +37,7 @@ pub fn ImagePanel() -> Element {
     let query = regex.ok().flatten();
 
     rsx! {
-        aside { class: "pam-side-panel pam-images-panel",
+        div { class: "pam-resource-sheet pam-images-panel",
             PanelHeader {
                 title: tr(locale, "images").to_string(),
                 actions: rsx! {
@@ -122,7 +122,7 @@ pub fn SpritePanel() -> Element {
     let query = regex.ok().flatten();
 
     rsx! {
-        aside { class: "pam-side-panel pam-sprites-panel",
+        div { class: "pam-resource-sheet pam-sprites-panel",
             PanelHeader {
                 title: tr(locale, "sprites").to_string(),
                 actions: rsx! {
@@ -251,30 +251,6 @@ fn PanelHeader(title: String, actions: Element, children: Element) -> Element {
                 }
                 div { class: "pam-panel-actions", {actions} }
             }
-        }
-    }
-}
-
-#[component]
-pub fn PanelResizeHandle(side: PanelSide) -> Element {
-    let mut context = use_context::<AppContext>();
-    let width = match side {
-        PanelSide::Images => context.preferences.read().image_panel_width,
-        PanelSide::Sprites => context.preferences.read().sprite_panel_width,
-    };
-    rsx! {
-        div {
-            class: "pam-panel-resize-handle",
-            role: "separator",
-            aria_orientation: "vertical",
-            onmousedown: move |event| {
-                event.prevent_default();
-                context.panel_resize.set(Some(PanelResize {
-                    side,
-                    start_x: event.client_coordinates().x,
-                    start_width: width,
-                }));
-            },
         }
     }
 }

@@ -1,6 +1,7 @@
 pub(crate) mod app_state;
 pub(crate) mod batch_export;
 pub(crate) mod byte_document;
+pub(crate) mod drag;
 pub(crate) mod editor_preferences;
 pub(crate) mod editor_tab;
 pub(crate) mod file_paths;
@@ -10,7 +11,6 @@ pub(crate) mod rton_inspector;
 pub(crate) mod text_buffer;
 pub(crate) mod text_history;
 pub(crate) mod text_search;
-pub(crate) mod toolbar_layout;
 pub(crate) mod virtual_scroll;
 
 pub(crate) use app_state::{OpenTabError, Status, Tone};
@@ -24,6 +24,7 @@ pub(crate) use batch_export::{ZipFileEntry, create_zip_archive};
 pub(crate) use byte_document::ByteDocument;
 #[cfg(test)]
 pub(crate) use byte_document::{BytePiece, BytePieceSource, ByteSource, PieceBytes};
+pub(crate) use drag::{DropMarker, DropPlacement};
 pub(crate) use editor_preferences::EditorMode;
 pub use editor_preferences::ThemePreference;
 #[cfg(test)]
@@ -91,14 +92,6 @@ pub(crate) use text_search::replace_all_text_matches;
 pub(crate) use text_search::{
     next_text_search_index, previous_text_search_index, replace_all_text_query, replace_text_span,
     text_search_status_text,
-};
-pub(crate) use toolbar_layout::{
-    DropMarker, DropPlacement, ToolbarDropTarget, ToolbarGroupId, apply_toolbar_drop_target,
-    normalize_toolbar_rows, toolbar_rows_to_json,
-};
-#[cfg(test)]
-pub(crate) use toolbar_layout::{
-    default_toolbar_rows, move_toolbar_group, move_toolbar_group_to_row_end,
 };
 pub(crate) use virtual_scroll::{
     FILE_LIST_DEFAULT_VIEWPORT_HEIGHT, FILE_LIST_ROW_HEIGHT, FileListVirtualScroll,

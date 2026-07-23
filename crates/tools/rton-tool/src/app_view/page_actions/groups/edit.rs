@@ -5,7 +5,7 @@ use crate::components::{button_class, lucide_icon};
 use crate::i18n::I18n;
 
 #[component]
-pub(super) fn EditToolbarGroup(
+pub(super) fn EditActions(
     i18n: I18n,
     can_undo_snapshot: bool,
     can_redo_snapshot: bool,
@@ -13,7 +13,7 @@ pub(super) fn EditToolbarGroup(
     redo_edit: EventHandler<()>,
 ) -> Element {
     rsx! {
-        div { class: "rton-toolbar-group",
+        div { class: "rton-action-row",
             button {
                 class: button_class("secondary"),
                 disabled: !can_undo_snapshot,

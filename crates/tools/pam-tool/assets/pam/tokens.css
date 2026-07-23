@@ -43,7 +43,7 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.pam-app.dark-theme {
+.dark-theme .pam-app {
   --color-border-strong: rgba(191, 231, 225, 0.18);
   --color-border-stronger: rgba(191, 231, 225, 0.28);
   --color-stage: #121918;
@@ -57,7 +57,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .pam-app.system-theme {
+  .system-theme .pam-app {
     --color-border-strong: rgba(191, 231, 225, 0.18);
     --color-border-stronger: rgba(191, 231, 225, 0.28);
     --color-stage: #121918;

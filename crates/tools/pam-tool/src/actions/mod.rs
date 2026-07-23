@@ -15,7 +15,8 @@ pub use playback::{
     advance_frame, set_frame, set_frame_range, set_speed, set_speed_factor, use_playback_clock,
 };
 pub use preferences::{
-    set_autoplay, set_boundary, set_keep_speed, set_locale, set_loop, set_panel_open, set_reverse,
+    set_autoplay, set_boundary, set_keep_speed, set_locale, set_loop, set_resource_sheet_open,
+    set_reverse,
 };
 pub use visibility::{
     restore_default_sprite_visibility, select_exclusive_special_layer, set_all_images_visible,

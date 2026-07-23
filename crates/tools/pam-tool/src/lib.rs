@@ -5,9 +5,9 @@ mod platform;
 mod state;
 
 use dioxus::prelude::*;
-use toolkit_ui::{Appearance, WorkbenchSurface, use_appearance};
+use toolkit_ui::{Appearance, ToolSurface, use_appearance};
 
-use crate::components::Workbench;
+use crate::components::PamPage;
 use crate::state::{AppContext, Theme};
 
 fn pam_theme(appearance: Appearance) -> Theme {
@@ -70,8 +70,8 @@ pub fn PamTool(#[props(default = true)] active: bool) -> Element {
     });
     actions::use_playback_clock();
     rsx! {
-        WorkbenchSurface { namespace: "pam",
-            Workbench {}
+        ToolSurface { namespace: "pam",
+            PamPage {}
         }
     }
 }

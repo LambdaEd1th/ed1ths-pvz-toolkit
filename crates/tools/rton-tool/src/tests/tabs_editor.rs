@@ -30,13 +30,6 @@ fn dirty_tabs_require_close_confirmation() {
 }
 
 #[test]
-fn clamps_panel_width_to_original_bounds() {
-    assert_eq!(clamp_panel_width(120.0), PANEL_MIN_WIDTH);
-    assert_eq!(clamp_panel_width(333.4), 333);
-    assert_eq!(clamp_panel_width(620.0), PANEL_MAX_WIDTH);
-}
-
-#[test]
 fn maps_theme_preferences_to_shell_and_editor_themes() {
     assert_eq!(
         ThemePreference::System.shell_class(),
@@ -97,66 +90,4 @@ fn creates_valid_blank_tabs_for_every_editor_mode() {
             }
         }
     }
-}
-
-#[test]
-fn normalizes_toolbar_rows_and_appends_missing_groups() {
-    let rows = normalize_toolbar_rows(Some(
-        r#"[["prefs","file","file","unknown"],["about","format"],["edit"]]"#,
-    ));
-
-    assert_eq!(
-        rows,
-        vec![
-            vec![ToolbarGroupId::Preferences, ToolbarGroupId::File],
-            vec![
-                ToolbarGroupId::Edit,
-                ToolbarGroupId::TextExport,
-                ToolbarGroupId::RtonExport,
-            ],
-        ]
-    );
-    assert_eq!(
-        normalize_toolbar_rows(Some("not json")),
-        default_toolbar_rows()
-    );
-}
-
-#[test]
-fn moves_toolbar_groups_across_rows() {
-    let mut rows = default_toolbar_rows();
-
-    move_toolbar_group(
-        &mut rows,
-        ToolbarGroupId::Preferences,
-        ToolbarGroupId::File,
-        DropPlacement::Before,
-    );
-    assert_eq!(
-        rows,
-        vec![
-            vec![
-                ToolbarGroupId::Preferences,
-                ToolbarGroupId::File,
-                ToolbarGroupId::Edit,
-            ],
-            vec![ToolbarGroupId::TextExport, ToolbarGroupId::RtonExport,],
-        ]
-    );
-
-    move_toolbar_group_to_row_end(&mut rows, ToolbarGroupId::File, 1);
-    assert_eq!(
-        rows,
-        vec![
-            vec![ToolbarGroupId::Preferences, ToolbarGroupId::Edit],
-            vec![
-                ToolbarGroupId::TextExport,
-                ToolbarGroupId::RtonExport,
-                ToolbarGroupId::File,
-            ],
-        ]
-    );
-
-    let encoded = toolbar_rows_to_json(&rows);
-    assert_eq!(normalize_toolbar_rows(Some(&encoded)), rows);
 }

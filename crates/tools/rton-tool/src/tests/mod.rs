@@ -2,12 +2,12 @@ use crate::app_actions::{
     create_blank_tab_state, redo_hex_tab, redo_text_tab, reorder_tabs_by_id, tab_can_redo,
     tab_can_undo, tab_requires_close_confirmation, undo_hex_tab, undo_text_tab,
 };
-use crate::app_constants::{PANEL_MAX_WIDTH, PANEL_MIN_WIDTH, TEXT_SEARCH_MATCH_DISPLAY_LIMIT};
+use crate::app_constants::TEXT_SEARCH_MATCH_DISPLAY_LIMIT;
 use crate::app_i18n::{load_i18n_sources, resolve_locale};
 use crate::app_sample::SAMPLE_JSON;
 use crate::components::{
-    FileListItem, FileSelection, FileTreeNode, build_file_tree, clamp_panel_width,
-    collect_file_tree_keys, value_tree_visible_indices,
+    FileListItem, FileSelection, FileTreeNode, build_file_tree, collect_file_tree_keys,
+    value_tree_visible_indices,
 };
 use crate::domain::{
     BatchExportMode, ByteDocument, BytePiece, BytePieceSource, ByteSource, DropPlacement,
@@ -16,26 +16,25 @@ use crate::domain::{
     HEX_MAX_VIEWPORT_ROWS, HEX_MAX_VIRTUAL_SCROLL_HEIGHT, HEX_OVERSCAN_ROWS, HEX_ROW_HEIGHT,
     HEX_SEARCH_MATCH_DISPLAY_LIMIT, HEX_VISIBLE_ROWS, HexEdit, HexHistory, HexSearchMatch,
     HexUndoEdit, PieceBytes, RtonStringMode, TextContentState, TextHistory, TextSearchMatch,
-    ThemePreference, ToolbarGroupId, VALUE_SEARCH_DEFAULT_VIEWPORT_HEIGHT,
-    VALUE_SEARCH_MAX_VIRTUAL_SCROLL_HEIGHT, VALUE_SEARCH_ROW_HEIGHT,
-    VALUE_TREE_DEFAULT_VIEWPORT_HEIGHT, VALUE_TREE_MAX_VIRTUAL_SCROLL_HEIGHT,
-    VALUE_TREE_ROW_HEIGHT, ZipFileEntry, apply_hex_edit, apply_hex_edits, batch_output_path,
-    create_tab_from_byte_document, create_tab_from_bytes, create_text_tab, create_zip_archive,
-    default_expanded_paths, default_toolbar_rows, document_for_tab, edited_len, empty_editor_text,
-    empty_tree_rows, encode_batch_export_document, export_rton_name, file_list_file_key,
-    file_list_viewport_rows, file_list_virtual_row_top, file_list_virtual_scroll,
-    find_hex_search_matches, find_hex_search_result, find_text_search_result, hex_viewport_rows,
-    hex_virtual_row_top, hex_virtual_scroll, inspect_rton_payload, inspect_rton_string_info,
-    is_loadable_display_name, leaf_display_name, locate_rton_value_offset,
-    locate_value_path_in_text, maybe_collect_string_tables, measured_hex_viewport_height,
-    move_toolbar_group, move_toolbar_group_to_row_end, normalize_toolbar_rows,
-    offset_to_text_position, overwrite_byte_range, parse_ascii_pattern, parse_hex_pattern,
-    prepare_hex_edits, push_hex_undo_batch, push_text_undo_snapshot, read_rton_varint,
-    replace_all_byte_edits, replace_all_text_matches, replace_all_text_query, replace_byte_span,
-    replace_text_span, rton_tag_info, tab_surface_for_document, toolbar_rows_to_json,
-    unique_zip_path, value_search_result_for_doc, value_search_viewport_rows,
-    value_search_virtual_row_top, value_search_virtual_scroll, value_tree_rows_for_doc,
-    value_tree_viewport_rows, value_tree_virtual_row_top, value_tree_virtual_scroll,
+    ThemePreference, VALUE_SEARCH_DEFAULT_VIEWPORT_HEIGHT, VALUE_SEARCH_MAX_VIRTUAL_SCROLL_HEIGHT,
+    VALUE_SEARCH_ROW_HEIGHT, VALUE_TREE_DEFAULT_VIEWPORT_HEIGHT,
+    VALUE_TREE_MAX_VIRTUAL_SCROLL_HEIGHT, VALUE_TREE_ROW_HEIGHT, ZipFileEntry, apply_hex_edit,
+    apply_hex_edits, batch_output_path, create_tab_from_byte_document, create_tab_from_bytes,
+    create_text_tab, create_zip_archive, default_expanded_paths, document_for_tab, edited_len,
+    empty_editor_text, empty_tree_rows, encode_batch_export_document, export_rton_name,
+    file_list_file_key, file_list_viewport_rows, file_list_virtual_row_top,
+    file_list_virtual_scroll, find_hex_search_matches, find_hex_search_result,
+    find_text_search_result, hex_viewport_rows, hex_virtual_row_top, hex_virtual_scroll,
+    inspect_rton_payload, inspect_rton_string_info, is_loadable_display_name, leaf_display_name,
+    locate_rton_value_offset, locate_value_path_in_text, maybe_collect_string_tables,
+    measured_hex_viewport_height, offset_to_text_position, overwrite_byte_range,
+    parse_ascii_pattern, parse_hex_pattern, prepare_hex_edits, push_hex_undo_batch,
+    push_text_undo_snapshot, read_rton_varint, replace_all_byte_edits, replace_all_text_matches,
+    replace_all_text_query, replace_byte_span, replace_text_span, rton_tag_info,
+    tab_surface_for_document, unique_zip_path, value_search_result_for_doc,
+    value_search_viewport_rows, value_search_virtual_row_top, value_search_virtual_scroll,
+    value_tree_rows_for_doc, value_tree_viewport_rows, value_tree_virtual_row_top,
+    value_tree_virtual_scroll,
 };
 use crate::i18n::{self, I18n, Locale};
 use rton_editor_core::{
@@ -123,5 +122,5 @@ mod exports;
 mod file_list;
 mod i18n_tests;
 mod search_hex;
-mod tabs_toolbar;
+mod tabs_editor;
 mod virtual_scroll;

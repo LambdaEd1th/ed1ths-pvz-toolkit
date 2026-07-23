@@ -8,8 +8,6 @@ use crate::domain::EditorMode;
 #[cfg(target_arch = "wasm32")]
 const LOCALE_PREFERENCE_KEY: &str = "rton-editor-locale";
 #[cfg(target_arch = "wasm32")]
-const TOOLBAR_LAYOUT_KEY: &str = "rton-editor-toolbar-layout";
-#[cfg(target_arch = "wasm32")]
 const LINE_WRAPPING_KEY: &str = "rton-editor-line-wrapping";
 #[cfg(target_arch = "wasm32")]
 const EDITOR_MODE_KEY: &str = "rton-editor-editor-mode";
@@ -180,46 +178,6 @@ pub fn save_window_size_preference(width: u32, height: u32) -> Result<(), String
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn read_toolbar_layout_preference() -> Option<String> {
-    let path = toolbar_layout_preference_path()?;
-    std::fs::read_to_string(path)
-        .ok()
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty())
-}
-
-#[cfg(target_arch = "wasm32")]
-pub fn read_toolbar_layout_preference() -> Option<String> {
-    web_sys::window()
-        .and_then(|window| window.local_storage().ok().flatten())
-        .and_then(|storage| storage.get_item(TOOLBAR_LAYOUT_KEY).ok().flatten())
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty())
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn save_toolbar_layout_preference(layout: &str) -> Result<(), String> {
-    let path = toolbar_layout_preference_path()
-        .ok_or_else(|| "could not resolve toolbar layout preference path".to_string())?;
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).map_err(|error| error.to_string())?;
-    }
-    std::fs::write(path, layout).map_err(|error| error.to_string())
-}
-
-#[cfg(target_arch = "wasm32")]
-pub fn save_toolbar_layout_preference(layout: &str) -> Result<(), String> {
-    let window = web_sys::window().ok_or_else(|| "window is unavailable".to_string())?;
-    let storage = window
-        .local_storage()
-        .map_err(|error| format!("{error:?}"))?
-        .ok_or_else(|| "localStorage is unavailable".to_string())?;
-    storage
-        .set_item(TOOLBAR_LAYOUT_KEY, layout)
-        .map_err(|error| format!("{error:?}"))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
 pub fn system_locale() -> Option<String> {
     ["LC_ALL", "LC_MESSAGES", "LANGUAGE", "LANG"]
         .iter()
@@ -240,11 +198,6 @@ pub fn system_locale() -> Option<String> {
 #[cfg(not(target_arch = "wasm32"))]
 fn locale_preference_path() -> Option<std::path::PathBuf> {
     Some(app_config_dir()?.join("locale"))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-fn toolbar_layout_preference_path() -> Option<std::path::PathBuf> {
-    Some(app_config_dir()?.join("toolbar-layout"))
 }
 
 #[cfg(not(target_arch = "wasm32"))]

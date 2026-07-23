@@ -5,8 +5,9 @@ summary-no-output = Ninguno
 summary-not-generated = No generado
 summary-text-input = Texto
 summary-raw-bytes = bytes sin procesar
+page-eyebrow = Espacio de datos
+page-description = Abre, inspecciona, edita y exporta datos estructurados de PvZ.
 
-toolbar-label = Barra de herramientas del editor RTON
 toolbar-group-file = Archivo
 toolbar-group-edit = Edicion
 toolbar-group-format = Formato

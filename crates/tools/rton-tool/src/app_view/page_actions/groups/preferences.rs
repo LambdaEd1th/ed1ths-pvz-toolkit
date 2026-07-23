@@ -4,7 +4,7 @@ use crate::i18n::I18n;
 use crate::platform;
 
 #[component]
-pub(super) fn PreferencesToolbarGroup(
+pub(super) fn PreferencesActions(
     i18n: I18n,
     active: bool,
     line_wrapping_snapshot: bool,
@@ -13,7 +13,7 @@ pub(super) fn PreferencesToolbarGroup(
     mut editor_search_panel_visible: Signal<bool>,
 ) -> Element {
     rsx! {
-        div { class: "rton-toolbar-group",
+        div { class: "rton-action-row",
             label { class: "rton-switch",
                 input {
                     class: "rton-switch-input",

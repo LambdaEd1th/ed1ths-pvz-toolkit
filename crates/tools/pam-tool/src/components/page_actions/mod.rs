@@ -8,9 +8,8 @@ use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{
     LdEllipsis, LdFolderOpen, LdMenu, LdPanelRight, LdSettings, LdX,
 };
-use toolkit_ui::CommandIsland;
 
-use crate::actions::{clear_tabs, set_panel_open};
+use crate::actions::{clear_tabs, set_resource_sheet_open};
 #[cfg(target_arch = "wasm32")]
 use crate::actions::{input_files_from_dioxus, load_inputs};
 use crate::i18n::tr;
@@ -43,18 +42,13 @@ fn close_settings_dialog(
 }
 
 #[component]
-pub fn Toolbar() -> Element {
+pub fn PageActions() -> Element {
     let context = use_context::<AppContext>();
     let active_tab = context.active_tab_snapshot();
     let has_active_tab = active_tab.is_some();
-    let order = context.preferences.read().toolbar_order.clone();
-    let visible_order = order
-        .into_iter()
-        .filter(|group| group != "preferences" && (has_active_tab || group != "layers"))
-        .collect::<Vec<_>>();
     let preferences = context.preferences.read().clone();
-    let images_panel_visible = *context.images_panel_open.read();
-    let sprites_panel_visible = *context.sprites_panel_open.read();
+    let images_sheet_open = *context.images_sheet_open.read();
+    let sprites_sheet_open = *context.sprites_sheet_open.read();
     let mut more_open = use_signal(|| false);
     let mut settings_mounted = use_signal(|| false);
     let mut settings_closing = use_signal(|| false);
@@ -67,47 +61,40 @@ pub fn Toolbar() -> Element {
     let active_name = active_tab
         .map(|tab| tab.display_name())
         .unwrap_or_else(|| tr(locale, "no_animation").into());
+    let mut action_groups = vec!["selectors", "view", "size", "export", "convert"];
+    if has_active_tab {
+        action_groups.insert(1, "layers");
+    }
 
     rsx! {
-        CommandIsland {
-            class: "pam-commandbar",
-            aria_label: tr(locale, "toolbar").to_string(),
-            button {
-                r#type: "button",
-                class: if images_panel_visible {
-                    "pam-command-icon-button pam-sidebar-toggle active"
-                } else {
-                    "pam-command-icon-button pam-sidebar-toggle"
-                },
-                title: tr(locale, "images"),
-                aria_label: tr(locale, "images"),
-                aria_pressed: images_panel_visible,
-                onclick: move |_| {
-                    set_panel_open(context, true, !images_panel_visible);
-                },
-                {icon(LdMenu)}
-            }
-            div { class: "pam-active-document", title: "{active_name}",
+        div {
+            class: "pam-page-actions",
+            FileGroup {}
+            div { class: "pam-document-pill", title: "{active_name}",
                 span { class: "pam-document-dot" }
                 span { "{active_name}" }
             }
-            div { class: "pam-toolbar-groups pam-toolbar-groups-inline",
-                div { class: "pam-toolbar-scroll",
-                    for group in visible_order.clone() {
-                        ToolbarGroup {
-                            key: "inline-{group}",
-                            id: group.clone(),
-                            {toolbar_group_content(&group)}
-                        }
-                    }
-                }
+            button {
+                r#type: "button",
+                class: if images_sheet_open {
+                    "pam-page-icon-button active"
+                } else {
+                    "pam-page-icon-button"
+                },
+                title: tr(locale, "images"),
+                aria_label: tr(locale, "images"),
+                aria_pressed: images_sheet_open,
+                onclick: move |_| {
+                    set_resource_sheet_open(context, true, !images_sheet_open);
+                },
+                {icon(LdMenu)}
             }
             button {
                 r#type: "button",
                 class: if more_open_snapshot {
-                    "pam-command-icon-button pam-more-button active"
+                    "pam-page-icon-button active"
                 } else {
-                    "pam-command-icon-button pam-more-button"
+                    "pam-page-icon-button"
                 },
                 title: tr(locale, "more"),
                 aria_label: tr(locale, "more"),
@@ -117,25 +104,25 @@ pub fn Toolbar() -> Element {
             }
             button {
                 r#type: "button",
-                class: if sprites_panel_visible {
-                    "pam-command-icon-button pam-inspector-toggle active"
+                class: if sprites_sheet_open {
+                    "pam-page-icon-button active"
                 } else {
-                    "pam-command-icon-button pam-inspector-toggle"
+                    "pam-page-icon-button"
                 },
                 title: tr(locale, "sprites"),
                 aria_label: tr(locale, "sprites"),
-                aria_pressed: sprites_panel_visible,
+                aria_pressed: sprites_sheet_open,
                 onclick: move |_| {
-                    set_panel_open(context, false, !sprites_panel_visible);
+                    set_resource_sheet_open(context, false, !sprites_sheet_open);
                 },
                 {icon(LdPanelRight)}
             }
             button {
                 r#type: "button",
                 class: if settings_open {
-                    "pam-command-icon-button pam-settings-button active"
+                    "pam-page-icon-button active"
                 } else {
-                    "pam-command-icon-button pam-settings-button"
+                    "pam-page-icon-button"
                 },
                 title: tr(locale, "settings"),
                 aria_label: tr(locale, "settings"),
@@ -147,31 +134,31 @@ pub fn Toolbar() -> Element {
                 {icon(LdSettings)}
             }
             if more_open_snapshot {
-                div { class: "pam-toolbar-more-menu",
+                div { class: "pam-action-sheet-layer",
                     button {
                         r#type: "button",
-                        class: "pam-command-menu-backdrop",
+                        class: "pam-action-sheet-backdrop",
                         aria_label: tr(locale, "close_menu"),
                         onclick: move |_| more_open.set(false),
                     }
-                    section { class: "pam-command-menu-surface",
-                        header { class: "pam-command-menu-header",
+                    section { class: "pam-action-sheet",
+                        header { class: "pam-action-sheet-header",
                             strong { {tr(locale, "more")} }
                             button {
                                 r#type: "button",
-                                class: "pam-command-icon-button",
+                                class: "pam-page-icon-button",
                                 title: tr(locale, "close_menu"),
                                 aria_label: tr(locale, "close_menu"),
                                 onclick: move |_| more_open.set(false),
                                 {icon(LdX)}
                             }
                         }
-                        div { class: "pam-command-menu-groups",
-                            for group in visible_order.clone() {
-                                ToolbarGroup {
-                                    key: "menu-{group}",
-                                    id: group.clone(),
-                                    {toolbar_group_content(&group)}
+                        div { class: "pam-action-sheet-groups",
+                            for group in action_groups {
+                                ActionGroup {
+                                    key: "sheet-{group}",
+                                    id: group.to_string(),
+                                    {action_group_content(group)}
                                 }
                             }
                         }
@@ -252,26 +239,33 @@ pub fn Toolbar() -> Element {
 }
 
 #[component]
-fn ToolbarGroup(id: String, children: Element) -> Element {
+fn ActionGroup(id: String, children: Element) -> Element {
     rsx! {
-        div { class: "pam-toolbar-group-shell", "data-group": "{id}",
-            div { class: "pam-toolbar-group", {children} }
+        div { class: "pam-action-group-shell", "data-group": "{id}",
+            div { class: "pam-action-group", {children} }
         }
     }
 }
 
-fn toolbar_group_content(id: &str) -> Element {
+fn action_group_content(id: &str) -> Element {
     match id {
-        "file" => rsx! { FileGroup {} },
         "selectors" => rsx! { SelectorGroup {} },
-        "playback" => rsx! { PlaybackGroup {} },
-        "speed" => rsx! { SpeedGroup {} },
         "layers" => rsx! { LayerGroup {} },
         "view" => rsx! { ViewGroup {} },
         "size" => rsx! { SizeGroup {} },
         "export" => rsx! { ExportGroup {} },
         "convert" => rsx! { ConvertGroup {} },
         _ => rsx! {},
+    }
+}
+
+#[component]
+pub fn PlaybackDock() -> Element {
+    rsx! {
+        div { class: "pam-playback-dock",
+            PlaybackGroup {}
+            SpeedGroup {}
+        }
     }
 }
 

@@ -8,53 +8,6 @@ use dioxus::prelude::*;
 #[cfg(not(target_arch = "wasm32"))]
 use pam_viewer_renderer::SharedStage;
 
-#[cfg(any(target_arch = "wasm32", test))]
-const OVERLAY_DRAWER_MAX_WIDTH: f64 = 900.0;
-
-#[cfg(any(target_arch = "wasm32", test))]
-fn is_overlay_drawer_width(width: f64) -> bool {
-    width.is_finite() && width <= OVERLAY_DRAWER_MAX_WIDTH
-}
-
-fn initial_compact_layout() -> bool {
-    #[cfg(target_arch = "wasm32")]
-    {
-        web_sys::window()
-            .and_then(|window| window.inner_width().ok())
-            .and_then(|width| width.as_f64())
-            .is_some_and(is_overlay_drawer_width)
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        false
-    }
-}
-
-fn initial_panel_state(
-    compact_layout: bool,
-    images_open: bool,
-    sprites_open: bool,
-) -> (bool, bool) {
-    if compact_layout {
-        (false, false)
-    } else {
-        (images_open, sprites_open)
-    }
-}
-
-pub(crate) fn panel_state_for_layout(
-    compact_layout: bool,
-    images_open: bool,
-    sprites_open: bool,
-) -> (bool, bool) {
-    if compact_layout && images_open && sprites_open {
-        (true, false)
-    } else {
-        (images_open, sprites_open)
-    }
-}
-
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Tone {
     #[default]
@@ -95,14 +48,12 @@ pub struct AppContext {
     pub active_tab: Signal<Option<u64>>,
     pub next_tab_id: Signal<u64>,
     pub preferences: Signal<Preferences>,
-    pub images_panel_open: Signal<bool>,
-    pub sprites_panel_open: Signal<bool>,
+    pub images_sheet_open: Signal<bool>,
+    pub sprites_sheet_open: Signal<bool>,
     pub status: Signal<Status>,
     pub playing: Signal<bool>,
     pub export: Signal<Option<ExportProgress>>,
     pub dragged_tab: Signal<Option<u64>>,
-    pub panel_resize: Signal<Option<PanelResize>>,
-    pub compact_layout: Signal<bool>,
     pub stage_drag: Signal<Option<StageDrag>>,
     pub stage_size: Signal<[f64; 2]>,
     pub pointer_coord: Signal<Option<[f32; 2]>>,
@@ -113,14 +64,8 @@ pub struct AppContext {
 impl AppContext {
     pub fn new(theme: Theme) -> Self {
         crate::platform::log_buffer::initialize();
-        let mut preferences = crate::platform::load_preferences().normalized();
+        let mut preferences = crate::platform::load_preferences();
         preferences.theme = theme;
-        let compact_layout = initial_compact_layout();
-        let (images_panel_open, sprites_panel_open) = initial_panel_state(
-            compact_layout,
-            preferences.images_panel_open,
-            preferences.sprites_panel_open,
-        );
         #[cfg(not(target_arch = "wasm32"))]
         let stage = {
             let stage = SharedStage::default();
@@ -138,14 +83,12 @@ impl AppContext {
             active_tab: Signal::new(None),
             next_tab_id: Signal::new(1),
             preferences: Signal::new(preferences),
-            images_panel_open: Signal::new(images_panel_open),
-            sprites_panel_open: Signal::new(sprites_panel_open),
+            images_sheet_open: Signal::new(false),
+            sprites_sheet_open: Signal::new(false),
             status: Signal::new(Status::default()),
             playing: Signal::new(false),
             export: Signal::new(None),
             dragged_tab: Signal::new(None),
-            panel_resize: Signal::new(None),
-            compact_layout: Signal::new(compact_layout),
             stage_drag: Signal::new(None),
             stage_size: Signal::new([1.0, 1.0]),
             pointer_coord: Signal::new(None),
@@ -219,19 +162,6 @@ impl AppContext {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct PanelResize {
-    pub side: PanelSide,
-    pub start_x: f64,
-    pub start_width: u32,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum PanelSide {
-    Images,
-    Sprites,
-}
-
-#[derive(Clone, Copy, Debug)]
 pub enum StageDrag {
     Pan {
         start: [f64; 2],
@@ -255,30 +185,4 @@ pub enum BoundaryEdge {
     NorthWest,
     SouthEast,
     SouthWest,
-}
-
-#[cfg(test)]
-mod responsive_panel_tests {
-    use super::{initial_panel_state, is_overlay_drawer_width, panel_state_for_layout};
-
-    #[test]
-    fn mobile_panels_start_closed_without_overwriting_desktop_defaults() {
-        assert_eq!(initial_panel_state(true, true, true), (false, false));
-        assert_eq!(initial_panel_state(false, true, true), (true, true));
-        assert_eq!(initial_panel_state(false, false, true), (false, true));
-    }
-
-    #[test]
-    fn entering_mobile_layout_keeps_the_left_panel_when_both_are_open() {
-        assert_eq!(panel_state_for_layout(true, true, true), (true, false));
-        assert_eq!(panel_state_for_layout(true, false, true), (false, true));
-        assert_eq!(panel_state_for_layout(false, true, true), (true, true));
-    }
-
-    #[test]
-    fn mobile_breakpoint_matches_css() {
-        assert!(is_overlay_drawer_width(900.0));
-        assert!(!is_overlay_drawer_width(901.0));
-        assert!(!is_overlay_drawer_width(f64::NAN));
-    }
 }

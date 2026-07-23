@@ -1,6 +1,5 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{LdCheckCheck, LdFileArchive, LdSearch, LdSquare};
-use toolkit_ui::WorkbenchPanel;
 
 use crate::components::{FileList, FileListItem, FileSelection, button_class, lucide_icon};
 use crate::domain::BatchExportMode;
@@ -31,7 +30,7 @@ pub(super) fn FilePanel(
     suppress_resize_observer: bool,
 ) -> Element {
     rsx! {
-        WorkbenchPanel { id: "rton-file-drawer", class: "rton-side-panel rton-side-panel-left",
+        div { id: "rton-file-sheet", class: "rton-file-sheet",
             header { class: "panel-header",
                 div { class: "panel-header-top",
                     div { class: "panel-header-main",

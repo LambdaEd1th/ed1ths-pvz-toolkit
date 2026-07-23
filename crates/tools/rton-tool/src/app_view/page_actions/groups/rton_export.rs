@@ -5,7 +5,7 @@ use crate::components::{button_class, lucide_icon};
 use crate::i18n::I18n;
 
 #[component]
-pub(super) fn RtonExportToolbarGroup(
+pub(super) fn RtonExportActions(
     i18n: I18n,
     active: bool,
     compact_snapshot: bool,
@@ -16,7 +16,7 @@ pub(super) fn RtonExportToolbarGroup(
     export_rton: EventHandler<()>,
 ) -> Element {
     rsx! {
-        div { class: "rton-toolbar-group",
+        div { class: "rton-action-row",
             label { class: "rton-switch",
                 input {
                     class: "rton-switch-input",

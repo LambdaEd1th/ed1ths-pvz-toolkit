@@ -80,7 +80,7 @@ pub(crate) fn WebFileOpenControl(
 }
 
 #[component]
-pub(super) fn FileToolbarGroup(
+pub(super) fn FileActions(
     i18n: I18n,
     active_file_label: String,
     loaded_files: Signal<Vec<LoadedFileState>>,
@@ -92,7 +92,7 @@ pub(super) fn FileToolbarGroup(
     on_files_staged: EventHandler<()>,
 ) -> Element {
     rsx! {
-        div { class: "rton-toolbar-group",
+        div { class: "rton-action-row",
             if cfg!(target_arch = "wasm32") {
                 WebFileOpenControl {
                     i18n,

@@ -377,13 +377,12 @@ pub fn save_bytes(default_name: &str, bytes: &[u8]) -> Result<bool, String> {
 }
 
 pub fn load_preferences() -> Preferences {
-    let loaded = preference_text()
+    preference_text()
         .and_then(|text| serde_json::from_str::<Preferences>(&text).ok())
         .unwrap_or_else(|| Preferences {
             locale: detect_locale(),
             ..Preferences::default()
-        });
-    loaded.normalized()
+        })
 }
 
 pub fn save_preferences(preferences: &Preferences) {

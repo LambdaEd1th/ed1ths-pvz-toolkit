@@ -5,12 +5,9 @@ use rton_editor_core::TextFormat;
 use crate::components::{button_class, lucide_icon};
 
 #[component]
-pub(super) fn TextExportToolbarGroup(
-    active: bool,
-    export_text: EventHandler<TextFormat>,
-) -> Element {
+pub(super) fn TextExportActions(active: bool, export_text: EventHandler<TextFormat>) -> Element {
     rsx! {
-        div { class: "rton-toolbar-group",
+        div { class: "rton-action-row",
             button {
                 class: button_class("secondary"),
                 disabled: !active,

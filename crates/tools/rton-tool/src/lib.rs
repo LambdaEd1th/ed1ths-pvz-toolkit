@@ -15,7 +15,7 @@ mod platform;
 mod tests;
 
 use dioxus::prelude::*;
-use toolkit_ui::{Appearance, WorkbenchSurface, use_appearance};
+use toolkit_ui::{Appearance, ToolSurface, use_appearance};
 
 static LOG_INIT: std::sync::Once = std::sync::Once::new();
 
@@ -48,7 +48,7 @@ pub fn RtonTool() -> Element {
     });
     let appearance = use_appearance().preference();
     rsx! {
-        WorkbenchSurface { namespace: "rton",
+        ToolSurface { namespace: "rton",
             app_view::App { theme: rton_theme(appearance) }
         }
     }

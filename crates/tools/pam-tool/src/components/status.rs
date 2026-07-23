@@ -1,11 +1,11 @@
 use dioxus::prelude::*;
-use toolkit_ui::StatusIsland;
+use toolkit_ui::InlineNotice;
 
 use crate::i18n::tr;
 use crate::state::{AppContext, Tone};
 
 #[component]
-pub fn StatusBar() -> Element {
+pub fn InlineStatus() -> Element {
     let context = use_context::<AppContext>();
     let locale = context.preferences.read().locale;
     let status = context.status.read().clone();
@@ -28,7 +28,7 @@ pub fn StatusBar() -> Element {
         .map(|tab| format!("{} x {}", tab.export_size[0], tab.export_size[1]));
     let zoom_text = tab.as_ref().map(|tab| format!("{:.0}%", tab.zoom * 100.0));
     rsx! {
-        StatusIsland { class: "pam-statusbar",
+        InlineNotice { class: "pam-inline-status", tone: tone.to_string(),
             span { class: "pam-status-message {tone}", "{message}" }
             span { class: "pam-status-spacer" }
             if let Some(pointer_text) = pointer_text {
