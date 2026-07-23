@@ -20,13 +20,6 @@ pub mod log_buffer {
             .unwrap_or(env!("CARGO_PKG_VERSION"))
     }
 
-    fn normalize_entry(entry: &str) -> String {
-        entry.replace(
-            &format!("PAM Viewer {}", display_version()),
-            &format!("PAM Viewer v{}", display_version()),
-        )
-    }
-
     fn entries() -> MutexGuard<'static, VecDeque<String>> {
         LOGS.get_or_init(|| Mutex::new(VecDeque::new()))
             .lock()
@@ -69,30 +62,6 @@ pub mod log_buffer {
         entries.push_back(format!("[{}] [{level}] {message}", timestamp()));
         while entries.len() > MAX_ENTRIES {
             entries.pop_front();
-        }
-    }
-
-    pub fn snapshot() -> String {
-        entries()
-            .iter()
-            .map(|entry| normalize_entry(entry))
-            .collect::<Vec<_>>()
-            .join("\n")
-    }
-
-    pub fn clear() {
-        entries().clear();
-    }
-
-    #[cfg(test)]
-    mod tests {
-        use super::*;
-
-        #[test]
-        fn adds_the_version_prefix_to_legacy_entries() {
-            let legacy = format!("[12:00:00] [INFO] PAM Viewer {}", display_version());
-            let expected = format!("[12:00:00] [INFO] PAM Viewer v{}", display_version());
-            assert_eq!(normalize_entry(&legacy), expected);
         }
     }
 }

@@ -7,15 +7,6 @@ pub enum Locale {
     En,
 }
 
-impl Locale {
-    pub fn code(self) -> &'static str {
-        match self {
-            Self::ZhCn => "zh-CN",
-            Self::En => "en",
-        }
-    }
-}
-
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Theme {

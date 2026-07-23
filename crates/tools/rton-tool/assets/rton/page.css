@@ -758,8 +758,6 @@
 }
 
 .rton-action-sheet-layer,
-.rton-settings-backdrop,
-.rton-logs-backdrop,
 .rton-unsaved-backdrop {
   position: fixed;
   inset: 0;
@@ -782,8 +780,6 @@
 }
 
 .rton-action-sheet,
-.rton-settings-dialog,
-.rton-logs-dialog,
 .rton-unsaved-dialog {
   position: relative;
   z-index: 1;
@@ -799,18 +795,11 @@
   animation: rton-dialog-in 220ms var(--tk-spring) both;
 }
 
-.rton-settings-dialog,
 .rton-unsaved-dialog {
   width: min(520px, 100%);
 }
 
-.rton-logs-dialog {
-  width: min(760px, 100%);
-  grid-template-rows: auto minmax(0, 1fr) auto;
-}
-
 .rton-action-sheet-header,
-.rton-settings-header,
 .rton-unsaved-header {
   display: flex;
   min-width: 0;
@@ -939,7 +928,6 @@
   color: var(--color-accent-strong);
 }
 
-.rton-settings-title-row,
 .rton-unsaved-title-row {
   display: flex;
   min-width: 0;
@@ -947,14 +935,12 @@
   gap: 10px;
 }
 
-.rton-settings-title-row h2,
 .rton-unsaved-title-row h2 {
   margin: 0;
   color: var(--color-text-strong);
   font-size: 16px;
 }
 
-.rton-settings-title-icon,
 .rton-unsaved-icon {
   display: grid;
   width: 34px;
@@ -965,7 +951,6 @@
   color: var(--color-accent-strong);
 }
 
-.rton-settings-close,
 .rton-unsaved-close {
   display: grid;
   width: 34px;
@@ -978,144 +963,17 @@
   color: var(--color-text-muted);
 }
 
-.rton-settings-close:hover,
 .rton-unsaved-close:hover {
   background: var(--color-accent-soft);
   color: var(--color-accent-strong);
 }
 
-.rton-settings-content,
-.rton-logs-content,
 .rton-unsaved-content {
   min-height: 0;
   padding: 14px;
   overflow: auto;
 }
 
-.rton-settings-section {
-  display: grid;
-  gap: 10px;
-  padding: 13px;
-  border: 1px solid var(--color-border);
-  border-radius: 15px;
-  background: var(--color-surface-soft);
-}
-
-.rton-settings-section + .rton-settings-section {
-  margin-top: 10px;
-}
-
-.rton-settings-section-heading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--color-text-strong);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.rton-settings-section-icon {
-  color: var(--color-accent-strong);
-}
-
-.rton-settings-language {
-  position: relative;
-}
-
-.rton-settings-language-control,
-.rton-settings-action-button,
-.rton-settings-github-link {
-  display: flex;
-  width: 100%;
-  min-height: 40px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 0 11px;
-  border: 1px solid var(--color-border);
-  border-radius: 11px;
-  background: var(--color-control);
-  color: var(--color-text-strong);
-  text-decoration: none;
-}
-
-.rton-settings-language-menu {
-  position: absolute;
-  z-index: 3;
-  top: calc(100% + 5px);
-  left: 0;
-  right: 0;
-  max-height: 260px;
-  padding: 5px;
-  overflow: auto;
-  border: 1px solid var(--color-border);
-  border-radius: 13px;
-  background: var(--color-surface-raised);
-  box-shadow: 0 18px 50px rgba(8, 30, 26, 0.2);
-}
-
-.rton-settings-language-menu[aria-hidden="true"] {
-  display: none;
-}
-
-.rton-settings-language-menu button {
-  display: flex;
-  width: 100%;
-  min-height: 34px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 9px;
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--color-text-strong);
-}
-
-.rton-settings-language-menu button:hover,
-.rton-settings-language-menu button.active {
-  background: var(--color-accent-soft);
-  color: var(--color-accent-strong);
-}
-
-.rton-settings-about-list {
-  display: grid;
-  gap: 7px;
-  margin: 0;
-}
-
-.rton-settings-about-item {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.rton-settings-about-item dt {
-  color: var(--color-text-muted);
-}
-
-.rton-settings-about-item dd {
-  margin: 0;
-  color: var(--color-text-strong);
-  font-weight: 700;
-  text-align: right;
-}
-
-.rton-log-viewer {
-  width: 100%;
-  min-height: 300px;
-  padding: 12px;
-  resize: none;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background: var(--color-stage);
-  color: var(--color-text-strong);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 11px;
-  line-height: 1.55;
-}
-
-.rton-logs-actions,
 .rton-unsaved-actions {
   display: flex;
   justify-content: flex-end;
@@ -1129,8 +987,6 @@
 }
 
 .rton-action-sheet-layer.closing,
-.rton-settings-backdrop.closing,
-.rton-logs-backdrop.closing,
 .rton-unsaved-backdrop.closing,
 .rton-mode-menu.closing,
 .rton-mode-menu-backdrop.closing {
@@ -1199,16 +1055,12 @@
   }
 
   .rton-action-sheet-layer,
-  .rton-settings-backdrop,
-  .rton-logs-backdrop,
   .rton-unsaved-backdrop {
     align-items: flex-end;
     padding: 0;
   }
 
   .rton-action-sheet,
-  .rton-settings-dialog,
-  .rton-logs-dialog,
   .rton-unsaved-dialog {
     width: 100%;
     max-height: 86vh;

@@ -5,9 +5,7 @@ mod selector;
 mod view;
 
 use dioxus::prelude::*;
-use dioxus_free_icons::icons::ld_icons::{
-    LdEllipsis, LdFolderOpen, LdMenu, LdPanelRight, LdSettings, LdX,
-};
+use dioxus_free_icons::icons::ld_icons::{LdEllipsis, LdFolderOpen, LdMenu, LdPanelRight, LdX};
 
 use crate::actions::{clear_tabs, set_resource_sheet_open};
 #[cfg(target_arch = "wasm32")]
@@ -15,31 +13,12 @@ use crate::actions::{input_files_from_dioxus, load_inputs};
 use crate::i18n::tr;
 use crate::state::AppContext;
 
-use super::logs::LogViewerDialog;
 use super::primitives::icon;
 use export::{ConvertGroup, ExportGroup};
 use layers::LayerGroup;
 use playback::{PlaybackGroup, SpeedGroup};
 use selector::SelectorGroup;
-use view::{PreferenceGroup, SizeGroup, ViewGroup};
-
-const DIALOG_EXIT_MS: u64 = 200;
-
-fn close_settings_dialog(
-    mut mounted: Signal<bool>,
-    mut closing: Signal<bool>,
-    logs_open: Signal<bool>,
-) {
-    if *logs_open.peek() || !*mounted.peek() || *closing.peek() {
-        return;
-    }
-    closing.set(true);
-    spawn(async move {
-        crate::platform::sleep_ms(DIALOG_EXIT_MS).await;
-        mounted.set(false);
-        closing.set(false);
-    });
-}
+use view::{SizeGroup, ViewGroup};
 
 #[component]
 pub fn PageActions() -> Element {
@@ -50,13 +29,7 @@ pub fn PageActions() -> Element {
     let images_sheet_open = *context.images_sheet_open.read();
     let sprites_sheet_open = *context.sprites_sheet_open.read();
     let mut more_open = use_signal(|| false);
-    let mut settings_mounted = use_signal(|| false);
-    let mut settings_closing = use_signal(|| false);
-    let mut logs_open = use_signal(|| false);
     let more_open_snapshot = *more_open.read();
-    let settings_mounted_snapshot = *settings_mounted.read();
-    let settings_closing_snapshot = *settings_closing.read();
-    let settings_open = settings_mounted_snapshot && !settings_closing_snapshot;
     let locale = preferences.locale;
     let active_name = active_tab
         .map(|tab| tab.display_name())
@@ -117,22 +90,6 @@ pub fn PageActions() -> Element {
                 },
                 {icon(LdPanelRight)}
             }
-            button {
-                r#type: "button",
-                class: if settings_open {
-                    "pam-page-icon-button active"
-                } else {
-                    "pam-page-icon-button"
-                },
-                title: tr(locale, "settings"),
-                aria_label: tr(locale, "settings"),
-                aria_expanded: settings_open,
-                onclick: move |_| {
-                    settings_closing.set(false);
-                    settings_mounted.set(true);
-                },
-                {icon(LdSettings)}
-            }
             if more_open_snapshot {
                 div { class: "pam-action-sheet-layer",
                     button {
@@ -162,75 +119,6 @@ pub fn PageActions() -> Element {
                                 }
                             }
                         }
-                    }
-                }
-            }
-            if settings_mounted_snapshot {
-                div {
-                    class: if settings_closing_snapshot { "pam-settings-layer closing" } else { "pam-settings-layer" },
-                    tabindex: "-1",
-                    onmounted: move |event| {
-                        spawn(async move {
-                            let _ = event.set_focus(true).await;
-                        });
-                    },
-                    onkeydown: move |event| {
-                        if event.key() == Key::Escape {
-                            event.prevent_default();
-                            close_settings_dialog(settings_mounted, settings_closing, logs_open);
-                        }
-                    },
-                    button {
-                        r#type: "button",
-                        class: "pam-settings-backdrop",
-                        aria_label: tr(locale, "close_menu"),
-                        onclick: move |_| {
-                            close_settings_dialog(settings_mounted, settings_closing, logs_open)
-                        },
-                    }
-                    section {
-                        class: "pam-settings-dialog",
-                        role: "dialog",
-                        aria_modal: "true",
-                        aria_label: tr(locale, "settings"),
-                        header { class: "pam-settings-header",
-                            div { class: "pam-settings-title-row",
-                                span { class: "pam-settings-title-icon", {icon(LdSettings)} }
-                                h2 { {tr(locale, "settings")} }
-                            }
-                            button {
-                                r#type: "button",
-                                class: "pam-settings-close",
-                                title: tr(locale, "close_menu"),
-                                aria_label: tr(locale, "close_menu"),
-                                onclick: move |_| {
-                                    close_settings_dialog(
-                                        settings_mounted,
-                                        settings_closing,
-                                        logs_open,
-                                    )
-                                },
-                                {icon(LdX)}
-                            }
-                        }
-                        div { class: "pam-settings-content",
-                            PreferenceGroup {
-                                on_open_logs: move |_| {
-                                    settings_closing.set(false);
-                                    settings_mounted.set(true);
-                                    logs_open.set(true);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            if *logs_open.read() {
-                LogViewerDialog {
-                    on_close: move |_| {
-                        logs_open.set(false);
-                        settings_closing.set(false);
-                        settings_mounted.set(true);
                     }
                 }
             }

@@ -61,19 +61,6 @@ pub fn init(inner: Box<dyn Log>, max_level: LevelFilter) {
     }
 }
 
-pub fn snapshot() -> String {
-    BUFFER
-        .lock()
-        .map(|lines| lines.join("\n"))
-        .unwrap_or_default()
-}
-
-pub fn clear() {
-    if let Ok(mut lines) = BUFFER.lock() {
-        lines.clear();
-    }
-}
-
 #[cfg(target_arch = "wasm32")]
 struct WebConsoleLogger;
 

@@ -53,28 +53,6 @@ pub fn read_locale_preference() -> Option<String> {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn save_locale_preference(locale_code: &str) -> Result<(), String> {
-    let path = locale_preference_path()
-        .ok_or_else(|| "could not resolve locale preference path".to_string())?;
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).map_err(|error| error.to_string())?;
-    }
-    std::fs::write(path, locale_code).map_err(|error| error.to_string())
-}
-
-#[cfg(target_arch = "wasm32")]
-pub fn save_locale_preference(locale_code: &str) -> Result<(), String> {
-    let window = web_sys::window().ok_or_else(|| "window is unavailable".to_string())?;
-    let storage = window
-        .local_storage()
-        .map_err(|error| format!("{error:?}"))?
-        .ok_or_else(|| "localStorage is unavailable".to_string())?;
-    storage
-        .set_item(LOCALE_PREFERENCE_KEY, locale_code)
-        .map_err(|error| format!("{error:?}"))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
 pub fn read_line_wrapping_preference() -> bool {
     let Some(path) = line_wrapping_preference_path() else {
         return false;

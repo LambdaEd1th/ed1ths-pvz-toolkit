@@ -13,12 +13,6 @@ pub struct Locale {
     code: &'static str,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct LanguageOption {
-    pub locale: Locale,
-    pub label: String,
-}
-
 impl Locale {
     pub const EN_US: Self = Self { code: "en-US" };
     pub const ZH_CN: Self = Self { code: "zh-CN" };
@@ -91,32 +85,6 @@ pub fn install_locale(code: &str, source: &str) -> Result<Locale, String> {
 #[cfg(test)]
 pub fn has_locale(locale: Locale) -> bool {
     LOCALE_BUNDLES.with(|bundles| bundles.borrow().contains_key(locale.code()))
-}
-
-pub fn available_locales() -> Vec<Locale> {
-    let mut locales = LOCALE_BUNDLES.with(|bundles| {
-        bundles
-            .borrow()
-            .keys()
-            .copied()
-            .map(|code| Locale { code })
-            .collect::<Vec<_>>()
-    });
-    locales.sort_by(|left, right| left.code().cmp(right.code()));
-    if locales.is_empty() {
-        locales.push(Locale::EN_US);
-    }
-    locales
-}
-
-pub fn language_options(i18n: I18n) -> Vec<LanguageOption> {
-    available_locales()
-        .into_iter()
-        .map(|locale| LanguageOption {
-            locale,
-            label: language_label(locale, i18n),
-        })
-        .collect()
 }
 
 #[cfg(test)]
@@ -230,12 +198,6 @@ fn intern_locale_code(code: &str) -> Locale {
         codes.push(leaked);
         Locale { code: leaked }
     })
-}
-
-fn language_label(locale: Locale, _i18n: I18n) -> String {
-    format_locale_message(locale, "language-self", &[])
-        .or_else(|| format_locale_message(locale, "language-name", &[]))
-        .unwrap_or_else(|| locale.code().to_string())
 }
 
 fn canonical_locale_code(code: &str) -> Option<String> {

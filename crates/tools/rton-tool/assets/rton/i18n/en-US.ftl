@@ -23,40 +23,14 @@ toolbar-encrypted = Encrypted
 toolbar-validate = Validate
 toolbar-wrap = Wrap
 toolbar-search = Search
-settings-title = Settings
-settings-appearance = Appearance mode
-settings-language = Interface language
-settings-logs = Logs
-settings-logs-open = View application logs
-settings-about = About
 toolbar-more = More
 toolbar-close-menu = Close menu
 tabs-new-file = New blank { $format } file
-
-about-version = Version
-about-license = License
-about-author = Author
-about-github = GitHub
-about-close = Close
-
-logs-empty = No log entries
-logs-clear = Clear
-logs-export = Export log
 
 unsaved-changes-title = Discard unsaved changes?
 unsaved-changes-description = { $name } has changes that have not been exported.
 unsaved-changes-cancel = Cancel
 unsaved-changes-discard = Discard and close
-
-theme-system = System
-theme-light = Light
-theme-dark = Dark
-language-self = English
-language-en = English
-language-zh = Chinese
-language-fr = French
-language-ru = Russian
-language-es = Spanish
 
 panel-files = Files
 panel-file-properties = File properties
@@ -221,8 +195,6 @@ status-no-parsed-document-export = No parsed document to export
 status-exported-file = Exported { $name }
 status-exported-file-bytes = Exported { $name } ({ $bytes })
 status-export-cancelled = Export cancelled
-status-logs-cleared = Application logs cleared
-status-logs-exported = Exported rton-editor.log
 status-file-error = { $name }: { $error }
 status-file-read-error = Unable to read { $name }: { $error }
 status-no-active-tab = No active tab

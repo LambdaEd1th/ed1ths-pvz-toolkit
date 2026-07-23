@@ -39,23 +39,6 @@ fn renders_added_locale_bundles() {
 }
 
 #[test]
-fn language_options_use_native_language_names() {
-    install_test_i18n();
-
-    let options = i18n::language_options(I18n::new(Locale::ZH_CN));
-    let labels = options
-        .iter()
-        .map(|option| (option.locale.code(), option.label.as_str()))
-        .collect::<Vec<_>>();
-
-    assert!(labels.contains(&("en-US", "English")));
-    assert!(labels.contains(&("zh-CN", "中文")));
-    assert!(labels.contains(&("fr-FR", "Français")));
-    assert!(labels.contains(&("ru-RU", "Русский")));
-    assert!(labels.contains(&("es-ES", "Español")));
-}
-
-#[test]
 fn i18n_keeps_one_bundle_per_locale_and_adds_new_locale() {
     install_test_i18n();
 
@@ -72,17 +55,10 @@ fn i18n_keeps_one_bundle_per_locale_and_adds_new_locale() {
         Some("pt-BR")
     );
     let added_locale =
-        i18n::install_locale("de-DE", "language-self = Deutsch\ntoolbar-open = Oeffnen\n")
-            .expect("valid added locale");
+        i18n::install_locale("de-DE", "toolbar-open = Oeffnen\n").expect("valid added locale");
     assert_eq!(added_locale.code(), "de-DE");
     assert_eq!(Locale::supported_from_code("de-DE"), Some(added_locale));
     assert_eq!(I18n::new(added_locale).t("toolbar-open"), "Oeffnen");
     assert_eq!(I18n::new(added_locale).t("toolbar-compact"), "Compact");
-    assert!(
-        i18n::language_options(I18n::new(Locale::EN_US))
-            .iter()
-            .any(|option| option.locale == added_locale && option.label == "Deutsch")
-    );
-
     i18n::clear_locales_for_tests();
 }

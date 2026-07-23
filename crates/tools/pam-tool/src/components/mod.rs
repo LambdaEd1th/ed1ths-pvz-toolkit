@@ -1,4 +1,3 @@
-mod logs;
 mod page_actions;
 mod panels;
 mod primitives;

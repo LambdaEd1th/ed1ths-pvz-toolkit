@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::state::{AppContext, Locale};
+use crate::state::AppContext;
 
 pub fn set_loop(mut context: AppContext, value: bool) {
     context.preferences.write().loop_playback = value;
@@ -45,9 +45,4 @@ pub fn set_resource_sheet_open(mut context: AppContext, images: bool, value: boo
             context.images_sheet_open.set(false);
         }
     }
-}
-
-pub fn set_locale(mut context: AppContext, locale: Locale) {
-    context.preferences.write().locale = locale;
-    context.save_preferences();
 }

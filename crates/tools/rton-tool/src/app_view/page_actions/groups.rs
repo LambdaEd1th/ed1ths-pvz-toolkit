@@ -2,7 +2,6 @@ mod edit;
 mod file;
 mod preferences;
 mod rton_export;
-mod settings;
 mod text_export;
 
 use dioxus::prelude::*;
@@ -19,7 +18,6 @@ use file::FileActions;
 pub(super) use file::WebFileOpenControl;
 use preferences::PreferencesActions;
 use rton_export::RtonExportActions;
-pub(super) use settings::SettingsDialog;
 use text_export::TextExportActions;
 
 #[component]

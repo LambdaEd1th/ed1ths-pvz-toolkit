@@ -1,4 +1,4 @@
-use crate::i18n::{self, I18n};
+use crate::i18n::I18n;
 use dioxus::prelude::*;
 use rton_editor_core::{BinaryEncoding, EncodeOptions, TextFormat};
 use std::cell::RefCell;
@@ -236,7 +236,6 @@ fn RtonPage() -> Element {
     let locale_snapshot = *locale.read();
     let _i18n_revision_snapshot = *i18n_revision.read();
     let i18n = I18n::new(locale_snapshot);
-    let language_options = i18n::language_options(i18n);
     let line_wrapping_snapshot = *line_wrapping.read();
     let editor_search_panel_visible_snapshot = *editor_search_panel_visible.read();
     let editor_search_text_snapshot = editor_search_text.read().clone();
@@ -741,8 +740,6 @@ fn RtonPage() -> Element {
                             active_file_label: active_file_label.clone(),
                             compact_snapshot,
                             encrypt_snapshot,
-                            locale_snapshot,
-                            language_options: language_options.clone(),
                             line_wrapping_snapshot,
                             editor_search_panel_visible_snapshot,
                             can_undo_snapshot,
@@ -753,7 +750,6 @@ fn RtonPage() -> Element {
                             next_loaded_file_id,
                             file_selection,
                             encrypt_output,
-                            locale,
                             line_wrapping,
                             editor_search_panel_visible,
                             status,

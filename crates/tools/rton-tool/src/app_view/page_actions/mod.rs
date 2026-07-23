@@ -2,18 +2,17 @@ mod groups;
 
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{
-    LdChevronDown, LdEllipsis, LdFilePlus2, LdMenu, LdPanelRight, LdRedo2, LdSearch, LdSettings,
-    LdUndo2, LdX,
+    LdChevronDown, LdEllipsis, LdFilePlus2, LdMenu, LdPanelRight, LdRedo2, LdSearch, LdUndo2, LdX,
 };
 use rton_editor_core::TextFormat;
 
 use crate::components::{FileSelection, lucide_icon};
 use crate::domain::{EditorMode, Status};
 use crate::file_import::LoadedFileState;
-use crate::i18n::{I18n, LanguageOption, Locale};
+use crate::i18n::I18n;
 use crate::platform;
 
-use groups::{ActionGroupContent, SettingsDialog, WebFileOpenControl};
+use groups::{ActionGroupContent, WebFileOpenControl};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(super) enum ActionGroupId {
@@ -82,7 +81,6 @@ const EDITOR_MODES: [EditorMode; 4] = [
 
 const MENU_EXIT_MS: u64 = 200;
 const MORE_MENU_EXIT_MS: u64 = 170;
-const DIALOG_EXIT_MS: u64 = 200;
 
 fn close_mode_menu(mut position: Signal<Option<ModeMenuPosition>>, mut closing: Signal<bool>) {
     if position.peek().is_none() || *closing.peek() {
@@ -103,18 +101,6 @@ fn close_more_menu(mut mounted: Signal<bool>, mut closing: Signal<bool>) {
     closing.set(true);
     spawn(async move {
         platform::sleep_ms(MORE_MENU_EXIT_MS).await;
-        mounted.set(false);
-        closing.set(false);
-    });
-}
-
-fn close_settings_dialog(mut mounted: Signal<bool>, mut closing: Signal<bool>) {
-    if !*mounted.peek() || *closing.peek() {
-        return;
-    }
-    closing.set(true);
-    spawn(async move {
-        platform::sleep_ms(DIALOG_EXIT_MS).await;
         mounted.set(false);
         closing.set(false);
     });
@@ -159,8 +145,6 @@ pub(super) fn PageActions(
     active_file_label: String,
     compact_snapshot: bool,
     encrypt_snapshot: bool,
-    locale_snapshot: Locale,
-    language_options: Vec<LanguageOption>,
     line_wrapping_snapshot: bool,
     editor_search_panel_visible_snapshot: bool,
     can_undo_snapshot: bool,
@@ -171,7 +155,6 @@ pub(super) fn PageActions(
     next_loaded_file_id: Signal<usize>,
     file_selection: Signal<FileSelection>,
     encrypt_output: Signal<bool>,
-    locale: Signal<Locale>,
     line_wrapping: Signal<bool>,
     editor_search_panel_visible: Signal<bool>,
     status: Signal<Status>,
@@ -188,22 +171,17 @@ pub(super) fn PageActions(
 ) -> Element {
     let mut action_sheet_mounted = use_signal(|| false);
     let mut action_sheet_closing = use_signal(|| false);
-    let mut settings_mounted = use_signal(|| false);
-    let mut settings_closing = use_signal(|| false);
     let mut mode_control_mounted = use_signal(|| None::<MountedEvent>);
     let mut mode_menu_position = use_signal(|| None::<ModeMenuPosition>);
     let mut mode_menu_closing = use_signal(|| false);
     let action_sheet_mounted_snapshot = *action_sheet_mounted.read();
     let action_sheet_closing_snapshot = *action_sheet_closing.read();
-    let settings_mounted_snapshot = *settings_mounted.read();
-    let settings_closing_snapshot = *settings_closing.read();
     let mode_menu_position_snapshot = *mode_menu_position.read();
     let mode_menu_closing_snapshot = *mode_menu_closing.read();
     let file_sheet_open_snapshot = *file_sheet_open.read();
     let inspector_sheet_open_snapshot = *inspector_sheet_open.read();
     let mode_menu_open = mode_menu_position_snapshot.is_some() && !mode_menu_closing_snapshot;
     let action_sheet_open = action_sheet_mounted_snapshot && !action_sheet_closing_snapshot;
-    let settings_open = settings_mounted_snapshot && !settings_closing_snapshot;
     let has_active_document = active_mode_snapshot.is_some();
     let selector_mode = active_mode_snapshot
         .or(preferred_mode_snapshot)
@@ -365,21 +343,6 @@ pub(super) fn PageActions(
                 },
                 {lucide_icon(LdPanelRight)}
             }
-            button {
-                r#type: "button",
-                class: if settings_open { "rton-page-icon-button active" } else { "rton-page-icon-button" },
-                title: i18n.t("settings-title"),
-                aria_label: i18n.t("settings-title"),
-                aria_haspopup: "dialog",
-                aria_expanded: settings_open,
-                onclick: move |_| {
-                    close_more_menu(action_sheet_mounted, action_sheet_closing);
-                    close_mode_menu(mode_menu_position, mode_menu_closing);
-                    settings_closing.set(false);
-                    settings_mounted.set(true);
-                },
-                {lucide_icon(LdSettings)}
-            }
         }
 
         if action_sheet_mounted_snapshot {
@@ -438,18 +401,6 @@ pub(super) fn PageActions(
                         span { "{mode.label()}" }
                     }
                 }
-            }
-        }
-
-        if settings_mounted_snapshot {
-            SettingsDialog {
-                i18n,
-                closing: settings_closing_snapshot,
-                locale_snapshot,
-                language_options: language_options.clone(),
-                locale,
-                status,
-                on_close: move |_| close_settings_dialog(settings_mounted, settings_closing)
             }
         }
     }

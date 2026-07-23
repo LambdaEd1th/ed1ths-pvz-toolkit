@@ -682,8 +682,6 @@
 }
 
 .pam-action-sheet-layer,
-.pam-settings-layer,
-.pam-logs-backdrop,
 .pam-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -698,7 +696,6 @@
 }
 
 .pam-action-sheet-backdrop,
-.pam-settings-backdrop,
 .pam-modal-backdrop::before {
   position: absolute;
   inset: 0;
@@ -722,8 +719,7 @@
   animation: pam-dialog-in 220ms var(--tk-spring) both;
 }
 
-.pam-action-sheet-header,
-.pam-settings-header {
+.pam-action-sheet-header {
   display: flex;
   min-width: 0;
   align-items: center;
@@ -779,8 +775,7 @@
   white-space: nowrap;
 }
 
-.pam-select-caret,
-.pam-settings-language-caret {
+.pam-select-caret {
   color: var(--color-text-subtle);
 }
 
@@ -792,8 +787,7 @@
   background: transparent;
 }
 
-.pam-select-menu,
-.pam-settings-language-menu {
+.pam-select-menu {
   z-index: 2;
   min-width: 180px;
   max-height: 280px;
@@ -813,16 +807,7 @@
   width: var(--select-width);
 }
 
-.pam-settings-language-menu {
-  position: absolute;
-}
-
-.pam-settings-language-menu[aria-hidden="true"] {
-  display: none;
-}
-
-.pam-select-menu button,
-.pam-settings-language-menu button {
+.pam-select-menu button {
   display: flex;
   width: 100%;
   min-height: 34px;
@@ -839,9 +824,7 @@
 }
 
 .pam-select-menu button:hover,
-.pam-select-menu button.active,
-.pam-settings-language-menu button:hover,
-.pam-settings-language-menu button.active {
+.pam-select-menu button.active {
   background: var(--color-accent-soft);
   color: var(--color-accent-strong);
 }
@@ -894,8 +877,6 @@
   transform: translateX(14px);
 }
 
-.pam-settings-layer,
-.pam-logs-backdrop,
 .pam-modal-backdrop {
   align-items: center;
   justify-content: center;
@@ -904,8 +885,6 @@
   backdrop-filter: blur(9px);
 }
 
-.pam-settings-dialog,
-.pam-logs-dialog,
 .pam-export-dialog {
   position: relative;
   z-index: 1;
@@ -919,159 +898,6 @@
   background: var(--color-surface-raised);
   box-shadow: 0 28px 90px rgba(9, 31, 27, 0.25);
   animation: pam-dialog-in 220ms var(--tk-spring) both;
-}
-
-.pam-logs-dialog {
-  width: min(760px, 100%);
-  grid-template-rows: auto minmax(0, 1fr) auto;
-}
-
-.pam-settings-title-row {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
-}
-
-.pam-settings-title-row h2 {
-  margin: 0;
-  color: var(--color-text-strong);
-  font-size: 16px;
-}
-
-.pam-settings-title-icon {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border-radius: 11px;
-  background: var(--color-accent-soft);
-  color: var(--color-accent-strong);
-}
-
-.pam-settings-close {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  place-items: center;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-}
-
-.pam-settings-close:hover {
-  background: var(--color-accent-soft);
-  color: var(--color-accent-strong);
-}
-
-.pam-settings-content,
-.pam-logs-content {
-  min-height: 0;
-  padding: 14px;
-  overflow: auto;
-}
-
-.pam-settings-section {
-  display: grid;
-  gap: 10px;
-  padding: 13px;
-  border: 1px solid var(--color-border);
-  border-radius: 15px;
-  background: var(--color-surface-soft);
-}
-
-.pam-settings-section + .pam-settings-section {
-  margin-top: 10px;
-}
-
-.pam-settings-section-heading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--color-text-strong);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.pam-settings-section-icon {
-  color: var(--color-accent-strong);
-}
-
-.pam-settings-language {
-  position: relative;
-}
-
-.pam-settings-language-control,
-.pam-settings-action-button,
-.pam-settings-github-link {
-  display: flex;
-  width: 100%;
-  min-height: 40px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 0 11px;
-  border: 1px solid var(--color-border);
-  border-radius: 11px;
-  background: var(--color-control);
-  color: var(--color-text-strong);
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.pam-settings-language-menu {
-  top: 100%;
-  left: 0;
-  right: 0;
-}
-
-.pam-settings-about-list {
-  display: grid;
-  gap: 7px;
-  margin: 0;
-}
-
-.pam-settings-about-item {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.pam-settings-about-item dt {
-  color: var(--color-text-muted);
-}
-
-.pam-settings-about-item dd {
-  margin: 0;
-  color: var(--color-text-strong);
-  font-weight: 700;
-  text-align: right;
-}
-
-.pam-log-viewer {
-  width: 100%;
-  min-height: 300px;
-  padding: 12px;
-  resize: none;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background: var(--color-stage);
-  color: var(--color-text-strong);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 11px;
-  line-height: 1.55;
-}
-
-.pam-logs-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 12px 14px;
-  border-top: 1px solid var(--color-border);
 }
 
 .pam-export-dialog {
@@ -1108,21 +934,10 @@
   transition: width 180ms ease;
 }
 
-.pam-settings-layer.closing,
-.pam-logs-backdrop.closing {
-  animation: pam-fade-out 150ms ease both;
-}
-
 @keyframes pam-dialog-in {
   from {
     opacity: 0;
     transform: translateY(14px) scale(0.975);
-  }
-}
-
-@keyframes pam-fade-out {
-  to {
-    opacity: 0;
   }
 }
 
@@ -1183,16 +998,12 @@
   }
 
   .pam-action-sheet-layer,
-  .pam-settings-layer,
-  .pam-logs-backdrop,
   .pam-modal-backdrop {
     align-items: flex-end;
     padding: 0;
   }
 
   .pam-action-sheet,
-  .pam-settings-dialog,
-  .pam-logs-dialog,
   .pam-export-dialog {
     width: 100%;
     max-height: 86vh;
