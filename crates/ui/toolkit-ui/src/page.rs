@@ -16,27 +16,9 @@ pub fn ToolPage(
 }
 
 #[component]
-pub fn ToolPageHeader(
-    eyebrow: String,
-    title: String,
-    accent_title: String,
-    description: String,
-    actions: Element,
-    #[props(default)] class: String,
-) -> Element {
+pub fn ToolPageToolbar(actions: Element, #[props(default)] class: String) -> Element {
     rsx! {
-        section { class: "ui-tool-page-header {class}",
-            div { class: "ui-tool-page-copy",
-                span { class: "ui-tool-page-badge",
-                    span { class: "ui-tool-page-pulse", aria_hidden: "true" }
-                    span { class: "ui-tool-page-eyebrow", "{eyebrow}" }
-                }
-                h1 {
-                    span { "{title}" }
-                    span { class: "ui-tool-page-title-accent", " {accent_title}" }
-                }
-                p { "{description}" }
-            }
+        section { class: "ui-tool-page-toolbar {class}",
             div { class: "ui-island ui-tool-page-actions", {actions} }
         }
     }

@@ -7,7 +7,7 @@ mod tabs;
 
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{LdImage, LdShapes};
-use toolkit_ui::{ContextSheet, ToolPage, ToolPageHeader, WorkspaceCard};
+use toolkit_ui::{ContextSheet, ToolPage, ToolPageToolbar, WorkspaceCard};
 
 use crate::actions::set_resource_sheet_open;
 use crate::i18n::tr;
@@ -48,12 +48,8 @@ pub fn PamPage() -> Element {
             onmouseup: move |_| finish_pointer_gestures(context),
             onmouseleave: move |_| cancel_pointer_gestures(context),
             ToolPage { namespace: "pam", class: "pam-app",
-                ToolPageHeader {
-                    class: "pam-page-header",
-                    eyebrow: tr(locale, "page_eyebrow"),
-                    title: "PAM",
-                    accent_title: "Viewer",
-                    description: tr(locale, "page_description"),
+                ToolPageToolbar {
+                    class: "pam-page-toolbar",
                     actions: rsx! { PageActions {} },
                 }
 

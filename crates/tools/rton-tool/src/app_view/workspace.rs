@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use rton_editor_core::{BinaryEncoding, EncodeOptions, TextFormat};
 use std::cell::RefCell;
 use std::rc::Rc;
-use toolkit_ui::{ContextSheet, ToolPage, ToolPageHeader, WorkspaceCard};
+use toolkit_ui::{ContextSheet, ToolPage, ToolPageToolbar, WorkspaceCard};
 
 use crate::app_actions::*;
 #[cfg(not(target_arch = "wasm32"))]
@@ -727,12 +727,8 @@ fn RtonPage() -> Element {
                 });
             },
             ToolPage { namespace: "rton", class: "rton-app",
-                ToolPageHeader {
-                    class: "rton-page-header",
-                    eyebrow: i18n.t("page-eyebrow"),
-                    title: "RTON",
-                    accent_title: "Editor",
-                    description: i18n.t("page-description"),
+                ToolPageToolbar {
+                    class: "rton-page-toolbar",
                     actions: rsx! {
                         PageActions {
                             i18n,
