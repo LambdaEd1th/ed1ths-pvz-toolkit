@@ -22,46 +22,52 @@ pub(super) fn PlaybackGroup() -> Element {
     let range = tab.as_ref().map(|tab| tab.frame_range);
     let maximum = count.saturating_sub(1);
     rsx! {
-        button {
-            r#type: "button", class: "pam-icon-button", disabled, title: tr(locale, "previous_frame"),
-            onclick: move |_| advance_frame(context, -1, true), {icon(LdSkipBack)}
-        }
-        button {
-            r#type: "button", class: "pam-icon-button primary", disabled, title: tr(locale, "play_pause"),
-            onclick: move |_| context.playing.toggle(),
-            if playing { {icon(LdPause)} } else { {icon(LdPlay)} }
-        }
-        button {
-            r#type: "button", class: "pam-icon-button", disabled, title: tr(locale, "next_frame"),
-            onclick: move |_| advance_frame(context, 1, true), {icon(LdSkipForward)}
-        }
-        span { class: "pam-frame-counter", "{frame + usize::from(count > 0)}/{count}" }
-        input {
-            class: "pam-frame-slider",
-            r#type: "range",
-            min: range.map(|range| range.begin).unwrap_or(0),
-            max: range.map(|range| range.end).unwrap_or(0),
-            value: frame,
-            disabled,
-            oninput: move |event| {
-                if let Ok(frame) = event.value().parse::<usize>() { set_frame(context, frame); }
-            },
-        }
-        span { class: "pam-field-label",
-            NumberControl {
-                value: range.map(|range| range.begin as u32).unwrap_or(0),
-                min: 0,
-                max: maximum as u32,
-                disabled,
-                onchange: move |value| set_frame_range(context, Some(value as usize), None),
+        div { class: "pam-playback-main",
+            div { class: "pam-transport-group",
+                button {
+                    r#type: "button", class: "pam-icon-button", disabled, title: tr(locale, "previous_frame"),
+                    onclick: move |_| advance_frame(context, -1, true), {icon(LdSkipBack)}
+                }
+                button {
+                    r#type: "button", class: "pam-icon-button primary", disabled, title: tr(locale, "play_pause"),
+                    onclick: move |_| context.playing.toggle(),
+                    if playing { {icon(LdPause)} } else { {icon(LdPlay)} }
+                }
+                button {
+                    r#type: "button", class: "pam-icon-button", disabled, title: tr(locale, "next_frame"),
+                    onclick: move |_| advance_frame(context, 1, true), {icon(LdSkipForward)}
+                }
+                span { class: "pam-frame-counter", "{frame + usize::from(count > 0)}/{count}" }
             }
-            span { class: "pam-range-separator", "-" }
-            NumberControl {
-                value: range.map(|range| range.end as u32).unwrap_or(0),
-                min: 0,
-                max: maximum as u32,
-                disabled,
-                onchange: move |value| set_frame_range(context, None, Some(value as usize)),
+            div { class: "pam-timeline-group",
+                input {
+                    class: "pam-frame-slider",
+                    r#type: "range",
+                    min: range.map(|range| range.begin).unwrap_or(0),
+                    max: range.map(|range| range.end).unwrap_or(0),
+                    value: frame,
+                    disabled,
+                    oninput: move |event| {
+                        if let Ok(frame) = event.value().parse::<usize>() { set_frame(context, frame); }
+                    },
+                }
+                span { class: "pam-field-label pam-range-control",
+                    NumberControl {
+                        value: range.map(|range| range.begin as u32).unwrap_or(0),
+                        min: 0,
+                        max: maximum as u32,
+                        disabled,
+                        onchange: move |value| set_frame_range(context, Some(value as usize), None),
+                    }
+                    span { class: "pam-range-separator", "-" }
+                    NumberControl {
+                        value: range.map(|range| range.end as u32).unwrap_or(0),
+                        min: 0,
+                        max: maximum as u32,
+                        disabled,
+                        onchange: move |value| set_frame_range(context, None, Some(value as usize)),
+                    }
+                }
             }
         }
     }
@@ -102,27 +108,33 @@ pub(super) fn SpeedGroup() -> Element {
     .map(|(value, label)| SelectOption::new(value, label))
     .collect();
     rsx! {
-        span { class: "pam-field-label",
-            span { {tr(locale, "speed")} }
-            NumberControl {
-                value: fps, min: 1, max: 120, disabled,
-                onchange: move |value| set_speed(context, value),
+        div { class: "pam-playback-options",
+            div { class: "pam-speed-group",
+                span { class: "pam-field-label",
+                    span { class: "pam-field-caption", {tr(locale, "speed")} }
+                    NumberControl {
+                        value: fps, min: 1, max: 120, disabled,
+                        onchange: move |value| set_speed(context, value),
+                    }
+                    span { class: "pam-unit", "FPS" }
+                    SelectControl {
+                        value: factor,
+                        options: factors,
+                        compact: true,
+                        disabled,
+                        onchange: move |value: String| {
+                            if let Ok(value) = value.parse::<f64>() { set_speed_factor(context, value); }
+                        },
+                    }
+                }
             }
-            span { class: "pam-unit", "FPS" }
-            SelectControl {
-                value: factor,
-                options: factors,
-                compact: true,
-                disabled,
-                onchange: move |value: String| {
-                    if let Ok(value) = value.parse::<f64>() { set_speed_factor(context, value); }
-                },
+            div { class: "pam-toggle-group",
+                SwitchControl { label: tr(locale, "loop"), checked: preferences.loop_playback, onchange: move |value| set_loop(context, value) }
+                SwitchControl { label: tr(locale, "reverse"), checked: preferences.reverse, onchange: move |value| set_reverse(context, value) }
+                SwitchControl { label: tr(locale, "autoplay"), checked: preferences.autoplay, onchange: move |value| set_autoplay(context, value) }
+                SwitchControl { label: tr(locale, "keep_speed"), checked: preferences.keep_speed, onchange: move |value| set_keep_speed(context, value) }
+                SwitchControl { label: tr(locale, "boundary"), checked: preferences.boundary, onchange: move |value| set_boundary(context, value) }
             }
         }
-        SwitchControl { label: tr(locale, "loop"), checked: preferences.loop_playback, onchange: move |value| set_loop(context, value) }
-        SwitchControl { label: tr(locale, "reverse"), checked: preferences.reverse, onchange: move |value| set_reverse(context, value) }
-        SwitchControl { label: tr(locale, "autoplay"), checked: preferences.autoplay, onchange: move |value| set_autoplay(context, value) }
-        SwitchControl { label: tr(locale, "keep_speed"), checked: preferences.keep_speed, onchange: move |value| set_keep_speed(context, value) }
-        SwitchControl { label: tr(locale, "boundary"), checked: preferences.boundary, onchange: move |value| set_boundary(context, value) }
     }
 }
