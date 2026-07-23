@@ -3,11 +3,9 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{LdActivity, LdFileArchive, LdFolderOpen};
 use rton_editor_core::ValueStats;
-use toolkit_ui::InlineNotice;
 
 use crate::app_constants::LOADABLE_FILE_HINT;
 use crate::components::{MetaItem, PanelHeader, StatsGrid, lucide_icon};
-use crate::domain::Status;
 use crate::i18n::I18n;
 
 #[component]
@@ -69,27 +67,6 @@ pub(crate) fn FileSummaryPanel(
                     }
                     StatsGrid { stats, i18n }
                 }
-            }
-        }
-    }
-}
-
-#[component]
-pub(crate) fn DocumentNotice(
-    i18n: I18n,
-    active_file_label: String,
-    output_value: String,
-    status: Status,
-) -> Element {
-    rsx! {
-        InlineNotice { class: "rton-document-notice", tone: status.tone.class().to_string(),
-            span { class: "status-file",
-                "{active_file_label}"
-            }
-            span { class: "status-message", "{status.message}" }
-            span { class: "status-output-label", {i18n.t("panel-output")} }
-            span { class: "status-output-value",
-                "{output_value}"
             }
         }
     }

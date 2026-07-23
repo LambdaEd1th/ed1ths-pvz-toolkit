@@ -6,17 +6,6 @@ pub(crate) enum Tone {
     Error,
 }
 
-impl Tone {
-    pub(crate) fn class(self) -> &'static str {
-        match self {
-            Tone::Info => "info",
-            Tone::Ok => "ok",
-            Tone::Warn => "warn",
-            Tone::Error => "error",
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Status {
     pub(crate) message: String,

@@ -26,7 +26,6 @@ use super::effects::{
 use super::file_panel::FilePanel;
 use super::handlers::{start_tab_drag_if_needed, update_tab_drop_marker_for_drag};
 use super::index_panel::IndexPanel;
-use super::layout::DocumentNotice;
 use super::page_actions::PageActions;
 use super::signals::{self, AppSignals, use_app_signals};
 use super::snapshot::{
@@ -357,7 +356,6 @@ fn RtonPage() -> Element {
     let file_panel = file_panel_memo.read().clone();
     let dragged_tab_id_snapshot = *dragged_tab_id.read();
     let tab_drop_marker_snapshot = *tab_drop_marker.read();
-    let status_snapshot = status.read().clone();
     let no_file_label = i18n.t("common-no-file");
     let active_file_label = active_file_name_snapshot.unwrap_or_else(|| no_file_label.clone());
     let active_text_byte_count_snapshot = active_stage_tab_snapshot
@@ -816,13 +814,6 @@ fn RtonPage() -> Element {
                         on_find_key: EventHandler::new(handle_editor_search_key),
                         on_replace_key: EventHandler::new(handle_editor_replace_key),
                         suppress_resize_observer: false
-                    }
-
-                    DocumentNotice {
-                        i18n,
-                        active_file_label: active_file_label.clone(),
-                        output_value: output_value_label.clone(),
-                        status: status_snapshot
                     }
                 }
 
