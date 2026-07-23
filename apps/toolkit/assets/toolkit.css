@@ -508,7 +508,7 @@ button {
   display: grid;
   width: 100%;
   min-height: 42px;
-  grid-template-columns: 28px minmax(0, 1fr) auto;
+  grid-template-columns: 28px minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   padding: 0 10px;
@@ -541,17 +541,6 @@ button {
 .tk-nav-item--active:hover {
   background: var(--tk-accent-soft);
   color: var(--tk-accent-strong);
-}
-
-.tk-nav-item small {
-  padding: 3px 6px;
-  border-radius: 7px;
-  background: var(--tk-surface-muted);
-  color: var(--tk-faint);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
 }
 
 .tk-nav-glyph {
