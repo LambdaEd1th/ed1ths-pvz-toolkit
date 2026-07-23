@@ -130,6 +130,13 @@ pub fn Stage() -> Element {
                     div { class: "pam-empty-stage-icon", {icon(LdFolderOpen)} }
                     h2 { {tr(locale, "drop_title")} }
                     p { {tr(locale, "drop_subtitle")} }
+                    div { class: "pam-format-row", aria_hidden: "true",
+                        span { "PAM" }
+                        span { "JSON" }
+                        span { "YAML" }
+                        span { "TOML" }
+                        span { "FLA / XFL" }
+                    }
                     LoadButton { large: true }
                 }
             }

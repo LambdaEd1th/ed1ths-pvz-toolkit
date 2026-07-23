@@ -20,6 +20,12 @@ pub(crate) fn EmptyDropStage(i18n: I18n) -> Element {
                 class: "empty-editor-subtitle",
                 {i18n.t_args("drop-subtitle", &[("hint", LOADABLE_FILE_HINT.to_string())])}
             }
+            div { class: "rton-format-row", aria_hidden: "true",
+                span { "RTON" }
+                span { "JSON" }
+                span { "YAML" }
+                span { "TOML" }
+            }
         }
     }
 }

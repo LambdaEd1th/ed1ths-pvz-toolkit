@@ -730,7 +730,8 @@ fn RtonPage() -> Element {
                 ToolPageHeader {
                     class: "rton-page-header",
                     eyebrow: i18n.t("page-eyebrow"),
-                    title: "RTON Editor",
+                    title: "RTON",
+                    accent_title: "Editor",
                     description: i18n.t("page-description"),
                     actions: rsx! {
                         PageActions {

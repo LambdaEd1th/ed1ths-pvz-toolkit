@@ -19,21 +19,25 @@ pub fn ToolPage(
 pub fn ToolPageHeader(
     eyebrow: String,
     title: String,
+    accent_title: String,
     description: String,
     actions: Element,
     #[props(default)] class: String,
 ) -> Element {
     rsx! {
-        section { class: "ui-island ui-tool-page-header {class}",
+        section { class: "ui-tool-page-header {class}",
             div { class: "ui-tool-page-copy",
-                span { class: "ui-tool-page-eyebrow", "{eyebrow}" }
-                div { class: "ui-tool-page-title-row",
-                    h1 { "{title}" }
+                span { class: "ui-tool-page-badge",
                     span { class: "ui-tool-page-pulse", aria_hidden: "true" }
+                    span { class: "ui-tool-page-eyebrow", "{eyebrow}" }
+                }
+                h1 {
+                    span { "{title}" }
+                    span { class: "ui-tool-page-title-accent", " {accent_title}" }
                 }
                 p { "{description}" }
             }
-            div { class: "ui-tool-page-actions", {actions} }
+            div { class: "ui-island ui-tool-page-actions", {actions} }
         }
     }
 }
@@ -46,7 +50,7 @@ pub fn WorkspaceCard(
 ) -> Element {
     rsx! {
         article {
-            class: "ui-workspace-card {class}",
+            class: "ui-island ui-workspace-card {class}",
             aria_label,
             {children}
         }

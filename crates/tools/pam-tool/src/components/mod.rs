@@ -51,7 +51,8 @@ pub fn PamPage() -> Element {
                 ToolPageHeader {
                     class: "pam-page-header",
                     eyebrow: tr(locale, "page_eyebrow"),
-                    title: "PAM Viewer",
+                    title: "PAM",
+                    accent_title: "Viewer",
                     description: tr(locale, "page_description"),
                     actions: rsx! { PageActions {} },
                 }

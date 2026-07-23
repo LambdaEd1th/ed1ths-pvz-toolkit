@@ -1,31 +1,45 @@
 :root {
   color-scheme: light;
-  font-family: "DM Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    "Noto Sans", "Liberation Sans", Arial, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --tk-accent: #33ccbb;
   --tk-accent-strong: #2da89b;
-  --tk-accent-soft: rgba(51, 204, 187, 0.14);
-  --tk-ink: #20292d;
-  --tk-muted: #6e7a7d;
-  --tk-faint: #98a2a4;
-  --tk-page: #f4f7f6;
-  --tk-surface: rgba(255, 255, 255, 0.68);
-  --tk-surface-strong: rgba(255, 255, 255, 0.84);
-  --tk-surface-muted: rgba(245, 249, 248, 0.72);
-  --tk-surface-opaque: #f9fbfa;
-  --tk-surface-sunken: #edf3f1;
-  --tk-island-glass: rgba(255, 255, 255, 0.7);
-  --tk-island-border: rgba(255, 255, 255, 0.82);
-  --tk-control: rgba(255, 255, 255, 0.48);
-  --tk-control-hover: rgba(255, 255, 255, 0.78);
+  --tk-accent-soft: color-mix(in srgb, var(--tk-accent) 14%, white);
+  --tk-accent-soft-hover: color-mix(in srgb, var(--tk-accent) 20%, white);
+  --tk-complement: #ff6699;
+  --tk-complement-soft: rgba(255, 102, 153, 0.12);
+  --tk-ink: #1e293b;
+  --tk-ink-muted: #64748b;
+  --tk-muted: #64748b;
+  --tk-faint: #94a3b8;
+  --tk-page: #f0fbf9;
+  --tk-page-start: #ffffff;
+  --tk-page-end: #f0fbf9;
+  --tk-surface: rgba(255, 255, 255, 0.62);
+  --tk-surface-strong: rgba(255, 255, 255, 0.82);
+  --tk-surface-muted: rgba(248, 250, 252, 0.76);
+  --tk-surface-opaque: #ffffff;
+  --tk-surface-sunken: #f1f5f9;
+  --tk-island-glass: rgba(255, 255, 255, 0.62);
+  --tk-island-border: rgba(255, 255, 255, 0.55);
+  --tk-control: rgba(255, 255, 255, 0.35);
+  --tk-control-hover: rgba(255, 255, 255, 0.65);
   --tk-danger: #d95666;
   --tk-danger-soft: rgba(217, 86, 102, 0.12);
-  --tk-border: rgba(51, 79, 76, 0.11);
-  --tk-border-light: rgba(255, 255, 255, 0.78);
-  --tk-shadow: 0 18px 50px rgba(42, 76, 72, 0.1);
-  --tk-shadow-high: 0 22px 70px rgba(36, 72, 68, 0.14);
-  --tk-shadow-control: 0 4px 14px rgba(36, 72, 68, 0.07);
+  --tk-warning: #b7791f;
+  --tk-border: rgba(148, 163, 184, 0.22);
+  --tk-border-light: rgba(255, 255, 255, 0.55);
+  --tk-shadow:
+    0 12px 40px rgba(31, 38, 135, 0.1),
+    0 4px 12px rgba(31, 38, 135, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  --tk-shadow-island: var(--tk-shadow);
+  --tk-shadow-high:
+    0 25px 54px rgba(31, 38, 135, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  --tk-shadow-control: 0 4px 12px rgba(31, 38, 135, 0.06);
   --tk-radius-xs: 10px;
   --tk-radius-sm: 14px;
   --tk-radius-md: 18px;
@@ -38,63 +52,91 @@
   --tk-space-4: 16px;
   --tk-space-5: 20px;
   --tk-space-6: 24px;
-  --tk-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --tk-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --tk-island-blur: 32px;
+  --tk-island-saturate: 190%;
 }
 
 .tk-theme-dark,
 .dark-theme {
   color-scheme: dark;
-  --tk-accent: #43d2c3;
-  --tk-accent-strong: #62e0d3;
-  --tk-accent-soft: rgba(67, 210, 195, 0.13);
-  --tk-ink: #edf6f5;
-  --tk-muted: #a4b3b1;
-  --tk-faint: #72817f;
-  --tk-page: #111716;
-  --tk-surface: rgba(24, 33, 32, 0.72);
-  --tk-surface-strong: rgba(29, 40, 38, 0.88);
-  --tk-surface-muted: rgba(20, 29, 28, 0.74);
-  --tk-surface-opaque: #18211f;
-  --tk-surface-sunken: #101715;
-  --tk-island-glass: rgba(24, 33, 32, 0.76);
-  --tk-island-border: rgba(255, 255, 255, 0.09);
-  --tk-control: rgba(255, 255, 255, 0.055);
-  --tk-control-hover: rgba(255, 255, 255, 0.1);
+  --tk-accent: #33ccbb;
+  --tk-accent-strong: #33ccbb;
+  --tk-accent-soft: color-mix(in srgb, var(--tk-accent) 22%, rgba(15, 23, 42, 0.55));
+  --tk-accent-soft-hover: color-mix(in srgb, var(--tk-accent) 30%, rgba(15, 23, 42, 0.6));
+  --tk-complement: #ff75a8;
+  --tk-complement-soft: rgba(255, 117, 168, 0.12);
+  --tk-ink: #f8fafc;
+  --tk-ink-muted: #94a3b8;
+  --tk-muted: #94a3b8;
+  --tk-faint: #64748b;
+  --tk-page: #08111b;
+  --tk-page-start: #08111b;
+  --tk-page-end: #101b2d;
+  --tk-surface: rgba(15, 23, 42, 0.55);
+  --tk-surface-strong: rgba(15, 23, 42, 0.72);
+  --tk-surface-muted: rgba(30, 41, 59, 0.5);
+  --tk-surface-opaque: #0f172a;
+  --tk-surface-sunken: #08111b;
+  --tk-island-glass: rgba(15, 23, 42, 0.55);
+  --tk-island-border: rgba(148, 163, 184, 0.22);
+  --tk-control: rgba(30, 41, 59, 0.45);
+  --tk-control-hover: rgba(30, 41, 59, 0.65);
   --tk-danger: #ff8a96;
   --tk-danger-soft: rgba(255, 111, 126, 0.13);
-  --tk-border: rgba(191, 231, 225, 0.1);
-  --tk-border-light: rgba(255, 255, 255, 0.08);
-  --tk-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
-  --tk-shadow-high: 0 22px 70px rgba(0, 0, 0, 0.3);
-  --tk-shadow-control: 0 4px 14px rgba(0, 0, 0, 0.18);
+  --tk-warning: #fbbf24;
+  --tk-border: rgba(148, 163, 184, 0.16);
+  --tk-border-light: rgba(148, 163, 184, 0.22);
+  --tk-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.45),
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --tk-shadow-island: var(--tk-shadow);
+  --tk-shadow-high:
+    0 25px 54px rgba(0, 0, 0, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --tk-shadow-control: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 @media (prefers-color-scheme: dark) {
   .tk-theme-system,
   .system-theme {
     color-scheme: dark;
-    --tk-accent: #43d2c3;
-    --tk-accent-strong: #62e0d3;
-    --tk-accent-soft: rgba(67, 210, 195, 0.13);
-    --tk-ink: #edf6f5;
-    --tk-muted: #a4b3b1;
-    --tk-faint: #72817f;
-    --tk-page: #111716;
-    --tk-surface: rgba(24, 33, 32, 0.72);
-    --tk-surface-strong: rgba(29, 40, 38, 0.88);
-    --tk-surface-muted: rgba(20, 29, 28, 0.74);
-    --tk-surface-opaque: #18211f;
-    --tk-surface-sunken: #101715;
-    --tk-island-glass: rgba(24, 33, 32, 0.76);
-    --tk-island-border: rgba(255, 255, 255, 0.09);
-    --tk-control: rgba(255, 255, 255, 0.055);
-    --tk-control-hover: rgba(255, 255, 255, 0.1);
+    --tk-accent: #33ccbb;
+    --tk-accent-strong: #33ccbb;
+    --tk-accent-soft: color-mix(in srgb, var(--tk-accent) 22%, rgba(15, 23, 42, 0.55));
+    --tk-accent-soft-hover: color-mix(in srgb, var(--tk-accent) 30%, rgba(15, 23, 42, 0.6));
+    --tk-complement: #ff75a8;
+    --tk-complement-soft: rgba(255, 117, 168, 0.12);
+    --tk-ink: #f8fafc;
+    --tk-ink-muted: #94a3b8;
+    --tk-muted: #94a3b8;
+    --tk-faint: #64748b;
+    --tk-page: #08111b;
+    --tk-page-start: #08111b;
+    --tk-page-end: #101b2d;
+    --tk-surface: rgba(15, 23, 42, 0.55);
+    --tk-surface-strong: rgba(15, 23, 42, 0.72);
+    --tk-surface-muted: rgba(30, 41, 59, 0.5);
+    --tk-surface-opaque: #0f172a;
+    --tk-surface-sunken: #08111b;
+    --tk-island-glass: rgba(15, 23, 42, 0.55);
+    --tk-island-border: rgba(148, 163, 184, 0.22);
+    --tk-control: rgba(30, 41, 59, 0.45);
+    --tk-control-hover: rgba(30, 41, 59, 0.65);
     --tk-danger: #ff8a96;
     --tk-danger-soft: rgba(255, 111, 126, 0.13);
-    --tk-border: rgba(191, 231, 225, 0.1);
-    --tk-border-light: rgba(255, 255, 255, 0.08);
-    --tk-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
-    --tk-shadow-high: 0 22px 70px rgba(0, 0, 0, 0.3);
-    --tk-shadow-control: 0 4px 14px rgba(0, 0, 0, 0.18);
+    --tk-warning: #fbbf24;
+    --tk-border: rgba(148, 163, 184, 0.16);
+    --tk-border-light: rgba(148, 163, 184, 0.22);
+    --tk-shadow:
+      0 12px 40px rgba(0, 0, 0, 0.45),
+      0 4px 12px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --tk-shadow-island: var(--tk-shadow);
+    --tk-shadow-high:
+      0 25px 54px rgba(0, 0, 0, 0.48),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --tk-shadow-control: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 }

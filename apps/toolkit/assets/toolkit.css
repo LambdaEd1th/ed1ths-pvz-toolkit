@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap");
-
 :root {
   -webkit-font-smoothing: antialiased;
 }
@@ -20,7 +18,7 @@ body,
 }
 
 body {
-  background: var(--tk-page);
+  background: linear-gradient(135deg, var(--tk-page-start), var(--tk-page-end));
   color: var(--tk-ink);
 }
 
@@ -37,7 +35,7 @@ button {
   position: relative;
   min-height: 100vh;
   overflow-x: hidden;
-  background: var(--tk-page);
+  background: linear-gradient(135deg, var(--tk-page-start), var(--tk-page-end));
   color: var(--tk-ink);
   transition: background 280ms ease, color 280ms ease;
 }
@@ -66,10 +64,10 @@ button {
   inset: 0;
   z-index: 0;
   background:
-    linear-gradient(rgba(28, 106, 100, 0.026) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(28, 106, 100, 0.026) 1px, transparent 1px),
-    radial-gradient(circle at 12% 0%, rgba(81, 224, 202, 0.17), transparent 28rem),
-    radial-gradient(circle at 92% 34%, rgba(130, 201, 128, 0.13), transparent 34rem);
+    linear-gradient(rgba(51, 204, 187, 0.026) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(51, 204, 187, 0.026) 1px, transparent 1px),
+    radial-gradient(circle at 12% 0%, rgba(51, 204, 187, 0.16), transparent 28rem),
+    radial-gradient(circle at 92% 34%, rgba(255, 102, 153, 0.1), transparent 34rem);
   background-size: 42px 42px, 42px 42px, auto, auto;
   pointer-events: none;
 }
@@ -78,8 +76,8 @@ button {
   background:
     linear-gradient(rgba(124, 211, 200, 0.024) 1px, transparent 1px),
     linear-gradient(90deg, rgba(124, 211, 200, 0.024) 1px, transparent 1px),
-    radial-gradient(circle at 12% 0%, rgba(36, 169, 153, 0.13), transparent 30rem),
-    radial-gradient(circle at 92% 34%, rgba(73, 135, 77, 0.1), transparent 34rem);
+    radial-gradient(circle at 12% 0%, rgba(51, 204, 187, 0.13), transparent 30rem),
+    radial-gradient(circle at 92% 34%, rgba(255, 117, 168, 0.08), transparent 34rem);
   background-size: 42px 42px, 42px 42px, auto, auto;
 }
 
@@ -92,8 +90,8 @@ button {
     background:
       linear-gradient(rgba(124, 211, 200, 0.024) 1px, transparent 1px),
       linear-gradient(90deg, rgba(124, 211, 200, 0.024) 1px, transparent 1px),
-      radial-gradient(circle at 12% 0%, rgba(36, 169, 153, 0.13), transparent 30rem),
-      radial-gradient(circle at 92% 34%, rgba(73, 135, 77, 0.1), transparent 34rem);
+      radial-gradient(circle at 12% 0%, rgba(51, 204, 187, 0.13), transparent 30rem),
+      radial-gradient(circle at 92% 34%, rgba(255, 117, 168, 0.08), transparent 34rem);
     background-size: 42px 42px, 42px 42px, auto, auto;
   }
 
@@ -120,7 +118,7 @@ button {
   left: 10%;
   width: 17rem;
   height: 17rem;
-  background: rgba(58, 200, 183, 0.09);
+  background: rgba(51, 204, 187, 0.09);
 }
 
 .tk-ambient--two {
@@ -128,7 +126,7 @@ button {
   right: -8rem;
   width: 25rem;
   height: 25rem;
-  background: rgba(150, 215, 105, 0.09);
+  background: rgba(255, 102, 153, 0.08);
 }
 
 .tk-island,
@@ -136,8 +134,8 @@ button {
   border: 1px solid var(--tk-border-light);
   background: var(--tk-surface);
   box-shadow: var(--tk-shadow);
-  backdrop-filter: blur(30px) saturate(1.8);
-  -webkit-backdrop-filter: blur(30px) saturate(1.8);
+  backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
+  -webkit-backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
 }
 
 .tk-appbar {
