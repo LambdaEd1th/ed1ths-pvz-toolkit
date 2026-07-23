@@ -24,4 +24,3 @@ pam_viewer_native_window = { path = "../../crates/pam/native-window" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 dioxus = { workspace = true, features = ["web"] }
-dioxus-web.workspace = true

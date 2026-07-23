@@ -4060,7 +4060,6 @@ dependencies = [
  "dioxus",
  "dioxus-free-icons",
  "dioxus-html",
- "dioxus-web",
  "directories",
  "futures-channel",
  "futures-timer",
@@ -6241,7 +6240,6 @@ name = "toolkit-app"
 version = "0.1.0"
 dependencies = [
  "dioxus",
- "dioxus-web",
  "pam-tool",
  "pam_viewer_native_window",
  "rton-tool",

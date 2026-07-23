@@ -30,7 +30,6 @@ crc32fast = "1.5"
 dioxus = { version = "0.7.9", default-features = false }
 dioxus-free-icons = { version = "0.10", features = ["lucide"] }
 dioxus-html = "0.7.9"
-dioxus-web = "0.7.9"
 futures-channel = "0.3"
 futures-util = "0.3"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }

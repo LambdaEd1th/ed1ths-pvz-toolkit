@@ -5,10 +5,10 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use dioxus::prelude::*;
+#[cfg(target_arch = "wasm32")]
+use dioxus::web::WebEventExt;
 use dioxus_free_icons::icons::ld_icons::LdFolderOpen;
 use dioxus_html::HasFileData;
-#[cfg(target_arch = "wasm32")]
-use dioxus_web::WebEventExt;
 use pam_viewer_core::Rect;
 #[cfg(target_arch = "wasm32")]
 use pam_viewer_core::{RenderDocumentPayload, RenderScenePayload, RenderViewPayload};
