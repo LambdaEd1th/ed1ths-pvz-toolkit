@@ -13,10 +13,19 @@
   --tk-surface: rgba(255, 255, 255, 0.68);
   --tk-surface-strong: rgba(255, 255, 255, 0.84);
   --tk-surface-muted: rgba(245, 249, 248, 0.72);
+  --tk-surface-opaque: #f9fbfa;
+  --tk-surface-sunken: #edf3f1;
+  --tk-island-glass: rgba(255, 255, 255, 0.7);
+  --tk-island-border: rgba(255, 255, 255, 0.82);
+  --tk-control: rgba(255, 255, 255, 0.48);
+  --tk-control-hover: rgba(255, 255, 255, 0.78);
+  --tk-danger: #d95666;
+  --tk-danger-soft: rgba(217, 86, 102, 0.12);
   --tk-border: rgba(51, 79, 76, 0.11);
   --tk-border-light: rgba(255, 255, 255, 0.78);
   --tk-shadow: 0 18px 50px rgba(42, 76, 72, 0.1);
   --tk-shadow-high: 0 22px 70px rgba(36, 72, 68, 0.14);
+  --tk-shadow-control: 0 4px 14px rgba(36, 72, 68, 0.07);
   --tk-radius-xs: 10px;
   --tk-radius-sm: 14px;
   --tk-radius-md: 18px;
@@ -45,10 +54,19 @@
   --tk-surface: rgba(24, 33, 32, 0.72);
   --tk-surface-strong: rgba(29, 40, 38, 0.88);
   --tk-surface-muted: rgba(20, 29, 28, 0.74);
+  --tk-surface-opaque: #18211f;
+  --tk-surface-sunken: #101715;
+  --tk-island-glass: rgba(24, 33, 32, 0.76);
+  --tk-island-border: rgba(255, 255, 255, 0.09);
+  --tk-control: rgba(255, 255, 255, 0.055);
+  --tk-control-hover: rgba(255, 255, 255, 0.1);
+  --tk-danger: #ff8a96;
+  --tk-danger-soft: rgba(255, 111, 126, 0.13);
   --tk-border: rgba(191, 231, 225, 0.1);
   --tk-border-light: rgba(255, 255, 255, 0.08);
   --tk-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
   --tk-shadow-high: 0 22px 70px rgba(0, 0, 0, 0.3);
+  --tk-shadow-control: 0 4px 14px rgba(0, 0, 0, 0.18);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -65,9 +83,18 @@
     --tk-surface: rgba(24, 33, 32, 0.72);
     --tk-surface-strong: rgba(29, 40, 38, 0.88);
     --tk-surface-muted: rgba(20, 29, 28, 0.74);
+    --tk-surface-opaque: #18211f;
+    --tk-surface-sunken: #101715;
+    --tk-island-glass: rgba(24, 33, 32, 0.76);
+    --tk-island-border: rgba(255, 255, 255, 0.09);
+    --tk-control: rgba(255, 255, 255, 0.055);
+    --tk-control-hover: rgba(255, 255, 255, 0.1);
+    --tk-danger: #ff8a96;
+    --tk-danger-soft: rgba(255, 111, 126, 0.13);
     --tk-border: rgba(191, 231, 225, 0.1);
     --tk-border-light: rgba(255, 255, 255, 0.08);
     --tk-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
     --tk-shadow-high: 0 22px 70px rgba(0, 0, 0, 0.3);
+    --tk-shadow-control: 0 4px 14px rgba(0, 0, 0, 0.18);
   }
 }

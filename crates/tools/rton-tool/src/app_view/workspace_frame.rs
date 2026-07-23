@@ -58,9 +58,22 @@ pub(super) fn WorkspaceFrame(
                 }
             }
             if file_drawer_open_snapshot || inspector_drawer_open_snapshot {
-                div {
+                button {
+                    r#type: "button",
                     class: "rton-file-drawer-backdrop",
-                    aria_hidden: "true"
+                    aria_label: i18n.t("toolbar-close-menu"),
+                    onclick: move |_| {
+                        super::set_file_drawer_visibility(
+                            false,
+                            file_drawer_open,
+                            inspector_drawer_open,
+                        );
+                        super::set_inspector_drawer_visibility(
+                            false,
+                            file_drawer_open,
+                            inspector_drawer_open,
+                        );
+                    }
                 }
             }
             {children}

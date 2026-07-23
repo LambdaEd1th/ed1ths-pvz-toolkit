@@ -22,6 +22,6 @@ pub use visibility::{
     set_all_sprites_visible, set_ground_swatch_visible, set_image_visible, set_sprite_visible,
 };
 pub use workspace::{
-    activate_sprite, activate_tab, clear_tabs, close_tab, finish_toolbar_reorder, reorder_tab,
-    reorder_toolbar_group, reset_view, select_label, set_export_dimension, set_export_scale,
+    activate_sprite, activate_tab, clear_tabs, close_tab, reorder_tab, reset_view, select_label,
+    set_export_dimension, set_export_scale,
 };

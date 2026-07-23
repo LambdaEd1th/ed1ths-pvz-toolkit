@@ -6,6 +6,7 @@ summary-not-generated = Non genere
 summary-text-input = Texte
 summary-raw-bytes = octets bruts
 
+toolbar-label = Barre d'outils de l'éditeur RTON
 toolbar-group-file = Fichier
 toolbar-group-edit = Edition
 toolbar-group-format = Format

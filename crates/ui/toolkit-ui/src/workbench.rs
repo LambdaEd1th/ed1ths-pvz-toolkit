@@ -17,13 +17,30 @@ pub fn WorkbenchSurface(
 
 #[component]
 pub fn WorkbenchPanel(
+    #[props(default)] id: Option<String>,
     #[props(default)] class: String,
     #[props(default)] aria_label: Option<String>,
     children: Element,
 ) -> Element {
     rsx! {
         section {
+            id,
             class: "ui-workbench-panel {class}",
+            aria_label,
+            {children}
+        }
+    }
+}
+
+#[component]
+pub fn ProfessionalSurface(
+    #[props(default)] class: String,
+    #[props(default)] aria_label: Option<String>,
+    children: Element,
+) -> Element {
+    rsx! {
+        section {
+            class: "ui-professional-surface {class}",
             aria_label,
             {children}
         }

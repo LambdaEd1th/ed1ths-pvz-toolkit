@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use toolkit_ui::StatusIsland;
 
 use crate::i18n::tr;
 use crate::state::{AppContext, Tone};
@@ -27,7 +28,7 @@ pub fn StatusBar() -> Element {
         .map(|tab| format!("{} x {}", tab.export_size[0], tab.export_size[1]));
     let zoom_text = tab.as_ref().map(|tab| format!("{:.0}%", tab.zoom * 100.0));
     rsx! {
-        footer { class: "pam-statusbar",
+        StatusIsland { class: "pam-statusbar",
             span { class: "pam-status-message {tone}", "{message}" }
             span { class: "pam-status-spacer" }
             if let Some(pointer_text) = pointer_text {

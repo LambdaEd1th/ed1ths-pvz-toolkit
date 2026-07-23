@@ -5,6 +5,7 @@ use dioxus_free_icons::icons::ld_icons::{
     LdChevronDown, LdEllipsis, LdFilePlus2, LdMenu, LdPanelRight, LdRedo2, LdSearch, LdSettings,
     LdUndo2, LdX,
 };
+use toolkit_ui::CommandIsland;
 
 use crate::components::{FileSelection, ToolbarGroup, lucide_icon};
 use crate::domain::{DropMarker, EditorMode, Status, ToolbarDropTarget, ToolbarGroupId};
@@ -238,17 +239,16 @@ pub(super) fn ToolbarView(
         }),
     };
 
+    let commandbar_class = if mobile_menu_open_snapshot {
+        "rton-toolbar rton-commandbar mobile-menu-open"
+    } else {
+        "rton-toolbar rton-commandbar"
+    };
+
     rsx! {
-        header {
-            class: match (
-                dragged_toolbar_group_id_snapshot.is_some(),
-                mobile_menu_open_snapshot,
-            ) {
-                (true, true) => "rton-toolbar rton-commandbar ui-island dragging-toolbar mobile-menu-open",
-                (true, false) => "rton-toolbar rton-commandbar ui-island dragging-toolbar",
-                (false, true) => "rton-toolbar rton-commandbar ui-island mobile-menu-open",
-                (false, false) => "rton-toolbar rton-commandbar ui-island",
-            },
+        CommandIsland {
+            class: commandbar_class,
+            aria_label: i18n.t("toolbar-label"),
             button {
                 r#type: "button",
                 class: if file_drawer_open_snapshot { "rton-command-icon-button rton-sidebar-toggle active" } else { "rton-command-icon-button rton-sidebar-toggle" },
@@ -293,7 +293,7 @@ pub(super) fn ToolbarView(
                 span { class: "rton-commandbar-document-dot" }
                 span { class: "rton-commandbar-document-name", "{active_file_label}" }
             }
-            div { class: "rton-mobile-command-actions",
+            div { class: "rton-command-actions",
                 if cfg!(target_arch = "wasm32") {
                     WebFileOpenControl {
                         i18n,

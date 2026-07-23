@@ -10,7 +10,7 @@ use crate::platform;
 
 const AUTHOR_NAME: &str = "LambdaEd1th";
 const AUTHOR_URL: &str = "https://space.bilibili.com/8217621";
-const GITHUB_URL: &str = "https://github.com/LambdaEd1th/rton-editor";
+const GITHUB_URL: &str = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit";
 
 #[component]
 pub(crate) fn SettingsDialog(

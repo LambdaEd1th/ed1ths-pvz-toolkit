@@ -6,10 +6,11 @@ mod view;
 
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{
-    LdEllipsis, LdFolderOpen, LdGripVertical, LdMenu, LdPanelRight, LdSettings, LdX,
+    LdEllipsis, LdFolderOpen, LdMenu, LdPanelRight, LdSettings, LdX,
 };
+use toolkit_ui::CommandIsland;
 
-use crate::actions::{clear_tabs, finish_toolbar_reorder, reorder_toolbar_group, set_panel_open};
+use crate::actions::{clear_tabs, set_panel_open};
 #[cfg(target_arch = "wasm32")]
 use crate::actions::{input_files_from_dioxus, load_inputs};
 use crate::i18n::tr;
@@ -54,7 +55,6 @@ pub fn Toolbar() -> Element {
     let preferences = context.preferences.read().clone();
     let images_panel_visible = *context.images_panel_open.read();
     let sprites_panel_visible = *context.sprites_panel_open.read();
-    let dragging = context.dragged_toolbar_group.read().is_some();
     let mut more_open = use_signal(|| false);
     let mut settings_mounted = use_signal(|| false);
     let mut settings_closing = use_signal(|| false);
@@ -69,7 +69,9 @@ pub fn Toolbar() -> Element {
         .unwrap_or_else(|| tr(locale, "no_animation").into());
 
     rsx! {
-        header { class: if dragging { "pam-commandbar ui-island dragging" } else { "pam-commandbar ui-island" },
+        CommandIsland {
+            class: "pam-commandbar",
+            aria_label: tr(locale, "toolbar").to_string(),
             button {
                 r#type: "button",
                 class: if images_panel_visible {
@@ -251,36 +253,8 @@ pub fn Toolbar() -> Element {
 
 #[component]
 fn ToolbarGroup(id: String, children: Element) -> Element {
-    let mut context = use_context::<AppContext>();
-    let locale = context.preferences.read().locale;
-    let dragging = context.dragged_toolbar_group.read().as_deref() == Some(id.as_str());
     rsx! {
-        div {
-            class: if dragging { "pam-toolbar-group-shell dragging" } else { "pam-toolbar-group-shell" },
-            onmouseenter: {
-                let id = id.clone();
-                move |_| {
-                    if let Some(source) = context.dragged_toolbar_group.read().clone() {
-                        reorder_toolbar_group(context, &source, &id);
-                    }
-                }
-            },
-            onmouseup: move |_| finish_toolbar_reorder(context),
-            button {
-                r#type: "button",
-                class: "pam-toolbar-handle",
-                title: tr(locale, "move_group"),
-                aria_label: tr(locale, "move_group"),
-                onmousedown: {
-                    let id = id.clone();
-                    move |event| {
-                        event.prevent_default();
-                        event.stop_propagation();
-                        context.dragged_toolbar_group.set(Some(id.clone()));
-                    }
-                },
-                {icon(LdGripVertical)}
-            }
+        div { class: "pam-toolbar-group-shell", "data-group": "{id}",
             div { class: "pam-toolbar-group", {children} }
         }
     }

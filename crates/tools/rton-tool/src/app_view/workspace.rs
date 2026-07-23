@@ -3,6 +3,7 @@ use dioxus::prelude::*;
 use rton_editor_core::{BinaryEncoding, EncodeOptions, TextFormat};
 use std::cell::RefCell;
 use std::rc::Rc;
+use toolkit_ui::ProfessionalSurface;
 
 use crate::app_actions::*;
 #[cfg(not(target_arch = "wasm32"))]
@@ -882,7 +883,7 @@ fn Workbench() -> Element {
                         on_start: handle_panel_resize_start
                     }
 
-                    section { class: "rton-center-panel",
+                    ProfessionalSurface { class: "rton-center-panel",
                         TabStrip {
                             tabs: tab_headers.clone(),
                             active_tab_id: active_id_snapshot,
@@ -998,7 +999,7 @@ fn reveal_file_drawer_after_commit(
     });
 }
 
-const OVERLAY_DRAWER_MAX_WIDTH: f64 = 900.0;
+const EXCLUSIVE_DRAWER_MAX_WIDTH: f64 = 1100.0;
 
 #[derive(Clone, Copy)]
 enum DrawerSide {
@@ -1006,8 +1007,8 @@ enum DrawerSide {
     Inspector,
 }
 
-fn is_overlay_drawer_width(width: f64) -> bool {
-    width.is_finite() && width <= OVERLAY_DRAWER_MAX_WIDTH
+fn is_exclusive_drawer_width(width: f64) -> bool {
+    width.is_finite() && width <= EXCLUSIVE_DRAWER_MAX_WIDTH
 }
 
 fn drawer_state_after_change(
@@ -1041,9 +1042,10 @@ fn current_overlay_drawer_layout() -> bool {
     #[cfg(target_arch = "wasm32")]
     {
         web_sys::window()
-            .and_then(|window| window.inner_width().ok())
-            .and_then(|width| width.as_f64())
-            .is_some_and(is_overlay_drawer_width)
+            .and_then(|window| window.document())
+            .and_then(|document| document.query_selector(".rton-app-shell").ok().flatten())
+            .map(|root| root.get_bounding_client_rect().width())
+            .is_some_and(is_exclusive_drawer_width)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -1107,7 +1109,8 @@ fn reconcile_drawers_for_viewport(
     file_drawer_open: Signal<bool>,
     inspector_drawer_open: Signal<bool>,
 ) {
-    if is_overlay_drawer_width(width) && *file_drawer_open.peek() && *inspector_drawer_open.peek() {
+    if is_exclusive_drawer_width(width) && *file_drawer_open.peek() && *inspector_drawer_open.peek()
+    {
         set_drawer_visibility(
             DrawerSide::File,
             true,
@@ -1124,7 +1127,7 @@ fn initial_inspector_drawer_open() -> bool {
         web_sys::window()
             .and_then(|window| window.inner_width().ok())
             .and_then(|width| width.as_f64())
-            .is_some_and(|width| width > OVERLAY_DRAWER_MAX_WIDTH)
+            .is_some_and(|width| width > EXCLUSIVE_DRAWER_MAX_WIDTH)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -1310,7 +1313,7 @@ fn offset_to_text_buffer_position(
 
 #[cfg(test)]
 mod drawer_layout_tests {
-    use super::{DrawerSide, drawer_state_after_change, is_overlay_drawer_width};
+    use super::{DrawerSide, drawer_state_after_change, is_exclusive_drawer_width};
 
     #[test]
     fn overlay_drawers_are_mutually_exclusive() {
@@ -1337,9 +1340,9 @@ mod drawer_layout_tests {
     }
 
     #[test]
-    fn overlay_breakpoint_matches_css() {
-        assert!(is_overlay_drawer_width(900.0));
-        assert!(!is_overlay_drawer_width(901.0));
-        assert!(!is_overlay_drawer_width(f64::NAN));
+    fn compact_workspaces_keep_auxiliary_drawers_mutually_exclusive() {
+        assert!(is_exclusive_drawer_width(1100.0));
+        assert!(!is_exclusive_drawer_width(1101.0));
+        assert!(!is_exclusive_drawer_width(f64::NAN));
     }
 }

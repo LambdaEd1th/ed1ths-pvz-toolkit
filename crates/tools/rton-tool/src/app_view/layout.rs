@@ -3,6 +3,7 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{LdActivity, LdFileArchive, LdFolderOpen};
 use rton_editor_core::ValueStats;
+use toolkit_ui::StatusIsland;
 
 use crate::app_constants::LOADABLE_FILE_HINT;
 use crate::components::{MetaItem, PanelHeader, StatsGrid, lucide_icon};
@@ -75,7 +76,7 @@ pub(crate) fn StatusBar(
     status: Status,
 ) -> Element {
     rsx! {
-        footer { class: "status-bar {status.tone.class()}",
+        StatusIsland { class: "status-bar {status.tone.class()}",
             span { class: "status-file",
                 "{active_file_label}"
             }

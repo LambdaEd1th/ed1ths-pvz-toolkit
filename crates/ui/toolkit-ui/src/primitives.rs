@@ -27,6 +27,48 @@ pub fn Island(
 }
 
 #[component]
+pub fn CommandIsland(
+    #[props(default)] class: String,
+    #[props(default)] aria_label: Option<String>,
+    children: Element,
+) -> Element {
+    rsx! {
+        header {
+            class: "ui-island ui-command-island {class}",
+            aria_label,
+            {children}
+        }
+    }
+}
+
+#[component]
+pub fn StatusIsland(
+    #[props(default)] class: String,
+    #[props(default)] aria_label: Option<String>,
+    children: Element,
+) -> Element {
+    rsx! {
+        footer {
+            class: "ui-island ui-status-island {class}",
+            aria_label,
+            {children}
+        }
+    }
+}
+
+#[component]
+pub fn PillTabs(#[props(default)] class: String, aria_label: String, children: Element) -> Element {
+    rsx! {
+        div {
+            class: "ui-pill-tabs {class}",
+            role: "tablist",
+            aria_label,
+            {children}
+        }
+    }
+}
+
+#[component]
 pub fn IconButton(
     label: String,
     #[props(default)] class: String,

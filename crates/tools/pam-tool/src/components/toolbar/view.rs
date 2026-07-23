@@ -11,7 +11,7 @@ use super::super::primitives::{NumberControl, SelectControl, SelectOption, icon}
 
 const AUTHOR_NAME: &str = "LambdaEd1th";
 const AUTHOR_URL: &str = "https://space.bilibili.com/8217621";
-const GITHUB_URL: &str = "https://github.com/LambdaEd1th/pam-viewer";
+const GITHUB_URL: &str = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit";
 
 #[component]
 pub(super) fn ViewGroup() -> Element {

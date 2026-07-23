@@ -206,7 +206,7 @@ fn import_xfl(
         let frame_count = frames.len();
         sprites.push(sprite_with_metadata(
             sidecar.sprite.get(index.saturating_sub(1)),
-            format!("sprite_{}", index),
+            format!("sprite_{index}"),
             frames,
             frame_rate,
             version,

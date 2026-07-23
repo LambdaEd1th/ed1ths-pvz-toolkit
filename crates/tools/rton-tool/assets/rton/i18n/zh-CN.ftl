@@ -6,6 +6,7 @@ summary-not-generated = 未生成
 summary-text-input = 文本
 summary-raw-bytes = raw bytes
 
+toolbar-label = RTON Editor 工具栏
 toolbar-group-file = 文件
 toolbar-group-edit = 编辑
 toolbar-group-format = 格式

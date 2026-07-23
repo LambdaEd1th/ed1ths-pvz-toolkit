@@ -8,8 +8,9 @@ mod toolbar;
 
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{LdImage, LdShapes};
+use toolkit_ui::{ProfessionalSurface, WorkbenchPanel};
 
-use crate::actions::finish_toolbar_reorder;
+use crate::actions::set_panel_open;
 use crate::i18n::tr;
 use crate::state::{AppContext, PanelSide, Theme, panel_state_for_layout};
 
@@ -87,19 +88,27 @@ pub fn Workbench() -> Element {
                 class: "{workspace_class}",
                 style: "{workspace_style}",
                 if compact_layout && (images_panel_visible || sprites_panel_visible) {
-                    div { class: "pam-drawer-backdrop", aria_hidden: "true" }
+                    button {
+                        r#type: "button",
+                        class: "pam-drawer-backdrop",
+                        aria_label: tr(locale, "close_menu"),
+                        onclick: move |_| {
+                            set_panel_open(context, true, false);
+                            set_panel_open(context, false, false);
+                        }
+                    }
                 }
-                div { class: "pam-images-column ui-workbench-panel",
+                WorkbenchPanel { class: "pam-images-column",
                     if tab.is_some() { ImagePanel {} }
                     else { EmptyPanel { title: tr(locale, "images").to_string(), side: PanelSide::Images } }
                 }
                 div { class: "pam-left-resizer", PanelResizeHandle { side: PanelSide::Images } }
-                main { class: "pam-center-column",
+                ProfessionalSurface { class: "pam-center-column",
                     TabStrip {}
                     Stage {}
                 }
                 div { class: "pam-right-resizer", PanelResizeHandle { side: PanelSide::Sprites } }
-                div { class: "pam-sprites-column ui-workbench-panel",
+                WorkbenchPanel { class: "pam-sprites-column",
                     if tab.is_some() { SpritePanel {} }
                     else { EmptyPanel { title: tr(locale, "sprites").to_string(), side: PanelSide::Sprites } }
                 }
@@ -176,13 +185,11 @@ fn finish_pointer_gestures(mut context: AppContext) {
     }
     context.stage_drag.set(None);
     context.dragged_tab.set(None);
-    finish_toolbar_reorder(context);
 }
 
 fn cancel_pointer_gestures(mut context: AppContext) {
     context.stage_drag.set(None);
     context.dragged_tab.set(None);
-    finish_toolbar_reorder(context);
 }
 
 #[component]
