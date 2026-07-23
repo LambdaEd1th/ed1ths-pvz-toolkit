@@ -1,0 +1,77 @@
+mod actions;
+mod components;
+mod i18n;
+mod platform;
+mod state;
+
+use dioxus::prelude::*;
+use toolkit_ui::{Appearance, WorkbenchSurface, use_appearance};
+
+use crate::components::Workbench;
+use crate::state::{AppContext, Theme};
+
+fn pam_theme(appearance: Appearance) -> Theme {
+    match appearance {
+        Appearance::System => Theme::System,
+        Appearance::Light => Theme::Light,
+        Appearance::Dark => Theme::Dark,
+    }
+}
+
+/// Mount the PAM viewer/exporter inside the Toolkit shell.
+#[component]
+pub fn PamTool(#[props(default = true)] active: bool) -> Element {
+    let appearance = use_appearance().preference();
+    let theme = pam_theme(appearance);
+    let mut context = use_hook(move || AppContext::new(theme));
+    use_context_provider(|| context);
+    use_effect(use_reactive(&appearance, move |appearance| {
+        let theme = pam_theme(appearance);
+        if context.preferences.peek().theme != theme {
+            context.preferences.write().theme = theme;
+            context.sync_stage();
+        }
+    }));
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let renderer =
+            crate::platform::native_renderer::use_native_renderer(context.shared_stage());
+        use_context_provider(|| renderer.clone());
+        let theme_renderer = renderer.clone();
+        use_effect(use_reactive(&appearance, move |appearance| {
+            theme_renderer.set_theme(pam_theme(appearance));
+        }));
+        let active_renderer = renderer.clone();
+        use_effect(use_reactive(&active, move |active| {
+            if active {
+                context.sync_stage();
+            } else {
+                context
+                    .stage
+                    .read()
+                    .update(|scene| scene.set_document(None));
+            }
+            active_renderer.request_redraw();
+        }));
+        use_effect(|| {
+            document::eval("document.documentElement.classList.add('native-wgpu-host');");
+        });
+    }
+    #[cfg(target_arch = "wasm32")]
+    use_effect(|| {
+        spawn(async {
+            if let Err(error) = crate::platform::processing::warm_up().await {
+                crate::platform::log_buffer::push(
+                    "ERROR",
+                    &format!("Processing Worker warm-up failed: {error}"),
+                );
+            }
+        });
+    });
+    actions::use_playback_clock();
+    rsx! {
+        WorkbenchSurface { namespace: "pam",
+            Workbench {}
+        }
+    }
+}

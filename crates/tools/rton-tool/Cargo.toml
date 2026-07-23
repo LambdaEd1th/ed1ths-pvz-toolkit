@@ -1,0 +1,66 @@
+[package]
+name = "rton-tool"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+authors = ["LambdaEd1th"]
+description = "Internal RTON workspace for Ed1th's PvZ Toolkit"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+dioxus-html = "0.7.9"
+dioxus-free-icons = { version = "0.10", features = ["lucide"] }
+fluent-bundle = "0.16"
+log = { version = "0.4", features = ["std"] }
+rton_editor_core = { path = "../../rton/core" }
+ropey = "1.6.1"
+serde = "1"
+serde_json = "1"
+unic-langid = "0.9"
+toolkit-ui.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+dioxus = { version = "0.7.9", features = ["desktop"] }
+futures-timer = "3"
+env_logger = "0.11"
+memmap2 = "0.9"
+rayon = "1"
+rfd = "0.17"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+dioxus = { version = "0.7.9", features = ["web"] }
+js-sys = "0.3"
+serde-wasm-bindgen = "0.6"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = [
+    "Blob",
+    "ClipboardEvent",
+    "console",
+    "DataTransfer",
+    "DataTransferItem",
+    "DataTransferItemList",
+    "Document",
+    "DragEvent",
+    "Element",
+    "ErrorEvent",
+    "File",
+    "FileSystemDirectoryEntry",
+    "FileSystemDirectoryReader",
+    "FileSystemEntry",
+    "FileSystemFileEntry",
+    "HtmlAnchorElement",
+    "MessageEvent",
+    "Navigator",
+    "Response",
+    "Storage",
+    "Url",
+    "Window",
+    "Worker",
+    "WorkerOptions",
+    "WorkerType",
+] }

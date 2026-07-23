@@ -1,0 +1,68 @@
+[package]
+name = "pam-tool"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+base64.workspace = true
+dioxus-free-icons.workspace = true
+dioxus-html.workspace = true
+pam_viewer_core = { path = "../../pam/core" }
+parking_lot.workspace = true
+regex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toolkit-ui.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+directories = "6"
+dioxus = { workspace = true, default-features = false, features = ["desktop"] }
+futures-channel.workspace = true
+futures-timer = "3"
+pam_viewer_renderer = { path = "../../pam/renderer" }
+pam_viewer_worker = { path = "../../pam/worker" }
+pollster = "1"
+rayon.workspace = true
+rfd = "0.17"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+pam_viewer_native_window = { path = "../../pam/native-window" }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+dioxus = { workspace = true, features = ["web"] }
+dioxus-web.workspace = true
+js-sys = "0.3"
+serde-wasm-bindgen = "0.6"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+futures-util.workspace = true
+web-sys = { version = "0.3", features = [
+    "Blob",
+    "Document",
+    "DataTransfer",
+    "DataTransferItem",
+    "DataTransferItemList",
+    "Element",
+    "File",
+    "FileSystemDirectoryEntry",
+    "FileSystemDirectoryReader",
+    "FileSystemEntry",
+    "FileSystemFileEntry",
+    "HtmlAnchorElement",
+    "MediaQueryList",
+    "MessageEvent",
+    "Navigator",
+    "Performance",
+    "Storage",
+    "Url",
+    "Window",
+    "Worker",
+    "WorkerOptions",
+    "WorkerType",
+] }

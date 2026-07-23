@@ -1,0 +1,6 @@
+*
+!.gitignore
+!rton-worker.js
+!rton-worker-runtime.js
+!pkg/
+!pkg/**

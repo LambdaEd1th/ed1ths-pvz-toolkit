@@ -1,0 +1,27 @@
+[package]
+name = "toolkit-app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+description = "The unified desktop and Web app for Ed1th's PvZ Toolkit"
+
+[[bin]]
+name = "pvz-toolkit"
+path = "src/main.rs"
+
+[dependencies]
+pam-tool = { path = "../../crates/tools/pam-tool" }
+rton-tool = { path = "../../crates/tools/rton-tool" }
+toolkit-ui.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+dioxus = { workspace = true, features = ["desktop"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+pam_viewer_native_window = { path = "../../crates/pam/native-window" }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+dioxus = { workspace = true, features = ["web"] }
+dioxus-web.workspace = true

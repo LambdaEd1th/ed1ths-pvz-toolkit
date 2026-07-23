@@ -1,0 +1,20 @@
+[package]
+name = "rton_editor_core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+hex = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_bytes = "0.11"
+serde_json = "1.0"
+serde_rton = { workspace = true, features = ["crypto"] }
+serde_yaml = "0.9.33"
+thiserror = "2.0"
+toml = "1.1"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rayon = "1"

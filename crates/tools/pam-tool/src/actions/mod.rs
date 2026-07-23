@@ -1,0 +1,27 @@
+mod export;
+mod loading;
+mod playback;
+mod preferences;
+mod visibility;
+mod workspace;
+
+pub use export::{ExportKind, start_export};
+pub use loading::input_files_from_dioxus;
+#[cfg(not(target_arch = "wasm32"))]
+pub use loading::load_folder;
+pub use loading::load_inputs;
+pub(crate) use loading::release_document;
+pub use playback::{
+    advance_frame, set_frame, set_frame_range, set_speed, set_speed_factor, use_playback_clock,
+};
+pub use preferences::{
+    set_autoplay, set_boundary, set_keep_speed, set_locale, set_loop, set_panel_open, set_reverse,
+};
+pub use visibility::{
+    restore_default_sprite_visibility, select_exclusive_special_layer, set_all_images_visible,
+    set_all_sprites_visible, set_ground_swatch_visible, set_image_visible, set_sprite_visible,
+};
+pub use workspace::{
+    activate_sprite, activate_tab, clear_tabs, close_tab, finish_toolbar_reorder, reorder_tab,
+    reorder_toolbar_group, reset_view, select_label, set_export_dimension, set_export_scale,
+};

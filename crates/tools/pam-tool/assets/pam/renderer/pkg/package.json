@@ -1,0 +1,20 @@
+{
+  "name": "pam_viewer_renderer",
+  "type": "module",
+  "version": "0.1.0",
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LambdaEd1th/pam-viewer"
+  },
+  "files": [
+    "pam_viewer_renderer_bg.wasm",
+    "pam_viewer_renderer.js",
+    "pam_viewer_renderer.d.ts"
+  ],
+  "main": "pam_viewer_renderer.js",
+  "types": "pam_viewer_renderer.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

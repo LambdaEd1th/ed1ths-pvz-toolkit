@@ -1,0 +1,19 @@
+[application]
+name = "pvz-toolkit"
+default_platform = "web"
+out_dir = "dist"
+
+[bundle]
+identifier = "io.github.lambdaed1th.pvz-toolkit"
+publisher = "Ed1th"
+category = "DeveloperTool"
+short_description = "PAM and RTON tools for Plants vs. Zombies"
+
+[web.app]
+title = "Ed1th's PvZ Toolkit"
+
+[web.watcher]
+reload_html = true
+
+[desktop.app]
+title = "Ed1th's PvZ Toolkit"

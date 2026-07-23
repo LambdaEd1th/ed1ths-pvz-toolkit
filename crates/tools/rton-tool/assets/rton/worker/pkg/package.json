@@ -1,0 +1,16 @@
+{
+  "name": "rton_editor_worker",
+  "type": "module",
+  "version": "0.2.3",
+  "license": "AGPL-3.0-or-later",
+  "files": [
+    "rton_editor_worker_bg.wasm",
+    "rton_editor_worker.js",
+    "rton_editor_worker.d.ts"
+  ],
+  "main": "rton_editor_worker.js",
+  "types": "rton_editor_worker.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
