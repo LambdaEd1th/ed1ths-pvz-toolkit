@@ -2,7 +2,7 @@ use std::cell::Cell;
 use std::rc::Rc;
 
 use dioxus::prelude::*;
-use dioxus_free_icons::icons::ld_icons::LdPlus;
+use dioxus_free_icons::icons::ld_icons::{LdPlus, LdX};
 
 use crate::app_constants::TAB_DROP_MIDPOINT_PX;
 use crate::components::lucide_icon;
@@ -106,7 +106,7 @@ fn FileTab(
                     event.stop_propagation();
                     on_close.call(tab.id);
                 },
-                "×"
+                {lucide_icon(LdX)}
             }
         }
     }

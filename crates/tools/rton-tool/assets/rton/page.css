@@ -169,23 +169,28 @@
     var(--color-surface);
 }
 
-.rton-tab-strip,
-.rton-file-tabs {
+.rton-tab-strip {
   position: relative;
   z-index: 2;
   display: flex;
   min-width: 0;
+  align-items: stretch;
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface-soft) 78%, transparent);
+}
+
+.rton-file-tabs {
+  display: flex;
+  min-width: 0;
   min-height: 44px;
+  flex: 1;
   align-items: center;
   gap: 3px;
   padding: 5px 7px;
   overflow-x: auto;
-  border-bottom: 1px solid var(--color-border);
-  background: color-mix(in srgb, var(--color-surface-soft) 78%, transparent);
   scrollbar-width: none;
 }
 
-.rton-tab-strip::-webkit-scrollbar,
 .rton-file-tabs::-webkit-scrollbar {
   display: none;
 }
@@ -1175,14 +1180,21 @@
     color-mix(in srgb, var(--tk-island-glass) 86%, transparent);
 }
 
-.rton-tab-strip,
-.rton-file-tabs {
+.rton-tab-strip {
   min-height: 44px;
-  padding: 4px 6px;
-  overflow: hidden auto;
+  overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: 17px;
   background: color-mix(in srgb, var(--color-surface-soft) 78%, transparent);
+}
+
+.rton-file-tabs {
+  min-height: 0;
+  padding: 4px 6px;
+  overflow-x: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .rton-file-tab {
