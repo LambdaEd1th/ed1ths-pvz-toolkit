@@ -379,7 +379,7 @@ impl CompactRtonWriter {
 
         let mut hex_str = String::with_capacity(value.0.len() * 2);
         for b in &value.0 {
-            write!(&mut hex_str, "{:02X}", b)?;
+            write!(&mut hex_str, "{b:02X}")?;
         }
 
         self.write_compact_latin1_string(&hex_str, false)?;
@@ -697,7 +697,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
 
         let mut hex_str = String::with_capacity(v.len() * 2);
         for b in v {
-            write!(&mut hex_str, "{:02X}", b)?;
+            write!(&mut hex_str, "{b:02X}")?;
         }
 
         write_latin1_string_payload(&mut self.writer, &hex_str)?;

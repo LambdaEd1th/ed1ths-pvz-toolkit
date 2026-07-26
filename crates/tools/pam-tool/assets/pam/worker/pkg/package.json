@@ -5,7 +5,7 @@
   "license": "AGPL-3.0-or-later",
   "repository": {
     "type": "git",
-    "url": "https://github.com/LambdaEd1th/pam-viewer"
+    "url": "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit"
   },
   "files": [
     "pam_viewer_worker_bg.wasm",

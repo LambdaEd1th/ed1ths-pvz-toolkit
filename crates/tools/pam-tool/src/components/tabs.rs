@@ -16,9 +16,9 @@ pub fn TabStrip() -> Element {
     let tabs = context.tabs.read().clone();
 
     rsx! {
-        nav { class: "pam-tab-strip",
+        nav { class: "pam-tab-strip ui-document-tab-strip",
             div {
-                class: "pam-tab-viewport",
+                class: "pam-tab-viewport ui-document-tab-list",
                 role: "tablist",
                 aria_label: tr(locale, "animations"),
                 for tab in tabs {
@@ -26,10 +26,12 @@ pub fn TabStrip() -> Element {
                         let id = tab.id;
                         let name = tab.display_name();
                         let class_name = match (active == Some(id), dragged == Some(id)) {
-                            (true, true) => "pam-tab active dragging",
-                            (true, false) => "pam-tab active",
-                            (false, true) => "pam-tab dragging",
-                            (false, false) => "pam-tab",
+                            (true, true) => {
+                                "pam-tab active dragging ui-document-tab is-active is-dragging"
+                            }
+                            (true, false) => "pam-tab active ui-document-tab is-active",
+                            (false, true) => "pam-tab dragging ui-document-tab is-dragging",
+                            (false, false) => "pam-tab ui-document-tab",
                         };
                         rsx! {
                             div {
@@ -46,16 +48,16 @@ pub fn TabStrip() -> Element {
                                 },
                                 button {
                                     r#type: "button",
-                                    class: "pam-tab-label",
+                                    class: "pam-tab-label ui-document-tab-label",
                                     role: "tab",
                                     aria_selected: active == Some(id),
                                     title: "{name}",
                                     onclick: move |_| activate_tab(context, id),
-                                    span { "{name}" }
+                                    span { class: "ui-document-tab-name", "{name}" }
                                 }
                                 button {
                                     r#type: "button",
-                                    class: "pam-tab-close",
+                                    class: "pam-tab-close ui-document-tab-close",
                                     title: tr(locale, "close_tab"),
                                     aria_label: tr(locale, "close_tab"),
                                     onmousedown: move |event| event.stop_propagation(),
@@ -82,7 +84,7 @@ fn NewTabButton() -> Element {
     let locale = context.preferences.read().locale;
     rsx! {
         label {
-            class: "pam-new-tab",
+            class: "pam-new-tab ui-document-new-tab",
             title: tr(locale, "load"),
             input {
                 class: "pam-file-input",
@@ -113,7 +115,7 @@ fn NewTabButton() -> Element {
     rsx! {
         button {
             r#type: "button",
-            class: "pam-new-tab",
+            class: "pam-new-tab ui-document-new-tab",
             title: tr(locale, "load"),
             onclick: move |_| {
                 if let Some(root) = crate::platform::pick_animation_folder() {

@@ -27,7 +27,7 @@ pub(crate) fn UnsavedChangesDialog(
     let closing = use_signal(|| false);
     let closing_snapshot = *closing.read();
     let title = i18n.t("unsaved-changes-title");
-    let close_label = i18n.t("about-close");
+    let close_label = i18n.t("toolbar-close-menu");
 
     rsx! {
         div {

@@ -89,7 +89,7 @@ impl WorkerClient {
             }
         });
         worker.set_onerror(Some(onerror.as_ref().unchecked_ref()));
-        log::info!(target: "rton_editor::worker", "Web Worker initialized");
+        log::info!(target: "rton_editor::worker", "Initialized (web)");
 
         Ok(Self {
             worker,

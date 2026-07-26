@@ -2,6 +2,7 @@ use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{LdFileArchive, LdListTree, LdSearch};
 use rton_editor_core::{TreeRows, ValueSearchResult, ValueStats};
 use std::collections::HashSet;
+use toolkit_ui::PillTabs;
 
 use super::layout::FileSummaryPanel;
 use crate::components::{ValueSearchResults, ValueTree, lucide_icon};
@@ -40,10 +41,9 @@ pub(super) fn IndexPanel(
     let active_section_snapshot = *active_section.read();
 
     rsx! {
-        aside { id: "rton-inspector-drawer", class: "rton-side-panel rton-side-panel-right ui-workbench-panel",
-            div {
+        div { id: "rton-inspector-sheet", class: "rton-inspector-sheet",
+            PillTabs {
                 class: "rton-inspector-tabs",
-                role: "tablist",
                 aria_label: i18n.t("panel-inspector-tabs"),
                 button {
                     r#type: "button",

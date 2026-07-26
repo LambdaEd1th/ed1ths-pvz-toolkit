@@ -5,6 +5,8 @@ summary-no-output = Нет
 summary-not-generated = Не создано
 summary-text-input = Текст
 summary-raw-bytes = сырые байты
+page-eyebrow = Рабочая область данных
+page-description = Открывайте, исследуйте, редактируйте и экспортируйте структурированные данные PvZ.
 
 toolbar-group-file = Файл
 toolbar-group-edit = Правка
@@ -21,40 +23,14 @@ toolbar-encrypted = Зашифрованный
 toolbar-validate = Проверить
 toolbar-wrap = Перенос
 toolbar-search = Поиск
-settings-title = Настройки
-settings-appearance = Режим оформления
-settings-language = Язык интерфейса
-settings-logs = Журнал
-settings-logs-open = Открыть журнал приложения
-settings-about = О приложении
 toolbar-more = Еще
 toolbar-close-menu = Закрыть меню
 tabs-new-file = Новый пустой файл { $format }
-
-about-version = Версия
-about-license = License
-about-author = Автор
-about-github = GitHub
-about-close = Закрыть
-
-logs-empty = Записей в журнале нет
-logs-clear = Очистить
-logs-export = Экспортировать журнал
 
 unsaved-changes-title = Отменить несохранённые изменения?
 unsaved-changes-description = В файле { $name } есть изменения, которые не были экспортированы.
 unsaved-changes-cancel = Отмена
 unsaved-changes-discard = Отменить изменения и закрыть
-
-theme-system = Системная
-theme-light = Светлая
-theme-dark = Темная
-language-self = Русский
-language-en = Английский
-language-zh = Китайский
-language-fr = Французский
-language-ru = Русский
-language-es = Испанский
 
 panel-files = Файлы
 panel-file-properties = Свойства файла
@@ -219,8 +195,6 @@ status-no-parsed-document-export = Нет разобранного докуме�
 status-exported-file = Экспортировано: { $name }
 status-exported-file-bytes = Экспортировано: { $name } ({ $bytes })
 status-export-cancelled = Экспорт отменен
-status-logs-cleared = Журнал приложения очищен
-status-logs-exported = Файл rton-editor.log экспортирован
 status-file-error = { $name }: { $error }
 status-file-read-error = Не удалось прочитать { $name }: { $error }
 status-no-active-tab = Нет активной вкладки

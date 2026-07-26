@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use pam_viewer_core::{PamDocument, Rect, SpriteKey};
+use pam_viewer_core::{PamDocument, Rect, RenderViewPayload, SpriteKey};
 use parking_lot::RwLock;
 
 #[derive(Clone, Debug)]
@@ -35,6 +35,22 @@ impl Default for StageScene {
 }
 
 impl StageScene {
+    pub fn apply_view(&mut self, view: RenderViewPayload) {
+        if let (Some(document), Some(geometry)) = (&mut self.document, view.document_geometry) {
+            let document = Arc::make_mut(document);
+            document.pam.position = geometry.position;
+            document.pam.size = geometry.size;
+        }
+        self.sprite = view.sprite;
+        self.frame = view.frame;
+        self.image_filter = view.image_filter;
+        self.sprite_filter = view.sprite_filter;
+        self.zoom = view.zoom;
+        self.pan = view.pan;
+        self.boundary = view.boundary;
+        self.dark_background = view.dark_background;
+    }
+
     pub fn replace(&mut self, mut next: Self) {
         let same_document = match (&self.document, &next.document) {
             (Some(current), Some(next)) => Arc::ptr_eq(current, next),
@@ -166,5 +182,27 @@ mod tests {
             ..StageScene::default()
         });
         assert_eq!(scene.document_revision, empty_revision.wrapping_add(1));
+    }
+
+    #[test]
+    fn view_geometry_updates_the_document_without_reloading_it() {
+        let mut scene = StageScene {
+            document: Some(document("sample.pam")),
+            document_revision: 7,
+            ..StageScene::default()
+        };
+
+        scene.apply_view(RenderViewPayload {
+            document_geometry: Some(pam_viewer_core::RenderDocumentGeometryPayload {
+                position: [12.0, 18.0],
+                size: [96.0, 128.0],
+            }),
+            ..RenderViewPayload::default()
+        });
+
+        let document = scene.document.as_ref().unwrap();
+        assert_eq!(document.pam.position, [12.0, 18.0]);
+        assert_eq!(document.pam.size, [96.0, 128.0]);
+        assert_eq!(scene.document_revision, 7);
     }
 }

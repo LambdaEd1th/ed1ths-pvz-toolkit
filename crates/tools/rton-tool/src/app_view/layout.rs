@@ -1,4 +1,4 @@
-//! Shared layout pieces for the RTON workbench view.
+//! Shared content pieces for the RTON editor page.
 
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{LdActivity, LdFileArchive, LdFolderOpen};
@@ -6,7 +6,6 @@ use rton_editor_core::ValueStats;
 
 use crate::app_constants::LOADABLE_FILE_HINT;
 use crate::components::{MetaItem, PanelHeader, StatsGrid, lucide_icon};
-use crate::domain::Status;
 use crate::i18n::I18n;
 
 #[component]
@@ -18,6 +17,12 @@ pub(crate) fn EmptyDropStage(i18n: I18n) -> Element {
             div {
                 class: "empty-editor-subtitle",
                 {i18n.t_args("drop-subtitle", &[("hint", LOADABLE_FILE_HINT.to_string())])}
+            }
+            div { class: "rton-format-row", aria_hidden: "true",
+                span { "RTON" }
+                span { "JSON" }
+                span { "YAML" }
+                span { "TOML" }
             }
         }
     }
@@ -62,27 +67,6 @@ pub(crate) fn FileSummaryPanel(
                     }
                     StatsGrid { stats, i18n }
                 }
-            }
-        }
-    }
-}
-
-#[component]
-pub(crate) fn StatusBar(
-    i18n: I18n,
-    active_file_label: String,
-    output_value: String,
-    status: Status,
-) -> Element {
-    rsx! {
-        footer { class: "status-bar {status.tone.class()}",
-            span { class: "status-file",
-                "{active_file_label}"
-            }
-            span { class: "status-message", "{status.message}" }
-            span { class: "status-output-label", {i18n.t("panel-output")} }
-            span { class: "status-output-value",
-                "{output_value}"
             }
         }
     }

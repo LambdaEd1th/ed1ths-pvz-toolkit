@@ -30,7 +30,7 @@ pub(super) fn FilePanel(
     suppress_resize_observer: bool,
 ) -> Element {
     rsx! {
-        aside { id: "rton-file-drawer", class: "rton-side-panel rton-side-panel-left ui-workbench-panel",
+        div { id: "rton-file-sheet", class: "rton-file-sheet",
             header { class: "panel-header",
                 div { class: "panel-header-top",
                     div { class: "panel-header-main",

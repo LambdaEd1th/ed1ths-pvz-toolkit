@@ -1,11 +1,7 @@
 use dioxus::prelude::*;
 
-use crate::app_actions::initial_toolbar_rows;
-use crate::app_constants::{LEFT_PANEL_DEFAULT_WIDTH, RIGHT_PANEL_DEFAULT_WIDTH};
-use crate::components::{FileSelection, HexJumpTarget, PanelResizeDrag, TextJumpTarget};
-use crate::domain::{
-    DropMarker, EditorMode, EditorTabState, Status, ThemePreference, Tone, ToolbarGroupId,
-};
+use crate::components::{FileSelection, HexJumpTarget, TextJumpTarget};
+use crate::domain::{DropMarker, EditorMode, EditorTabState, Status, ThemePreference, Tone};
 use crate::file_import::LoadedFileState;
 use crate::i18n::{I18n, Locale};
 use crate::platform;
@@ -50,16 +46,10 @@ pub(super) struct EditorSessionSignals {
 #[derive(Clone, Copy, PartialEq)]
 pub(super) struct LayoutSignals {
     pub(super) dragging_files: Signal<bool>,
-    pub(super) file_drawer_open: Signal<bool>,
-    pub(super) inspector_drawer_open: Signal<bool>,
-    pub(super) left_panel_width: Signal<i32>,
-    pub(super) right_panel_width: Signal<i32>,
-    pub(super) panel_resize_drag: Signal<Option<PanelResizeDrag>>,
+    pub(super) file_sheet_open: Signal<bool>,
+    pub(super) inspector_sheet_open: Signal<bool>,
     pub(super) dragged_tab_id: Signal<Option<usize>>,
     pub(super) tab_drop_marker: Signal<Option<DropMarker<usize>>>,
-    pub(super) toolbar_rows: Signal<Vec<Vec<ToolbarGroupId>>>,
-    pub(super) dragged_toolbar_group_id: Signal<Option<ToolbarGroupId>>,
-    pub(super) toolbar_drop_marker: Signal<Option<DropMarker<ToolbarGroupId>>>,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -73,7 +63,6 @@ pub(super) struct AppSignals {
 
 pub(super) fn use_app_signals(
     initial_locale_snapshot: Locale,
-    inspector_drawer_open: bool,
     theme: ThemePreference,
 ) -> AppSignals {
     AppSignals {
@@ -110,22 +99,14 @@ pub(super) fn use_app_signals(
         },
         layout: LayoutSignals {
             dragging_files: use_signal(|| false),
-            file_drawer_open: use_signal(|| false),
-            inspector_drawer_open: use_signal(move || inspector_drawer_open),
-            left_panel_width: use_signal(|| LEFT_PANEL_DEFAULT_WIDTH),
-            right_panel_width: use_signal(|| RIGHT_PANEL_DEFAULT_WIDTH),
-            panel_resize_drag: use_signal(|| None::<PanelResizeDrag>),
+            file_sheet_open: use_signal(|| false),
+            inspector_sheet_open: use_signal(|| false),
             dragged_tab_id: use_signal(|| None::<usize>),
             tab_drop_marker: use_signal(|| None::<DropMarker<usize>>),
-            toolbar_rows: use_signal(initial_toolbar_rows),
-            dragged_toolbar_group_id: use_signal(|| None::<ToolbarGroupId>),
-            toolbar_drop_marker: use_signal(|| None::<DropMarker<ToolbarGroupId>>),
         },
-        status: use_signal(move || {
-            Status::new(
-                I18n::new(initial_locale_snapshot).t("status-ready"),
-                Tone::Ok,
-            )
+        status: use_signal(move || Status {
+            message: I18n::new(initial_locale_snapshot).t("status-ready"),
+            tone: Tone::Ok,
         }),
     }
 }

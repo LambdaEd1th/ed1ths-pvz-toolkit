@@ -89,7 +89,7 @@ impl WorkerClient {
         let onerror = Closure::<dyn FnMut(JsValue)>::new(move |event: JsValue| {
             error_failed.set(true);
             let message = worker_error_message(&event);
-            crate::platform::log_buffer::push("ERROR", &message);
+            crate::platform::log_buffer::push("ERROR", "WORKER", &message);
             let error = JsValue::from_str(&message);
             for (_, request) in error_pending.borrow_mut().drain() {
                 let _ = request.reject.call1(&JsValue::UNDEFINED, &error);

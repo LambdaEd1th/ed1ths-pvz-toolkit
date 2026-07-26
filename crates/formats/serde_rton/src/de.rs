@@ -137,7 +137,7 @@ fn validate_header<R: Read + Seek>(reader: &mut R) -> Result<()> {
     let version_hi = reader.read_u16::<LittleEndian>()?;
     let version = (u32::from(version_hi) << 16) | u32::from(version_lo);
     if u32::from(version_lo) != STANDARD_FILE_VERSION || version_hi > 1 {
-        return Err(Error::Message(format!("Unsupported version: {}", version)));
+        return Err(Error::Message(format!("Unsupported version: {version}")));
     }
 
     if version_hi == 1 {
@@ -204,7 +204,7 @@ impl<'de, R: Read + Seek> Deserializer<'de, R> {
                 let v2: u64 = self.reader.read_varint()?;
                 let v1: u64 = self.reader.read_varint()?;
                 let x = self.reader.read_u32::<LittleEndian>()?;
-                Ok(format!("RTID({:x}.{:x}.{:08x}@)", v1, v2, x))
+                Ok(format!("RTID({v1:x}.{v2:x}.{x:08x}@)"))
             }
             RtidPayloadTag::UidWithName => {
                 let name = read_utf8_string_payload(&mut self.reader)?;
@@ -212,14 +212,14 @@ impl<'de, R: Read + Seek> Deserializer<'de, R> {
                 let v2: u64 = self.reader.read_varint()?;
                 let v1: u64 = self.reader.read_varint()?;
                 let x = self.reader.read_u32::<LittleEndian>()?;
-                Ok(format!("RTID({:x}.{:x}.{:08x}@{})", v1, v2, x, name))
+                Ok(format!("RTID({v1:x}.{v2:x}.{x:08x}@{name})"))
             }
             RtidPayloadTag::RawString => {
                 let s1 = read_utf8_string_payload(&mut self.reader)?;
 
                 let s2 = read_utf8_string_payload(&mut self.reader)?;
 
-                Ok(format!("RTID({}@{})", s1, s2))
+                Ok(format!("RTID({s1}@{s2})"))
             }
         }
     }

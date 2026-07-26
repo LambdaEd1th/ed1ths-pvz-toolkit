@@ -6,13 +6,9 @@ use pam_viewer_core::WorkerInputFile;
 use crate::state::{Locale, Preferences};
 
 pub mod log_buffer {
-    use std::collections::VecDeque;
-    use std::sync::{Mutex, MutexGuard, OnceLock};
-    #[cfg(not(target_arch = "wasm32"))]
-    use std::time::{SystemTime, UNIX_EPOCH};
+    use std::sync::OnceLock;
 
-    const MAX_ENTRIES: usize = 500;
-    static LOGS: OnceLock<Mutex<VecDeque<String>>> = OnceLock::new();
+    static INITIALIZED: OnceLock<()> = OnceLock::new();
 
     fn display_version() -> &'static str {
         env!("CARGO_PKG_VERSION")
@@ -20,80 +16,19 @@ pub mod log_buffer {
             .unwrap_or(env!("CARGO_PKG_VERSION"))
     }
 
-    fn normalize_entry(entry: &str) -> String {
-        entry.replace(
-            &format!("PAM Viewer {}", display_version()),
-            &format!("PAM Viewer v{}", display_version()),
-        )
-    }
-
-    fn entries() -> MutexGuard<'static, VecDeque<String>> {
-        LOGS.get_or_init(|| Mutex::new(VecDeque::new()))
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
-    }
-
-    fn timestamp() -> String {
-        #[cfg(not(target_arch = "wasm32"))]
-        let seconds = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map(|duration| duration.as_secs())
-            .unwrap_or(0);
-        #[cfg(target_arch = "wasm32")]
-        let seconds = (js_sys::Date::now() / 1_000.0) as u64;
-        let seconds = seconds % 86_400;
-        format!(
-            "{:02}:{:02}:{:02}",
-            seconds / 3_600,
-            (seconds / 60) % 60,
-            seconds % 60
-        )
-    }
-
     pub fn initialize() {
-        let mut entries = entries();
-        if entries.is_empty() {
-            entries.push_back(format!(
-                "[{}] [INFO] PAM Viewer v{}",
-                timestamp(),
-                display_version()
-            ));
-        }
+        INITIALIZED.get_or_init(|| {
+            toolkit_ui::push_application_log(
+                "PAM",
+                "INFO",
+                "APP",
+                format!("Initialized (version {})", display_version()),
+            );
+        });
     }
 
-    pub fn push(level: &str, message: &str) {
-        if message.is_empty() {
-            return;
-        }
-        let mut entries = entries();
-        entries.push_back(format!("[{}] [{level}] {message}", timestamp()));
-        while entries.len() > MAX_ENTRIES {
-            entries.pop_front();
-        }
-    }
-
-    pub fn snapshot() -> String {
-        entries()
-            .iter()
-            .map(|entry| normalize_entry(entry))
-            .collect::<Vec<_>>()
-            .join("\n")
-    }
-
-    pub fn clear() {
-        entries().clear();
-    }
-
-    #[cfg(test)]
-    mod tests {
-        use super::*;
-
-        #[test]
-        fn adds_the_version_prefix_to_legacy_entries() {
-            let legacy = format!("[12:00:00] [INFO] PAM Viewer {}", display_version());
-            let expected = format!("[12:00:00] [INFO] PAM Viewer v{}", display_version());
-            assert_eq!(normalize_entry(&legacy), expected);
-        }
+    pub fn push(level: &str, scope: &str, message: &str) {
+        toolkit_ui::push_application_log("PAM", level, scope, message);
     }
 }
 
@@ -377,13 +312,12 @@ pub fn save_bytes(default_name: &str, bytes: &[u8]) -> Result<bool, String> {
 }
 
 pub fn load_preferences() -> Preferences {
-    let loaded = preference_text()
+    preference_text()
         .and_then(|text| serde_json::from_str::<Preferences>(&text).ok())
         .unwrap_or_else(|| Preferences {
             locale: detect_locale(),
             ..Preferences::default()
-        });
-    loaded.normalized()
+        })
 }
 
 pub fn save_preferences(preferences: &Preferences) {

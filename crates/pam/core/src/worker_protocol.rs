@@ -256,6 +256,12 @@ pub enum WorkerResponse {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct RenderDocumentGeometryPayload {
+    pub position: [f64; 2],
+    pub size: [f64; 2],
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RenderViewPayload {
     pub sprite: SpriteKey,
     pub frame: usize,
@@ -263,6 +269,8 @@ pub struct RenderViewPayload {
     pub sprite_filter: Vec<bool>,
     pub zoom: f32,
     pub pan: [f32; 2],
+    #[serde(default)]
+    pub document_geometry: Option<RenderDocumentGeometryPayload>,
     pub boundary: bool,
     pub dark_background: bool,
 }
@@ -276,6 +284,7 @@ impl Default for RenderViewPayload {
             sprite_filter: Vec::new(),
             zoom: 1.0,
             pan: [0.0, 0.0],
+            document_geometry: None,
             boundary: true,
             dark_background: true,
         }

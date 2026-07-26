@@ -5,6 +5,8 @@ summary-no-output = 无
 summary-not-generated = 未生成
 summary-text-input = 文本
 summary-raw-bytes = raw bytes
+page-eyebrow = 数据工作区
+page-description = 打开、检查、编辑并导出 PvZ 结构化数据。
 
 toolbar-group-file = 文件
 toolbar-group-edit = 编辑
@@ -21,40 +23,14 @@ toolbar-encrypted = 加密
 toolbar-validate = 校验
 toolbar-wrap = 换行
 toolbar-search = 搜索
-settings-title = 设置
-settings-appearance = 外观模式
-settings-language = 界面语言
-settings-logs = 日志
-settings-logs-open = 查看应用日志
-settings-about = 关于
 toolbar-more = 更多
 toolbar-close-menu = 关闭菜单
 tabs-new-file = 新建空白 { $format } 文件
-
-about-version = 版本号
-about-license = License
-about-author = 作者
-about-github = GitHub
-about-close = 关闭
-
-logs-empty = 暂无日志
-logs-clear = 清空
-logs-export = 导出日志
 
 unsaved-changes-title = 放弃未保存的更改？
 unsaved-changes-description = { $name } 包含尚未导出的更改。
 unsaved-changes-cancel = 取消
 unsaved-changes-discard = 放弃并关闭
-
-theme-system = 跟随系统
-theme-light = 浅色
-theme-dark = 深色
-language-self = 中文
-language-en = English
-language-zh = 中文
-language-fr = 法语
-language-ru = 俄语
-language-es = 西班牙语
 
 panel-files = 文件
 panel-file-properties = 文件属性
@@ -219,8 +195,6 @@ status-no-parsed-document-export = 没有已解析的文档可导出
 status-exported-file = 已导出 { $name }
 status-exported-file-bytes = 已导出 { $name }（{ $bytes }）
 status-export-cancelled = 已取消导出
-status-logs-cleared = 已清空应用日志
-status-logs-exported = 已导出 rton-editor.log
 status-file-error = { $name }：{ $error }
 status-file-read-error = 无法读取 { $name }：{ $error }
 status-no-active-tab = 没有活动标签

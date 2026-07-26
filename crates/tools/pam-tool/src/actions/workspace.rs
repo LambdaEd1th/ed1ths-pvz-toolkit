@@ -77,38 +77,6 @@ pub fn reorder_tab(mut context: AppContext, dragged: u64, target: u64) {
     tabs.insert(target_index, tab);
 }
 
-pub fn reorder_toolbar_group(mut context: AppContext, dragged: &str, target: &str) {
-    if dragged == target {
-        return;
-    }
-    let mut preferences = context.preferences.write();
-    let Some(source) = preferences
-        .toolbar_order
-        .iter()
-        .position(|group| group == dragged)
-    else {
-        return;
-    };
-    let group = preferences.toolbar_order.remove(source);
-    let Some(target_index) = preferences
-        .toolbar_order
-        .iter()
-        .position(|candidate| candidate == target)
-    else {
-        let restore_index = source.min(preferences.toolbar_order.len());
-        preferences.toolbar_order.insert(restore_index, group);
-        return;
-    };
-    preferences.toolbar_order.insert(target_index, group);
-}
-
-pub fn finish_toolbar_reorder(mut context: AppContext) {
-    if context.dragged_toolbar_group.read().is_some() {
-        context.save_preferences();
-    }
-    context.dragged_toolbar_group.set(None);
-}
-
 pub fn activate_sprite(mut context: AppContext, key: SpriteKey) {
     let reverse = context.preferences.read().reverse;
     let keep_speed = context.preferences.read().keep_speed;

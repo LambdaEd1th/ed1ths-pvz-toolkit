@@ -39,7 +39,6 @@ pub(crate) fn Sidebar(route: Signal<AppRoute>, open: Signal<bool>, compact: bool
                             active: active_route == tool.route,
                             glyph: tool.glyph,
                             label: tool.label,
-                            badge: Some("Open"),
                             kind: Some(tool.slug),
                             onclick: move |_| navigate(route, open, compact, tool.route),
                         }
@@ -54,11 +53,11 @@ pub(crate) fn Sidebar(route: Signal<AppRoute>, open: Signal<bool>, compact: bool
                         label: "Libraries",
                         onclick: move |_| navigate(route, open, compact, AppRoute::Home),
                     }
-                    NavAnchor {
-                        href: "#about",
+                    NavItem {
+                        active: active_route == AppRoute::About,
                         glyph: "i",
-                        label: "About toolkit",
-                        onclick: move |_| navigate(route, open, compact, AppRoute::Home),
+                        label: "About",
+                        onclick: move |_| navigate(route, open, compact, AppRoute::About),
                     }
                 }
             }
@@ -79,7 +78,6 @@ fn NavItem(
     active: bool,
     glyph: &'static str,
     label: &'static str,
-    #[props(default)] badge: Option<&'static str>,
     #[props(default)] kind: Option<&'static str>,
     onclick: EventHandler<MouseEvent>,
 ) -> Element {
@@ -93,9 +91,6 @@ fn NavItem(
             onclick: move |event| onclick.call(event),
             span { class: "{glyph_class}", aria_hidden: "true", "{glyph}" }
             span { "{label}" }
-            if let Some(badge) = badge {
-                small { "{badge}" }
-            }
         }
     }
 }

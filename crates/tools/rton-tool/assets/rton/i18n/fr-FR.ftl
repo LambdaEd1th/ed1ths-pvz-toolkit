@@ -5,6 +5,8 @@ summary-no-output = Aucun
 summary-not-generated = Non genere
 summary-text-input = Texte
 summary-raw-bytes = octets bruts
+page-eyebrow = Espace de données
+page-description = Ouvrez, inspectez, modifiez et exportez les données structurées de PvZ.
 
 toolbar-group-file = Fichier
 toolbar-group-edit = Edition
@@ -21,40 +23,14 @@ toolbar-encrypted = Chiffre
 toolbar-validate = Valider
 toolbar-wrap = Retour ligne
 toolbar-search = Rechercher
-settings-title = Paramètres
-settings-appearance = Mode d'apparence
-settings-language = Langue de l'interface
-settings-logs = Journaux
-settings-logs-open = Afficher les journaux de l'application
-settings-about = A propos
 toolbar-more = Plus
 toolbar-close-menu = Fermer le menu
 tabs-new-file = Nouveau fichier { $format } vide
-
-about-version = Version
-about-license = License
-about-author = Auteur
-about-github = GitHub
-about-close = Fermer
-
-logs-empty = Aucun journal
-logs-clear = Effacer
-logs-export = Exporter le journal
 
 unsaved-changes-title = Abandonner les modifications non enregistrées ?
 unsaved-changes-description = { $name } contient des modifications qui n'ont pas été exportées.
 unsaved-changes-cancel = Annuler
 unsaved-changes-discard = Abandonner et fermer
-
-theme-system = Systeme
-theme-light = Clair
-theme-dark = Sombre
-language-self = Français
-language-en = Anglais
-language-zh = Chinois
-language-fr = Français
-language-ru = Russe
-language-es = Espagnol
 
 panel-files = Fichiers
 panel-file-properties = Proprietes du fichier
@@ -219,8 +195,6 @@ status-no-parsed-document-export = Aucun document analyse a exporter
 status-exported-file = { $name } exporte
 status-exported-file-bytes = { $name } exporte ({ $bytes })
 status-export-cancelled = Export annule
-status-logs-cleared = Journaux de l'application effaces
-status-logs-exported = rton-editor.log exporte
 status-file-error = { $name } : { $error }
 status-file-read-error = Impossible de lire { $name } : { $error }
 status-no-active-tab = Aucun onglet actif

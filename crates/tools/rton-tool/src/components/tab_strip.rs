@@ -2,7 +2,7 @@ use std::cell::Cell;
 use std::rc::Rc;
 
 use dioxus::prelude::*;
-use dioxus_free_icons::icons::ld_icons::LdPlus;
+use dioxus_free_icons::icons::ld_icons::{LdPlus, LdX};
 
 use crate::app_constants::TAB_DROP_MIDPOINT_PX;
 use crate::components::lucide_icon;
@@ -20,12 +20,12 @@ pub(crate) struct TabHeader {
 
 fn file_tab_class(active: bool, dragging: bool, drop_placement: Option<DropPlacement>) -> String {
     let mut class_name = if active {
-        "rton-file-tab active".to_string()
+        "rton-file-tab active ui-document-tab is-active".to_string()
     } else {
-        "rton-file-tab".to_string()
+        "rton-file-tab ui-document-tab".to_string()
     };
     if dragging {
-        class_name.push_str(" dragging");
+        class_name.push_str(" dragging is-dragging");
     }
     if let Some(drop_placement) = drop_placement {
         class_name.push(' ');
@@ -86,18 +86,21 @@ fn FileTab(
             },
             onmouseup: move |_| on_drag_end.call(()),
             button {
-                class: "rton-file-tab-label",
+                class: "rton-file-tab-label ui-document-tab-label",
                 role: "tab",
                 aria_selected: active,
                 onclick: move |_| on_activate.call(tab.id),
                 title: i18n.t_args("tabs-switch-to", &[("name", tab.file_name.clone())]),
-                span { class: "rton-file-tab-name", "{leaf_display_name(&tab.file_name)}" }
+                span {
+                    class: "rton-file-tab-name ui-document-tab-name",
+                    "{leaf_display_name(&tab.file_name)}"
+                }
                 if tab.dirty {
                     span { class: "rton-file-tab-dirty" }
                 }
             }
             button {
-                class: "rton-file-tab-close",
+                class: "rton-file-tab-close ui-document-tab-close",
                 disabled: !tab.closeable,
                 title: i18n.t("title-close-tab"),
                 aria_label: i18n.t("title-close-tab"),
@@ -106,7 +109,7 @@ fn FileTab(
                     event.stop_propagation();
                     on_close.call(tab.id);
                 },
-                "×"
+                {lucide_icon(LdX)}
             }
         }
     }
@@ -130,9 +133,9 @@ pub(crate) fn TabStrip(
     let tab_count = tabs.len();
 
     rsx! {
-        nav { class: "rton-tab-strip",
+        nav { class: "rton-tab-strip ui-document-tab-strip",
             div {
-                class: "rton-file-tabs",
+                class: "rton-file-tabs ui-document-tab-list",
                 role: "tablist",
                 aria_label: i18n.t("tabs-open-files"),
                 for tab in tabs {
@@ -155,7 +158,7 @@ pub(crate) fn TabStrip(
                 }
                 button {
                     r#type: "button",
-                    class: "rton-new-tab",
+                    class: "rton-new-tab ui-document-new-tab",
                     title: i18n.t_args(
                         "tabs-new-file",
                         &[("format", new_tab_mode.label().to_string())],

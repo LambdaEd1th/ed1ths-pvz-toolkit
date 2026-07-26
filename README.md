@@ -38,6 +38,12 @@ compile time, keeps their workspaces mounted while switching pages, and owns the
 single appearance preference. Tool-specific state never flows back into the app
 shell.
 
+Tool pages use the same composition: a page header for primary actions, one
+central workspace card for the format-specific editor, and temporary context
+sheets for resources or inspection. PAM and RTON keep their action components
+under `page_actions/`; neither tool creates a second navigation shell, permanent
+sidebars, resizable layout frame, or bottom status bar.
+
 Public libraries are intentionally independent:
 
 ```toml

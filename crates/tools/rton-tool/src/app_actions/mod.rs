@@ -5,7 +5,6 @@ mod file_selection;
 mod opening;
 mod tabs;
 mod text_editor_search;
-mod toolbar;
 mod workspace_reducer;
 
 pub(crate) use document::{
@@ -33,7 +32,6 @@ pub(crate) use text_editor_search::{
     go_to_next_text_match, go_to_previous_text_match, handle_text_find_key,
     handle_text_replace_key, replace_all_text_matches_in_editor, replace_current_text_match,
 };
-pub(crate) use toolbar::{finish_toolbar_drag_state, initial_toolbar_rows};
 
 #[cfg(test)]
 pub(crate) use editing::{redo_hex_tab, redo_text_tab, undo_hex_tab, undo_text_tab};

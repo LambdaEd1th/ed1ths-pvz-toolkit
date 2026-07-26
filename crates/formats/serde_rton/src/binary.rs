@@ -85,7 +85,7 @@ impl fmt::Display for BinaryBlob {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "$BINARY(\"")?;
         for b in &self.0 {
-            write!(f, "{:02X}", b)?;
+            write!(f, "{b:02X}")?;
         }
         write!(f, "\", {})", self.0.len())
     }

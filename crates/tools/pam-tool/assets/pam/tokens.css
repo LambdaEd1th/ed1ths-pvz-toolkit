@@ -22,11 +22,11 @@
   --color-accent-soft: var(--tk-accent-soft);
   --color-accent-text: var(--tk-accent-strong);
   --color-accent-contrast: #ffffff;
-  --color-stage: #f8fbfa;
+  --color-stage: rgba(248, 250, 252, 0.72);
   --color-canvas: var(--color-stage);
   --color-stage-drop-bg: var(--tk-accent-soft);
-  --color-drop-hint: rgba(32, 41, 45, 0.62);
-  --color-drop-hint-sub: rgba(32, 41, 45, 0.42);
+  --color-drop-hint: var(--tk-ink);
+  --color-drop-hint-sub: var(--tk-muted);
   --color-status: var(--tk-surface-strong);
   --color-status-text: var(--tk-muted);
   --color-status-link: var(--tk-accent-strong);
@@ -43,12 +43,12 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.pam-app.dark-theme {
-  --color-border-strong: rgba(191, 231, 225, 0.18);
-  --color-border-stronger: rgba(191, 231, 225, 0.28);
-  --color-stage: #121918;
-  --color-drop-hint: rgba(237, 246, 245, 0.72);
-  --color-drop-hint-sub: rgba(237, 246, 245, 0.48);
+.dark-theme .pam-app {
+  --color-border-strong: rgba(148, 163, 184, 0.24);
+  --color-border-stronger: rgba(148, 163, 184, 0.34);
+  --color-stage: rgba(8, 17, 27, 0.72);
+  --color-drop-hint: #f8fafc;
+  --color-drop-hint-sub: #94a3b8;
   --color-shadow: rgba(0, 0, 0, 0.42);
   --color-focus: rgba(98, 224, 211, 0.4);
   --color-warning: #d9a441;
@@ -57,12 +57,12 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .pam-app.system-theme {
-    --color-border-strong: rgba(191, 231, 225, 0.18);
-    --color-border-stronger: rgba(191, 231, 225, 0.28);
-    --color-stage: #121918;
-    --color-drop-hint: rgba(237, 246, 245, 0.72);
-    --color-drop-hint-sub: rgba(237, 246, 245, 0.48);
+  .system-theme .pam-app {
+    --color-border-strong: rgba(148, 163, 184, 0.24);
+    --color-border-stronger: rgba(148, 163, 184, 0.34);
+    --color-stage: rgba(8, 17, 27, 0.72);
+    --color-drop-hint: #f8fafc;
+    --color-drop-hint-sub: #94a3b8;
     --color-shadow: rgba(0, 0, 0, 0.42);
     --color-focus: rgba(98, 224, 211, 0.4);
     --color-warning: #d9a441;

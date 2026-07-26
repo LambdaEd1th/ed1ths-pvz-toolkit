@@ -12,14 +12,11 @@ pub fn UiStyles() -> Element {
 }
 
 #[component]
-pub fn Island(
-    #[props(default)] class: String,
-    #[props(default)] aria_label: Option<String>,
-    children: Element,
-) -> Element {
+pub fn PillTabs(#[props(default)] class: String, aria_label: String, children: Element) -> Element {
     rsx! {
-        section {
-            class: "ui-island {class}",
+        div {
+            class: "ui-pill-tabs {class}",
+            role: "tablist",
             aria_label,
             {children}
         }

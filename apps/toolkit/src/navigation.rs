@@ -4,6 +4,7 @@ use dioxus::prelude::*;
 pub(crate) enum AppRoute {
     #[default]
     Home,
+    About,
     Pam,
     Rton,
 }
@@ -12,6 +13,7 @@ impl AppRoute {
     pub(crate) const fn label(self) -> &'static str {
         match self {
             Self::Home => "Home",
+            Self::About => "About",
             Self::Pam => "PAM Viewer",
             Self::Rton => "RTON Editor",
         }
@@ -25,7 +27,7 @@ pub(crate) fn navigate(
     target: AppRoute,
 ) {
     route.set(target);
-    if compact_shell {
+    if compact_shell || matches!(target, AppRoute::Pam | AppRoute::Rton) {
         sidebar_open.set(false);
     }
 }

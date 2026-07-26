@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::state::{AppContext, Locale};
+use crate::state::AppContext;
 
 pub fn set_loop(mut context: AppContext, value: bool) {
     context.preferences.write().loop_playback = value;
@@ -33,37 +33,16 @@ pub fn set_boundary(mut context: AppContext, value: bool) {
     context.sync_stage();
 }
 
-pub fn set_panel_open(mut context: AppContext, images: bool, value: bool) {
-    let compact_layout = *context.compact_layout.read();
+pub fn set_resource_sheet_open(mut context: AppContext, images: bool, value: bool) {
     if images {
-        context.images_panel_open.set(value);
-        if compact_layout && value {
-            context.sprites_panel_open.set(false);
+        context.images_sheet_open.set(value);
+        if value {
+            context.sprites_sheet_open.set(false);
         }
     } else {
-        context.sprites_panel_open.set(value);
-        if compact_layout && value {
-            context.images_panel_open.set(false);
+        context.sprites_sheet_open.set(value);
+        if value {
+            context.images_sheet_open.set(false);
         }
     }
-
-    let mut preferences = context.preferences.write();
-    if images {
-        preferences.images_panel_open = value;
-        if compact_layout && value {
-            preferences.sprites_panel_open = false;
-        }
-    } else {
-        preferences.sprites_panel_open = value;
-        if compact_layout && value {
-            preferences.images_panel_open = false;
-        }
-    }
-    drop(preferences);
-    context.save_preferences();
-}
-
-pub fn set_locale(mut context: AppContext, locale: Locale) {
-    context.preferences.write().locale = locale;
-    context.save_preferences();
 }

@@ -162,12 +162,12 @@ impl fmt::Display for Rtid {
                 name,
             } => {
                 if let Some(n) = name {
-                    write!(f, "RTID({:x}.{:x}.{:08x}@{})", id, group, obj, n)
+                    write!(f, "RTID({id:x}.{group:x}.{obj:08x}@{n})")
                 } else {
-                    write!(f, "RTID({:x}.{:x}.{:08x}@)", id, group, obj)
+                    write!(f, "RTID({id:x}.{group:x}.{obj:08x}@)")
                 }
             }
-            Rtid::Raw { name, parent } => write!(f, "RTID({}@{})", name, parent),
+            Rtid::Raw { name, parent } => write!(f, "RTID({name}@{parent})"),
         }
     }
 }

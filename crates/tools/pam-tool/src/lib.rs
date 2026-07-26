@@ -5,9 +5,9 @@ mod platform;
 mod state;
 
 use dioxus::prelude::*;
-use toolkit_ui::{Appearance, WorkbenchSurface, use_appearance};
+use toolkit_ui::{Appearance, ToolSurface, use_appearance};
 
-use crate::components::Workbench;
+use crate::components::PamPage;
 use crate::state::{AppContext, Theme};
 
 fn pam_theme(appearance: Appearance) -> Theme {
@@ -45,33 +45,38 @@ pub fn PamTool(#[props(default = true)] active: bool) -> Element {
         use_effect(use_reactive(&active, move |active| {
             if active {
                 context.sync_stage();
+                document::eval("document.documentElement.classList.add('native-wgpu-host');");
             } else {
                 context
                     .stage
                     .read()
                     .update(|scene| scene.set_document(None));
+                document::eval("document.documentElement.classList.remove('native-wgpu-host');");
             }
             active_renderer.request_redraw();
         }));
-        use_effect(|| {
-            document::eval("document.documentElement.classList.add('native-wgpu-host');");
-        });
     }
     #[cfg(target_arch = "wasm32")]
     use_effect(|| {
         spawn(async {
-            if let Err(error) = crate::platform::processing::warm_up().await {
-                crate::platform::log_buffer::push(
-                    "ERROR",
-                    &format!("Processing Worker warm-up failed: {error}"),
-                );
+            match crate::platform::processing::warm_up().await {
+                Ok(()) => {
+                    crate::platform::log_buffer::push("INFO", "WORKER", "Initialized (web)");
+                }
+                Err(error) => {
+                    crate::platform::log_buffer::push(
+                        "ERROR",
+                        "WORKER",
+                        &format!("Warm-up failed: {error}"),
+                    );
+                }
             }
         });
     });
     actions::use_playback_clock();
     rsx! {
-        WorkbenchSurface { namespace: "pam",
-            Workbench {}
+        ToolSurface { namespace: "pam",
+            PamPage {}
         }
     }
 }
