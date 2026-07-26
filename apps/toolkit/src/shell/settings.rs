@@ -51,7 +51,7 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                     }
                 }
                 div { class: "tk-settings-content",
-                    div { class: "tk-settings-section",
+                    div { class: "tk-settings-section tk-settings-section--appearance",
                         span { class: "tk-settings-label", "外观" }
                         SegmentedControl {
                             value: appearance.preference().code().to_string(),
@@ -60,7 +60,7 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                             onchange: move |value: String| appearance.set(Appearance::from_code(&value)),
                         }
                     }
-                    div { class: "tk-settings-section",
+                    div { class: "tk-settings-section tk-settings-section--info",
                         span { class: "tk-settings-label", "应用信息" }
                         div { class: "tk-settings-info",
                             div {
@@ -91,12 +91,17 @@ fn SettingsGlyph() -> Element {
             view_box: "0 0 24 24",
             fill: "none",
             stroke: "currentColor",
-            circle { cx: "12", cy: "12", r: "3", stroke_width: "2" }
             path {
                 stroke_linecap: "round",
                 stroke_linejoin: "round",
                 stroke_width: "2",
-                d: "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-2.83 2.83-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21h-4v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06-2.83-2.83.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3v-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06 2.83-2.83.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3h4v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06 2.83 2.83-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21v4h-.09A1.65 1.65 0 0 0 19.4 15Z",
+                d: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065Z",
+            }
+            path {
+                stroke_linecap: "round",
+                stroke_linejoin: "round",
+                stroke_width: "2",
+                d: "M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z",
             }
         }
     }

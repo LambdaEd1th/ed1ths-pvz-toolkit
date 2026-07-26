@@ -25,7 +25,7 @@ pub(crate) fn navigate(
     target: AppRoute,
 ) {
     route.set(target);
-    if compact_shell {
+    if compact_shell || target != AppRoute::Home {
         sidebar_open.set(false);
     }
 }

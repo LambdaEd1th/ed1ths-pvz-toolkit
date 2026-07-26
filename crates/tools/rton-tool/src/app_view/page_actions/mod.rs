@@ -220,7 +220,7 @@ pub(super) fn PageActions(
     };
 
     rsx! {
-        div { class: "rton-page-actions",
+        div { class: "ui-island ui-tool-page-actions rton-page-actions",
             button {
                 r#type: "button",
                 class: if file_sheet_open_snapshot { "rton-page-icon-button active" } else { "rton-page-icon-button" },
@@ -286,7 +286,7 @@ pub(super) fn PageActions(
             }
             button {
                 r#type: "button",
-                class: "rton-page-icon-button",
+                class: "rton-page-icon-button rton-history-button",
                 disabled: !can_undo_snapshot,
                 title: i18n.t("toolbar-undo"),
                 aria_label: i18n.t("toolbar-undo"),
@@ -295,7 +295,7 @@ pub(super) fn PageActions(
             }
             button {
                 r#type: "button",
-                class: "rton-page-icon-button",
+                class: "rton-page-icon-button rton-history-button",
                 disabled: !can_redo_snapshot,
                 title: i18n.t("toolbar-redo"),
                 aria_label: i18n.t("toolbar-redo"),
@@ -304,7 +304,11 @@ pub(super) fn PageActions(
             }
             button {
                 r#type: "button",
-                class: if editor_search_panel_visible_snapshot { "rton-page-icon-button active" } else { "rton-page-icon-button" },
+                class: if editor_search_panel_visible_snapshot {
+                    "rton-page-icon-button rton-search-button active"
+                } else {
+                    "rton-page-icon-button rton-search-button"
+                },
                 disabled: !has_active_document,
                 title: i18n.t("toolbar-search"),
                 aria_label: i18n.t("toolbar-search"),
@@ -314,7 +318,11 @@ pub(super) fn PageActions(
             }
             button {
                 r#type: "button",
-                class: if action_sheet_open { "rton-page-icon-button active" } else { "rton-page-icon-button" },
+                class: if action_sheet_open {
+                    "rton-page-icon-button rton-more-button active"
+                } else {
+                    "rton-page-icon-button rton-more-button"
+                },
                 title: i18n.t("toolbar-more"),
                 aria_label: i18n.t("toolbar-more"),
                 aria_expanded: action_sheet_open,
@@ -352,15 +360,29 @@ pub(super) fn PageActions(
                 } else {
                     "rton-action-sheet-layer"
                 },
-                button {
-                    r#type: "button",
+                tabindex: "-1",
+                onmounted: move |event| async move {
+                    let _ = event.set_focus(true).await;
+                },
+                onkeydown: move |event| {
+                    if event.key() == Key::Escape {
+                        event.prevent_default();
+                        close_more_menu(action_sheet_mounted, action_sheet_closing);
+                    }
+                },
+                onclick: move |_| close_more_menu(action_sheet_mounted, action_sheet_closing),
+                div {
                     class: "rton-action-sheet-backdrop",
-                    aria_label: i18n.t("toolbar-close-menu"),
-                    onclick: move |_| close_more_menu(action_sheet_mounted, action_sheet_closing)
+                    aria_hidden: "true",
                 }
-                section { class: "rton-action-sheet",
+                section {
+                    class: "rton-action-sheet",
+                    role: "dialog",
+                    aria_modal: "true",
+                    aria_labelledby: "rton-more-title",
+                    onclick: move |event| event.stop_propagation(),
                     header { class: "rton-action-sheet-header",
-                        strong { {i18n.t("toolbar-more")} }
+                        strong { id: "rton-more-title", {i18n.t("toolbar-more")} }
                         button {
                             r#type: "button",
                             class: "rton-page-icon-button",

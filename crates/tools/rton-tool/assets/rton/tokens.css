@@ -19,6 +19,7 @@
   --color-accent: var(--tk-accent);
   --color-accent-strong: var(--tk-accent-strong);
   --color-accent-border: var(--tk-accent);
+  --color-accent-soft: var(--tk-accent-soft);
   --color-accent-text: var(--tk-accent-strong);
   --color-accent-contrast: #ffffff;
   --color-stage: rgba(248, 250, 252, 0.72);

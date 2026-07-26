@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::navigation::AppRoute;
-use crate::shell::BrandMark;
+use crate::shell::BrandLabel;
 use crate::tool_registry::{TOOLS, ToolDescriptor};
 
 #[component]
@@ -147,7 +147,7 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                 }
 
                 footer { class: "tk-footer",
-                    BrandMark { compact: true }
+                    BrandLabel { compact: true }
                     p { "One app shell · Focused format libraries" }
                     span { "Ed1th · 2026" }
                 }

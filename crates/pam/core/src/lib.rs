@@ -20,8 +20,8 @@ pub use timeline::{
 };
 pub use worker_protocol::{
     ExportKind, ExportRequest, ImageAssetPayload, LoadedPamPayload, PamDocumentPayload,
-    RenderDocumentPayload, RenderImageAssetPayload, RenderScenePayload, RenderViewPayload,
-    WorkerInputFile, WorkerRequest, WorkerResponse,
+    RenderDocumentGeometryPayload, RenderDocumentPayload, RenderImageAssetPayload,
+    RenderScenePayload, RenderViewPayload, WorkerInputFile, WorkerRequest, WorkerResponse,
 };
 
 use thiserror::Error;

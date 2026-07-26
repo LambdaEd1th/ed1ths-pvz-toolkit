@@ -41,7 +41,7 @@ pub fn PageActions() -> Element {
 
     rsx! {
         div {
-            class: "pam-page-actions",
+            class: "ui-island ui-tool-page-actions pam-page-actions",
             FileGroup {}
             div { class: "pam-document-pill", title: "{active_name}",
                 span { class: "pam-document-dot" }
@@ -90,33 +90,48 @@ pub fn PageActions() -> Element {
                 },
                 {icon(LdPanelRight)}
             }
-            if more_open_snapshot {
-                div { class: "pam-action-sheet-layer",
-                    button {
-                        r#type: "button",
-                        class: "pam-action-sheet-backdrop",
-                        aria_label: tr(locale, "close_menu"),
-                        onclick: move |_| more_open.set(false),
+        }
+        if more_open_snapshot {
+            div {
+                class: "pam-action-sheet-layer",
+                tabindex: "-1",
+                onmounted: move |event| async move {
+                    let _ = event.set_focus(true).await;
+                },
+                onkeydown: move |event| {
+                    if event.key() == Key::Escape {
+                        event.prevent_default();
+                        more_open.set(false);
                     }
-                    section { class: "pam-action-sheet",
-                        header { class: "pam-action-sheet-header",
-                            strong { {tr(locale, "more")} }
-                            button {
-                                r#type: "button",
-                                class: "pam-page-icon-button",
-                                title: tr(locale, "close_menu"),
-                                aria_label: tr(locale, "close_menu"),
-                                onclick: move |_| more_open.set(false),
-                                {icon(LdX)}
-                            }
+                },
+                onclick: move |_| more_open.set(false),
+                div {
+                    class: "pam-action-sheet-backdrop",
+                    aria_hidden: "true",
+                }
+                section {
+                    class: "pam-action-sheet",
+                    role: "dialog",
+                    aria_modal: "true",
+                    aria_labelledby: "pam-more-title",
+                    onclick: move |event| event.stop_propagation(),
+                    header { class: "pam-action-sheet-header",
+                        strong { id: "pam-more-title", {tr(locale, "more")} }
+                        button {
+                            r#type: "button",
+                            class: "pam-page-icon-button",
+                            title: tr(locale, "close_menu"),
+                            aria_label: tr(locale, "close_menu"),
+                            onclick: move |_| more_open.set(false),
+                            {icon(LdX)}
                         }
-                        div { class: "pam-action-sheet-groups",
-                            for group in action_groups {
-                                ActionGroup {
-                                    key: "sheet-{group}",
-                                    id: group.to_string(),
-                                    {action_group_content(group)}
-                                }
+                    }
+                    div { class: "pam-action-sheet-groups",
+                        for group in action_groups {
+                            ActionGroup {
+                                key: "sheet-{group}",
+                                id: group.to_string(),
+                                {action_group_content(group, more_open)}
                             }
                         }
                     }
@@ -135,14 +150,14 @@ fn ActionGroup(id: String, children: Element) -> Element {
     }
 }
 
-fn action_group_content(id: &str) -> Element {
+fn action_group_content(id: &str, mut more_open: Signal<bool>) -> Element {
     match id {
         "selectors" => rsx! { SelectorGroup {} },
         "layers" => rsx! { LayerGroup {} },
         "view" => rsx! { ViewGroup {} },
         "size" => rsx! { SizeGroup {} },
-        "export" => rsx! { ExportGroup {} },
-        "convert" => rsx! { ConvertGroup {} },
+        "export" => rsx! { ExportGroup { on_dismiss: move |_| more_open.set(false) } },
+        "convert" => rsx! { ConvertGroup { on_dismiss: move |_| more_open.set(false) } },
         _ => rsx! {},
     }
 }

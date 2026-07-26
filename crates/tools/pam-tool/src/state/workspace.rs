@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-#[cfg(target_arch = "wasm32")]
-use pam_viewer_core::RenderViewPayload;
 use pam_viewer_core::{
     FrameLabel, LoadedPamPayload, PamDocument, SpecialLayerIndices, SpriteInfo, SpriteKey,
 };
+#[cfg(target_arch = "wasm32")]
+use pam_viewer_core::{RenderDocumentGeometryPayload, RenderViewPayload};
 #[cfg(not(target_arch = "wasm32"))]
 use pam_viewer_renderer::StageScene;
 
@@ -176,6 +176,10 @@ impl ViewerTab {
             sprite_filter: self.sprite_filter.clone(),
             zoom: self.zoom,
             pan: self.pan,
+            document_geometry: Some(RenderDocumentGeometryPayload {
+                position: self.document.pam.position,
+                size: self.document.pam.size,
+            }),
             boundary,
             dark_background,
         }

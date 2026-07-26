@@ -152,6 +152,7 @@ pub(super) fn FileActions(
                                     i18n.t_args("status-indexed-files", &[("count", indexed.to_string())]),
                                     Tone::Ok,
                                 ));
+                                on_files_staged.call(());
                             }
                         }
                     }

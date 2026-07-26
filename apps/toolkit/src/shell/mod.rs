@@ -6,4 +6,4 @@ mod sidebar;
 mod topbar;
 
 pub(crate) use app_shell::AppShell;
-pub(crate) use brand::BrandMark;
+pub(crate) use brand::BrandLabel;

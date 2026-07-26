@@ -1,7 +1,7 @@
 use std::io::Write;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use image_webp::{ColorType as WebpColorType, WebPEncoder};
+use image::{ExtendedColorType, codecs::webp::WebPEncoder};
 
 use crate::{FormatError, Result};
 
@@ -83,7 +83,12 @@ pub fn encode_animated_webp_with_cancel(
         ensure_not_cancelled(cancelled)?;
         validate_frame(frame, width, height)?;
         let mut still = Vec::new();
-        WebPEncoder::new(&mut still).encode(frame, width, height, WebpColorType::Rgba8)?;
+        WebPEncoder::new_lossless(&mut still).encode(
+            frame,
+            width,
+            height,
+            ExtendedColorType::Rgba8,
+        )?;
         extract_image_chunks(&still)
     };
     #[cfg(not(target_arch = "wasm32"))]

@@ -185,7 +185,7 @@ impl RendererHandle {
         let runtime = runtime
             .as_mut()
             .ok_or_else(|| JsValue::from_str("renderer is not running"))?;
-        apply_view(&mut runtime.stage, view);
+        runtime.stage.apply_view(view);
         Ok(())
     }
 
@@ -206,17 +206,6 @@ impl RendererHandle {
     pub fn destroy(&self) {
         *self.runtime.borrow_mut() = None;
     }
-}
-
-fn apply_view(stage: &mut StageScene, view: RenderViewPayload) {
-    stage.sprite = view.sprite;
-    stage.frame = view.frame;
-    stage.image_filter = view.image_filter;
-    stage.sprite_filter = view.sprite_filter;
-    stage.zoom = view.zoom;
-    stage.pan = view.pan;
-    stage.boundary = view.boundary;
-    stage.dark_background = view.dark_background;
 }
 
 async fn create_runtime(

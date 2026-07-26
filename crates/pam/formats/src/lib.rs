@@ -34,8 +34,6 @@ pub enum FormatError {
     Image(#[from] image::ImageError),
     #[error("PNG encode error: {0}")]
     Png(#[from] png::EncodingError),
-    #[error("WebP encode error: {0}")]
-    Webp(#[from] image_webp::EncodingError),
     #[error("invalid RGBA frame size: expected {expected} bytes, received {actual}")]
     InvalidFrameSize { expected: usize, actual: usize },
     #[error("animation requires at least one frame")]

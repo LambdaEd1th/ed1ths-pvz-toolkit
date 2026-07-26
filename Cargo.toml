@@ -24,7 +24,7 @@ repository = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit"
 publish = false
 
 [workspace.dependencies]
-base64 = "0.22"
+base64 = "0.23"
 bytemuck = { version = "1.24", features = ["derive"] }
 crc32fast = "1.5"
 dioxus = { version = "0.7.9", default-features = false }
@@ -33,7 +33,6 @@ dioxus-html = "0.7.9"
 futures-channel = "0.3"
 futures-util = "0.3"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
-image-webp = "0.2.4"
 pam-codec = { path = "crates/formats/pam-codec", version = "0.1.2" }
 parking_lot = "0.12"
 png = "0.18"

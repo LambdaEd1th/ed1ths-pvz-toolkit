@@ -19,7 +19,7 @@ pub fn ToolPage(
 pub fn ToolPageToolbar(actions: Element, #[props(default)] class: String) -> Element {
     rsx! {
         section { class: "ui-tool-page-toolbar {class}",
-            div { class: "ui-island ui-tool-page-actions", {actions} }
+            {actions}
         }
     }
 }

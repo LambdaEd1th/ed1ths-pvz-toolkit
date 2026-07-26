@@ -3,7 +3,7 @@ use toolkit_ui::IconButton;
 
 use crate::navigation::AppRoute;
 
-use super::brand::BrandMark;
+use super::brand::BrandLabel;
 
 #[component]
 pub(crate) fn TopBar(
@@ -29,7 +29,7 @@ pub(crate) fn TopBar(
                         i {}
                     }
                 }
-                BrandMark { compact: true }
+                BrandLabel { compact: true }
                 span { class: "tk-appbar-divider", aria_hidden: "true" }
                 div { class: "tk-breadcrumb",
                     span { "Toolkit" }

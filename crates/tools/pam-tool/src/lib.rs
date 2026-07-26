@@ -45,17 +45,16 @@ pub fn PamTool(#[props(default = true)] active: bool) -> Element {
         use_effect(use_reactive(&active, move |active| {
             if active {
                 context.sync_stage();
+                document::eval("document.documentElement.classList.add('native-wgpu-host');");
             } else {
                 context
                     .stage
                     .read()
                     .update(|scene| scene.set_document(None));
+                document::eval("document.documentElement.classList.remove('native-wgpu-host');");
             }
             active_renderer.request_redraw();
         }));
-        use_effect(|| {
-            document::eval("document.documentElement.classList.add('native-wgpu-host');");
-        });
     }
     #[cfg(target_arch = "wasm32")]
     use_effect(|| {

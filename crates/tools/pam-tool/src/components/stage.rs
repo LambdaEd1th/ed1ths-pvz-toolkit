@@ -9,6 +9,7 @@ use dioxus::prelude::*;
 use dioxus::web::WebEventExt;
 use dioxus_free_icons::icons::ld_icons::LdFolderOpen;
 use dioxus_html::HasFileData;
+use dioxus_html::input_data::MouseButton;
 use pam_viewer_core::Rect;
 #[cfg(target_arch = "wasm32")]
 use pam_viewer_core::{RenderDocumentPayload, RenderScenePayload, RenderViewPayload};
@@ -22,6 +23,39 @@ use super::page_actions::LoadButton;
 use super::primitives::icon;
 
 const CANVAS_ID: &str = "pam-stage-canvas";
+const STAGE_POINTER_CAPTURE: &str = r#"
+(() => {
+    window.pamStagePointerCapture?.destroy?.();
+    const stage = document.getElementById("pam-stage");
+    if (!stage) return;
+
+    const capture = (event) => {
+        if (event.isPrimary && event.button === 0) {
+            try { stage.setPointerCapture(event.pointerId); } catch (_) {}
+        }
+    };
+    const release = (event) => {
+        if (stage.hasPointerCapture(event.pointerId)) {
+            try { stage.releasePointerCapture(event.pointerId); } catch (_) {}
+        }
+    };
+    stage.addEventListener("pointerdown", capture);
+    stage.addEventListener("pointerup", release);
+    stage.addEventListener("pointercancel", release);
+
+    const host = {
+        destroy() {
+            stage.removeEventListener("pointerdown", capture);
+            stage.removeEventListener("pointerup", release);
+            stage.removeEventListener("pointercancel", release);
+            if (window.pamStagePointerCapture === host) {
+                window.pamStagePointerCapture = null;
+            }
+        },
+    };
+    window.pamStagePointerCapture = host;
+})();
+"#;
 #[cfg(target_arch = "wasm32")]
 const WEB_STAGE_HOST: &str = include_str!("../../assets/pam/pam_stage.js");
 #[cfg(not(target_arch = "wasm32"))]
@@ -59,15 +93,29 @@ pub fn Stage() -> Element {
     let locale = context.preferences.read().locale;
     let tab = context.active_tab_snapshot();
     let mut dragging_files = use_signal(|| false);
-    let stage_class = if *dragging_files.read() {
-        "pam-stage drop-active"
-    } else {
-        "pam-stage"
+    let mut hovered_edge = use_signal(|| None::<BoundaryEdge>);
+    let cursor_class = match *context.stage_drag.read() {
+        Some(StageDrag::Pan { .. }) => "pam-stage--panning",
+        Some(StageDrag::Boundary { edge, .. }) => boundary_cursor_class(edge),
+        None => match *hovered_edge.read() {
+            Some(edge) => boundary_cursor_class(edge),
+            None => "",
+        },
     };
+    let drop_class = if *dragging_files.read() {
+        " drop-active"
+    } else {
+        ""
+    };
+    let stage_class = format!("pam-stage {cursor_class}{drop_class}");
 
     rsx! {
         section {
+            id: "pam-stage",
             class: stage_class,
+            onmounted: move |_| {
+                let _ = document::eval(STAGE_POINTER_CAPTURE);
+            },
             onresize: move |event| {
                 if let Ok(size) = event.get_content_box_size() {
                     context.stage_size.set([size.width.max(1.0), size.height.max(1.0)]);
@@ -80,20 +128,38 @@ pub fn Stage() -> Element {
                 let delta = event.delta().strip_units().y;
                 zoom_at(context, &tab, [coordinates.x, coordinates.y], delta);
             },
-            onmousedown: move |event| {
-                if tab.is_none() {
+            onpointerdown: move |event| {
+                if tab.is_none() || !is_primary_pointer(&event) {
                     return;
                 }
                 event.prevent_default();
-                begin_stage_drag(context, [event.element_coordinates().x, event.element_coordinates().y]);
+                let point = [event.element_coordinates().x, event.element_coordinates().y];
+                hovered_edge.set(begin_stage_drag(context, point));
             },
-            onmousemove: move |event| {
+            onpointermove: move |event| {
                 let point = [event.element_coordinates().x, event.element_coordinates().y];
                 update_pointer_coordinate(context, point);
+                if context.stage_drag.read().is_none() {
+                    hovered_edge.set(boundary_at(context, point));
+                }
                 update_stage_drag(context, point);
             },
-            onmouseleave: move |_| context.pointer_coord.set(None),
-            onmouseup: move |_| context.stage_drag.set(None),
+            onpointerleave: move |_| {
+                if context.stage_drag.read().is_none() {
+                    context.pointer_coord.set(None);
+                    hovered_edge.set(None);
+                }
+            },
+            onpointerup: move |event| {
+                context.stage_drag.set(None);
+                let point = [event.element_coordinates().x, event.element_coordinates().y];
+                hovered_edge.set(boundary_at(context, point));
+            },
+            onpointercancel: move |_| {
+                context.stage_drag.set(None);
+                context.pointer_coord.set(None);
+                hovered_edge.set(None);
+            },
             ondragenter: move |event| {
                 event.prevent_default();
                 if !event.files().is_empty() { dragging_files.set(true); }
@@ -293,14 +359,16 @@ fn StageCanvas() -> Element {
     }
 }
 
-fn camera_scale(tab: &ViewerTab, viewport: [f64; 2]) -> f64 {
-    let bounds = tab.document.stage_bounds();
+fn camera_fit(bounds: Rect, viewport: [f64; 2]) -> f64 {
     let available_width = (viewport[0] - 72.0).max(1.0);
     let available_height = (viewport[1] - 72.0).max(1.0);
-    let fit = (available_width / bounds.width.max(1.0) as f64)
+    (available_width / bounds.width.max(1.0) as f64)
         .min(available_height / bounds.height.max(1.0) as f64)
-        .max(0.0001);
-    fit * tab.zoom as f64
+        .max(0.0001)
+}
+
+fn camera_scale(tab: &ViewerTab, viewport: [f64; 2]) -> f64 {
+    camera_fit(tab.document.stage_bounds(), viewport) * tab.zoom as f64
 }
 
 fn screen_to_world(tab: &ViewerTab, viewport: [f64; 2], point: [f64; 2]) -> [f64; 2] {
@@ -337,28 +405,29 @@ fn zoom_at(context: AppContext, tab: &ViewerTab, point: [f64; 2], delta: f64) {
     });
 }
 
-fn begin_stage_drag(mut context: AppContext, point: [f64; 2]) {
-    let Some(tab) = context.active_tab_snapshot() else {
-        return;
-    };
+fn boundary_at(context: AppContext, point: [f64; 2]) -> Option<BoundaryEdge> {
+    let tab = context.active_tab_snapshot()?;
+    if !context.preferences.read().boundary {
+        return None;
+    }
     let viewport = *context.stage_size.read();
     let world = screen_to_world(&tab, viewport, point);
-    let edge = context
-        .preferences
-        .read()
-        .boundary
-        .then(|| {
-            hit_boundary(
-                tab.document.pam_bounds(),
-                world,
-                8.0 / camera_scale(&tab, viewport),
-            )
-        })
-        .flatten();
+    hit_boundary(
+        tab.document.pam_bounds(),
+        world,
+        8.0 / camera_scale(&tab, viewport),
+    )
+}
+
+fn begin_stage_drag(mut context: AppContext, point: [f64; 2]) -> Option<BoundaryEdge> {
+    let tab = context.active_tab_snapshot()?;
+    let viewport = *context.stage_size.read();
+    let edge = boundary_at(context, point);
     let drag = if let Some(edge) = edge {
         StageDrag::Boundary {
             edge,
             start: point,
+            scale: camera_scale(&tab, viewport),
             size: tab.document.pam.size,
             position: tab.document.pam.position,
         }
@@ -369,6 +438,7 @@ fn begin_stage_drag(mut context: AppContext, point: [f64; 2]) {
         }
     };
     context.stage_drag.set(Some(drag));
+    edge
 }
 
 fn update_stage_drag(context: AppContext, point: [f64; 2]) {
@@ -392,11 +462,12 @@ fn update_stage_drag(context: AppContext, point: [f64; 2]) {
         StageDrag::Boundary {
             edge,
             start,
+            scale,
             size,
             position,
         } => {
             let delta = [(point[0] - start[0]) / scale, (point[1] - start[1]) / scale];
-            resize_boundary(context, edge, size, position, delta);
+            resize_boundary(context, edge, size, position, delta, viewport, scale);
         }
     }
 }
@@ -407,7 +478,31 @@ fn resize_boundary(
     original_size: [f64; 2],
     original_position: [f64; 2],
     delta: [f64; 2],
+    viewport: [f64; 2],
+    locked_scale: f64,
 ) {
+    let (position, size) = resized_boundary(edge, original_size, original_position, delta);
+    context.update_active_tab(|tab| {
+        let document = Arc::make_mut(&mut tab.document);
+        document.pam.position = position;
+        document.pam.size = size;
+        if let Some(scale) = tab.export_scale {
+            tab.export_size = [
+                (size[0] * scale as f64).round().max(1.0) as u32,
+                (size[1] * scale as f64).round().max(1.0) as u32,
+            ];
+        }
+        let fit = camera_fit(tab.document.stage_bounds(), viewport);
+        tab.zoom = (locked_scale / fit).clamp(0.0001, 10_000.0) as f32;
+    });
+}
+
+fn resized_boundary(
+    edge: BoundaryEdge,
+    original_size: [f64; 2],
+    original_position: [f64; 2],
+    delta: [f64; 2],
+) -> ([f64; 2], [f64; 2]) {
     let west = matches!(
         edge,
         BoundaryEdge::West | BoundaryEdge::NorthWest | BoundaryEdge::SouthWest
@@ -434,27 +529,34 @@ fn resize_boundary(
     } else {
         delta[1]
     };
-    context.update_active_tab(|tab| {
-        let document = Arc::make_mut(&mut tab.document);
-        if west {
-            document.pam.position[0] = original_position[0] - dx;
-            document.pam.size[0] = (original_size[0] - dx).max(1.0);
-        } else if east {
-            document.pam.size[0] = (original_size[0] + dx).max(1.0);
-        }
-        if north {
-            document.pam.position[1] = original_position[1] - dy;
-            document.pam.size[1] = (original_size[1] - dy).max(1.0);
-        } else if south {
-            document.pam.size[1] = (original_size[1] + dy).max(1.0);
-        }
-        if let Some(scale) = tab.export_scale {
-            tab.export_size = [
-                (document.pam.size[0] * scale as f64).round().max(1.0) as u32,
-                (document.pam.size[1] * scale as f64).round().max(1.0) as u32,
-            ];
-        }
-    });
+    let mut position = original_position;
+    let mut size = original_size;
+    if west {
+        position[0] = original_position[0] - dx;
+        size[0] = (original_size[0] - dx).max(1.0);
+    } else if east {
+        size[0] = (original_size[0] + dx).max(1.0);
+    }
+    if north {
+        position[1] = original_position[1] - dy;
+        size[1] = (original_size[1] - dy).max(1.0);
+    } else if south {
+        size[1] = (original_size[1] + dy).max(1.0);
+    }
+    (position, size)
+}
+
+fn boundary_cursor_class(edge: BoundaryEdge) -> &'static str {
+    match edge {
+        BoundaryEdge::North | BoundaryEdge::South => "pam-stage--resize-ns",
+        BoundaryEdge::East | BoundaryEdge::West => "pam-stage--resize-ew",
+        BoundaryEdge::NorthEast | BoundaryEdge::SouthWest => "pam-stage--resize-nesw",
+        BoundaryEdge::NorthWest | BoundaryEdge::SouthEast => "pam-stage--resize-nwse",
+    }
+}
+
+fn is_primary_pointer(event: &PointerEvent) -> bool {
+    event.is_primary() && matches!(event.trigger_button(), None | Some(MouseButton::Primary))
 }
 
 fn hit_boundary(bounds: Rect, point: [f64; 2], threshold: f64) -> Option<BoundaryEdge> {
@@ -481,5 +583,59 @@ fn hit_boundary(bounds: Rect, point: [f64; 2], threshold: f64) -> Option<Boundar
         (_, _, true, _) => Some(BoundaryEdge::North),
         (_, _, _, true) => Some(BoundaryEdge::South),
         _ => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn west_resize_moves_only_the_left_edge() {
+        let (position, size) = resized_boundary(
+            BoundaryEdge::West,
+            [100.0, 80.0],
+            [20.0, 30.0],
+            [25.0, 40.0],
+        );
+        assert_eq!(position, [-5.0, 30.0]);
+        assert_eq!(size, [75.0, 80.0]);
+    }
+
+    #[test]
+    fn north_west_resize_clamps_to_one_world_unit() {
+        let (position, size) = resized_boundary(
+            BoundaryEdge::NorthWest,
+            [100.0, 80.0],
+            [20.0, 30.0],
+            [500.0, 500.0],
+        );
+        assert_eq!(position, [-79.0, -49.0]);
+        assert_eq!(size, [1.0, 1.0]);
+    }
+
+    #[test]
+    fn zoom_compensation_keeps_the_camera_scale_stable() {
+        let viewport = [1200.0, 700.0];
+        let original_scale = camera_fit(
+            Rect {
+                x: 0.0,
+                y: 0.0,
+                width: 400.0,
+                height: 300.0,
+            },
+            viewport,
+        );
+        let next_fit = camera_fit(
+            Rect {
+                x: 0.0,
+                y: 0.0,
+                width: 800.0,
+                height: 300.0,
+            },
+            viewport,
+        );
+        let compensated_zoom = original_scale / next_fit;
+        assert!((next_fit * compensated_zoom - original_scale).abs() < f64::EPSILON);
     }
 }

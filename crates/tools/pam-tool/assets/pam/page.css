@@ -12,6 +12,22 @@
   font-family: inherit;
 }
 
+html.native-wgpu-host .pam-page-host,
+html.native-wgpu-host .pam-app,
+html.native-wgpu-host .pam-preview-card,
+html.native-wgpu-host .pam-stage,
+html.native-wgpu-host .pam-stage-canvas,
+html.native-wgpu-host .pam-stage.drop-active {
+  background: transparent;
+  background-image: none;
+}
+
+html.native-wgpu-host .pam-preview-card,
+html.native-wgpu-host .pam-stage {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 .pam-page-host button,
 .pam-page-host input,
 .pam-page-host select {
@@ -353,6 +369,26 @@
 }
 
 .pam-stage:active {
+  cursor: grabbing;
+}
+
+.pam-stage.pam-stage--resize-ns {
+  cursor: ns-resize;
+}
+
+.pam-stage.pam-stage--resize-ew {
+  cursor: ew-resize;
+}
+
+.pam-stage.pam-stage--resize-nesw {
+  cursor: nesw-resize;
+}
+
+.pam-stage.pam-stage--resize-nwse {
+  cursor: nwse-resize;
+}
+
+.pam-stage.pam-stage--panning {
   cursor: grabbing;
 }
 
@@ -863,7 +899,7 @@
   z-index: 2;
   min-width: 180px;
   max-height: 280px;
-  margin-top: 5px;
+  margin: 0;
   padding: 5px;
   overflow: auto;
   border: 1px solid var(--color-border);
@@ -1043,7 +1079,7 @@
 @container toolkit-content (max-width: 640px) {
   .pam-page-actions > .pam-button.quiet,
   .pam-status-chip,
-  .pam-field-caption {
+  .pam-preview-controls .pam-field-caption {
     display: none;
   }
 
@@ -1300,7 +1336,24 @@
   border-radius: 28px;
   background: color-mix(in srgb, var(--tk-island-glass) 96%, transparent);
   box-shadow: var(--tk-shadow-high);
+}
+
+.pam-export-dialog {
   backdrop-filter: blur(28px) saturate(200%);
+}
+
+.pam-action-sheet {
+  animation: pam-action-sheet-in 180ms ease both;
+}
+
+.pam-action-sheet-layer:focus {
+  outline: none;
+}
+
+@keyframes pam-action-sheet-in {
+  from {
+    opacity: 0;
+  }
 }
 
 .pam-action-group-shell {

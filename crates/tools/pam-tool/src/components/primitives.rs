@@ -46,6 +46,7 @@ pub fn SelectControl(
     let mut open = use_signal(|| false);
     let mut size = use_signal(move || [if compact { 92.0_f64 } else { 148.0_f64 }, 30.0_f64]);
     let mut anchor = use_signal(|| [8.0_f64, 46.0_f64]);
+    let mut mounted = use_signal(|| None::<MountedEvent>);
     let selected = options
         .iter()
         .find(|option| option.value == value)
@@ -71,19 +72,26 @@ pub fn SelectControl(
             disabled,
             aria_haspopup: "listbox",
             aria_expanded: *open.read(),
+            onmounted: move |event| mounted.set(Some(event)),
             onresize: move |event| {
                 if let Ok(box_size) = event.get_content_box_size() {
                     size.set([box_size.width, box_size.height]);
                 }
             },
-            onclick: move |event| {
+            onclick: move |_| {
                 if disabled {
                     return;
                 }
-                let client = event.client_coordinates();
-                let element = event.element_coordinates();
-                anchor.set([client.x - element.x, client.y - element.y]);
-                open.toggle();
+                let mounted = mounted.peek().clone();
+                spawn(async move {
+                    if let Some(event) = mounted
+                        && let Ok(rect) = event.get_client_rect().await
+                    {
+                        anchor.set([rect.origin.x, rect.origin.y]);
+                        size.set([rect.width(), rect.height()]);
+                    }
+                    open.toggle();
+                });
             },
             span { class: "pam-select-value", "{selected}" }
             span { class: "pam-select-caret", {icon(LdChevronDown)} }

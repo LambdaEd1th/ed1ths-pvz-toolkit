@@ -170,6 +170,7 @@ pub enum StageDrag {
     Boundary {
         edge: BoundaryEdge,
         start: [f64; 2],
+        scale: f64,
         size: [f64; 2],
         position: [f64; 2],
     },

@@ -9,7 +9,6 @@ publish.workspace = true
 [dependencies]
 crc32fast.workspace = true
 image.workspace = true
-image-webp.workspace = true
 pam_viewer_core = { path = "../core" }
 png.workspace = true
 quick-xml.workspace = true
