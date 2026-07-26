@@ -122,7 +122,7 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                         }
                     }
 
-                    section { class: "tk-dashboard-section tk-start-panel tk-glass-card", id: "about",
+                    section { class: "tk-dashboard-section tk-start-panel tk-glass-card", id: "getting-started",
                         span { class: "tk-kicker", "Getting started" }
                         h2 { "从文件开始" }
                         ol { class: "tk-step-list",

@@ -59,11 +59,17 @@ pub fn PamTool(#[props(default = true)] active: bool) -> Element {
     #[cfg(target_arch = "wasm32")]
     use_effect(|| {
         spawn(async {
-            if let Err(error) = crate::platform::processing::warm_up().await {
-                crate::platform::log_buffer::push(
-                    "ERROR",
-                    &format!("Processing Worker warm-up failed: {error}"),
-                );
+            match crate::platform::processing::warm_up().await {
+                Ok(()) => {
+                    crate::platform::log_buffer::push("INFO", "WORKER", "Initialized (web)");
+                }
+                Err(error) => {
+                    crate::platform::log_buffer::push(
+                        "ERROR",
+                        "WORKER",
+                        &format!("Warm-up failed: {error}"),
+                    );
+                }
             }
         });
     });

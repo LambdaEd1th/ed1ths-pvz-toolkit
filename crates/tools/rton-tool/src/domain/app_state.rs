@@ -16,9 +16,11 @@ impl Status {
     pub(crate) fn new(message: impl Into<String>, tone: Tone) -> Self {
         let message = message.into();
         match tone {
+            Tone::Info | Tone::Ok => {
+                log::info!(target: "rton_editor::status", "{message}")
+            }
             Tone::Warn => log::warn!(target: "rton_editor::status", "{message}"),
             Tone::Error => log::error!(target: "rton_editor::status", "{message}"),
-            Tone::Info | Tone::Ok => {}
         }
         Self { message, tone }
     }

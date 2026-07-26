@@ -104,11 +104,9 @@ pub(super) fn use_app_signals(
             dragged_tab_id: use_signal(|| None::<usize>),
             tab_drop_marker: use_signal(|| None::<DropMarker<usize>>),
         },
-        status: use_signal(move || {
-            Status::new(
-                I18n::new(initial_locale_snapshot).t("status-ready"),
-                Tone::Ok,
-            )
+        status: use_signal(move || Status {
+            message: I18n::new(initial_locale_snapshot).t("status-ready"),
+            tone: Tone::Ok,
         }),
     }
 }

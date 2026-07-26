@@ -188,10 +188,10 @@ pub(super) fn use_web_i18n_loader(
         if *locale.peek() == initial_locale_snapshot {
             let next_locale = initial_locale();
             locale.set(next_locale);
-            status.set(Status::new(
-                I18n::new(next_locale).t("status-ready"),
-                Tone::Ok,
-            ));
+            status.set(Status {
+                message: I18n::new(next_locale).t("status-ready"),
+                tone: Tone::Ok,
+            });
         }
     });
 }

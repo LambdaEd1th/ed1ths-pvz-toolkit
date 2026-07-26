@@ -228,7 +228,8 @@ fn StageCanvas() -> Element {
                     WebStageMessage::Ready { backend } => {
                         crate::platform::log_buffer::push(
                             "INFO",
-                            &format!("Web renderer ready: {backend}"),
+                            "RENDERER",
+                            &format!("Initialized ({backend})"),
                         );
                         let next = renderer_generation.read().wrapping_add(1).max(1);
                         renderer_generation.set(next);

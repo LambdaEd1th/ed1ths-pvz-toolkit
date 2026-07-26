@@ -42,11 +42,6 @@ pub fn PageActions() -> Element {
     rsx! {
         div {
             class: "ui-island ui-tool-page-actions pam-page-actions",
-            FileGroup {}
-            div { class: "pam-document-pill", title: "{active_name}",
-                span { class: "pam-document-dot" }
-                span { "{active_name}" }
-            }
             button {
                 r#type: "button",
                 class: if images_sheet_open {
@@ -61,6 +56,11 @@ pub fn PageActions() -> Element {
                     set_resource_sheet_open(context, true, !images_sheet_open);
                 },
                 {icon(LdMenu)}
+            }
+            FileGroup {}
+            div { class: "pam-document-pill", title: "{active_name}",
+                span { class: "pam-document-dot" }
+                span { "{active_name}" }
             }
             button {
                 r#type: "button",

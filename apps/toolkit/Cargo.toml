@@ -14,6 +14,7 @@ path = "src/main.rs"
 [dependencies]
 pam-tool = { path = "../../crates/tools/pam-tool" }
 rton-tool = { path = "../../crates/tools/rton-tool" }
+serde_json.workspace = true
 toolkit-ui.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

@@ -105,11 +105,11 @@ impl AppContext {
     pub fn set_status(mut self, status: Status) {
         let level = match status.tone {
             Tone::Neutral => "INFO",
-            Tone::Ok => "OK",
+            Tone::Ok => "INFO",
             Tone::Warning => "WARN",
             Tone::Error => "ERROR",
         };
-        crate::platform::log_buffer::push(level, &status.message);
+        crate::platform::log_buffer::push(level, "STATUS", &status.message);
         self.status.set(status);
     }
 

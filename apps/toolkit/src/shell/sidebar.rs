@@ -53,11 +53,11 @@ pub(crate) fn Sidebar(route: Signal<AppRoute>, open: Signal<bool>, compact: bool
                         label: "Libraries",
                         onclick: move |_| navigate(route, open, compact, AppRoute::Home),
                     }
-                    NavAnchor {
-                        href: "#about",
+                    NavItem {
+                        active: active_route == AppRoute::About,
                         glyph: "i",
-                        label: "About toolkit",
-                        onclick: move |_| navigate(route, open, compact, AppRoute::Home),
+                        label: "About",
+                        onclick: move |_| navigate(route, open, compact, AppRoute::About),
                     }
                 }
             }

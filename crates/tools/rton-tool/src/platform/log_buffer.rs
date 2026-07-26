@@ -1,22 +1,17 @@
-use std::sync::Mutex;
-
 use log::{LevelFilter, Log, Metadata, Record};
 
-const MAX_BUFFERED_LINES: usize = 5_000;
-static BUFFER: Mutex<Vec<String>> = Mutex::new(Vec::new());
-
-fn push_line(line: String) {
-    if let Ok(mut lines) = BUFFER.lock() {
-        push_bounded_line(&mut lines, line);
-    }
+fn record_message(record: &Record<'_>) -> String {
+    record.args().to_string()
 }
 
-fn push_bounded_line(lines: &mut Vec<String>, line: String) {
-    if lines.len() >= MAX_BUFFERED_LINES {
-        let remove_count = lines.len() + 1 - MAX_BUFFERED_LINES;
-        lines.drain(..remove_count);
-    }
-    lines.push(line);
+fn record_scope(target: &str) -> String {
+    target
+        .rsplit("::")
+        .next()
+        .filter(|scope| !scope.is_empty())
+        .unwrap_or("APP")
+        .replace('_', "-")
+        .to_ascii_uppercase()
 }
 
 struct BufferLogger {
@@ -31,12 +26,12 @@ impl Log for BufferLogger {
 
     fn log(&self, record: &Record<'_>) {
         if record.level() <= self.level {
-            push_line(format!(
-                "[{}] {} - {}",
-                record.level(),
-                record.target(),
-                record.args()
-            ));
+            toolkit_ui::push_application_log(
+                "RTON",
+                record.level().as_str(),
+                &record_scope(record.target()),
+                record_message(record),
+            );
         }
         self.inner.log(record);
     }
@@ -53,10 +48,17 @@ pub fn init(inner: Box<dyn Log>, max_level: LevelFilter) {
     };
     log::set_max_level(max_level);
     if log::set_boxed_logger(Box::new(logger)).is_ok() {
-        log::info!(target: "rton_editor::log", "Application log capture initialized");
+        log::info!(
+            target: "rton_editor::app",
+            "Initialized (version {})",
+            env!("CARGO_PKG_VERSION")
+        );
     } else {
-        push_line(
-            "[ERROR] rton_editor::log - Failed to install application log capture".to_string(),
+        toolkit_ui::push_application_log(
+            "RTON",
+            "ERROR",
+            "APP",
+            "Failed to initialize log capture",
         );
     }
 }
@@ -71,11 +73,11 @@ impl Log for WebConsoleLogger {
     }
 
     fn log(&self, record: &Record<'_>) {
-        let message = format!(
-            "[{}] {} - {}",
-            record.level(),
-            record.target(),
-            record.args()
+        let message = toolkit_ui::format_application_log_line(
+            "RTON",
+            record.level().as_str(),
+            &record_scope(record.target()),
+            &record_message(record),
         );
         match record.level() {
             log::Level::Error => web_sys::console::error_1(&message.into()),
@@ -94,20 +96,12 @@ pub fn init_wasm(max_level: LevelFilter) {
 
 #[cfg(test)]
 mod tests {
-    use super::{MAX_BUFFERED_LINES, push_bounded_line};
+    use super::record_scope;
 
     #[test]
-    fn bounded_buffer_keeps_the_newest_lines() {
-        let mut lines = Vec::new();
-        for index in 0..MAX_BUFFERED_LINES + 3 {
-            push_bounded_line(&mut lines, format!("line-{index}"));
-        }
-
-        assert_eq!(lines.len(), MAX_BUFFERED_LINES);
-        assert_eq!(lines.first().map(String::as_str), Some("line-3"));
-        assert_eq!(
-            lines.last().map(String::as_str),
-            Some(format!("line-{}", MAX_BUFFERED_LINES + 2).as_str())
-        );
+    fn record_targets_become_shared_scope_names() {
+        assert_eq!(record_scope("rton_editor::status"), "STATUS");
+        assert_eq!(record_scope("rton_editor::preferences"), "PREFERENCES");
+        assert_eq!(record_scope(""), "APP");
     }
 }
