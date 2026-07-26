@@ -3,6 +3,7 @@ members = [
     "apps/toolkit",
     "crates/ui/toolkit-ui",
     "crates/formats/pam-codec",
+    "crates/formats/rsb-codec",
     "crates/formats/serde_rton",
     "crates/pam/core",
     "crates/pam/formats",
@@ -40,6 +41,7 @@ quick-xml = "0.41"
 rayon = "1"
 regex = "1.13"
 roxmltree = "0.21"
+rsb-codec = { path = "crates/formats/rsb-codec", version = "0.1.0" }
 serde = { version = "1", features = ["derive"] }
 serde_bytes = "0.11"
 serde_json = { version = "1", features = ["float_roundtrip"] }

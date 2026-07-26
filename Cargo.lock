@@ -5152,6 +5152,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "rsb-codec"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "byteorder",
+ "flate2",
+ "futures-channel",
+ "image",
+ "pollster 1.0.1",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.19",
+ "wgpu",
+]
+
+[[package]]
 name = "rton-tool"
 version = "0.1.0"
 dependencies = [
