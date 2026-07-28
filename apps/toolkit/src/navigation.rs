@@ -5,8 +5,10 @@ pub(crate) enum AppRoute {
     #[default]
     Home,
     About,
-    Pam,
+    Rsb,
     Rton,
+    Pam,
+    Wem,
 }
 
 impl AppRoute {
@@ -14,8 +16,10 @@ impl AppRoute {
         match self {
             Self::Home => "Home",
             Self::About => "About",
-            Self::Pam => "PAM Viewer",
+            Self::Rsb => "RSB Archive",
             Self::Rton => "RTON Editor",
+            Self::Pam => "PAM Viewer",
+            Self::Wem => "WEM Audio",
         }
     }
 }
@@ -27,7 +31,12 @@ pub(crate) fn navigate(
     target: AppRoute,
 ) {
     route.set(target);
-    if compact_shell || matches!(target, AppRoute::Pam | AppRoute::Rton) {
+    if compact_shell
+        || matches!(
+            target,
+            AppRoute::Rsb | AppRoute::Rton | AppRoute::Pam | AppRoute::Wem
+        )
+    {
         sidebar_open.set(false);
     }
 }

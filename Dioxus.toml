@@ -7,7 +7,7 @@ out_dir = "dist"
 identifier = "io.github.lambdaed1th.pvz-toolkit"
 publisher = "Ed1th"
 category = "DeveloperTool"
-short_description = "PAM and RTON tools for Plants vs. Zombies"
+short_description = "RSB, RTON, PAM, and WEM tools for Plants vs. Zombies"
 
 [web.app]
 title = "Ed1th's PvZ Toolkit"

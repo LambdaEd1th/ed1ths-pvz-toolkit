@@ -18,6 +18,13 @@ impl ByteDocument {
         Self::from_vec_with_version(bytes, 0)
     }
 
+    pub(crate) fn from_arc(bytes: Arc<[u8]>) -> Self {
+        Self {
+            source: ByteSource::Memory(bytes),
+            version: 0,
+        }
+    }
+
     pub(crate) fn from_vec_with_version(bytes: Vec<u8>, version: u64) -> Self {
         Self {
             source: ByteSource::Memory(Arc::<[u8]>::from(bytes)),

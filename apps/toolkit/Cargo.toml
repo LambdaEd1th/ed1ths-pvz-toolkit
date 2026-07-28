@@ -13,9 +13,11 @@ path = "src/main.rs"
 
 [dependencies]
 pam-tool = { path = "../../crates/tools/pam-tool" }
+rsb-tool = { path = "../../crates/tools/rsb-tool" }
 rton-tool = { path = "../../crates/tools/rton-tool" }
 serde_json.workspace = true
 toolkit-ui.workspace = true
+wem-tool = { path = "../../crates/tools/wem-tool" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 dioxus = { workspace = true, features = ["desktop"] }

@@ -1,0 +1,29 @@
+[package]
+name = "wem-audio"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+authors = ["ed1th"]
+categories = ["encoding", "multimedia::audio"]
+keywords = ["wwise", "wem", "vorbis", "audio"]
+readme = "README.md"
+license.workspace = true
+repository.workspace = true
+description = "Pure Rust readers, writers, and converters for Audiokinetic Wwise WEM audio"
+
+[features]
+default = ["transcode"]
+wav = ["dep:byteorder", "dep:hound"]
+vorbis = ["dep:byteorder", "dep:ogg"]
+aac = ["wav", "dep:symphonia"]
+transcode = ["wav", "vorbis", "aac", "dep:symphonia", "dep:tempfile"]
+
+[dependencies]
+byteorder = { workspace = true, optional = true }
+hound = { workspace = true, optional = true }
+ogg = { workspace = true, optional = true }
+symphonia = { workspace = true, optional = true }
+thiserror = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tempfile = { version = "3.25", optional = true }

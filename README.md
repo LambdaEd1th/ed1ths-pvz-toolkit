@@ -3,9 +3,9 @@
 A single cross-platform app for inspecting and editing Plants vs. Zombies
 resources, backed by reusable, format-focused Rust libraries.
 
-The first release combines the PAM viewer/exporter and RTON editor behind one
-MoeSekai-inspired home page. More format tools can be added without turning the
-public libraries into an aggregate SDK.
+The app combines the editable RSB archive workspace, RTON editor, PAM viewer/exporter,
+and WEM audio converter/player behind one MoeSekai-inspired home page. More format tools can be added without
+turning the public libraries into an aggregate SDK.
 
 ## Project layout
 
@@ -15,14 +15,19 @@ apps/toolkit/             The only desktop/Web application
   src/pages/              App-level pages such as Home
 crates/formats/
   pam-codec/              Public PAM reader/writer
+  rsb-archive/            Public RSB/RSG archive, zlib, and PTX codecs
   serde_rton/             Public Serde RTON reader/writer
+  wem-audio/              Public Wwise WEM reader, writer, and transcoders
 crates/ui/
   toolkit-ui/             Internal design system and appearance runtime
 crates/tools/
   pam-tool/               PAM application feature
+  rsb-tool/               RSB archive editor, extractor, and PTX preview feature
   rton-tool/              RTON application feature
+  wem-tool/               WEM conversion and audio playback feature
 crates/pam/               Internal PAM workflow/renderer crates
 crates/rton/              Internal RTON workflow/worker crates
+crates/wem/               Internal Web conversion worker
 ```
 
 The dependency direction is intentionally one-way:
@@ -30,6 +35,8 @@ The dependency direction is intentionally one-way:
 ```text
 pam-codec  -> PAM core/workers  -> pam-tool  ┐
 serde_rton -> RTON core/worker  -> rton-tool ├-> toolkit-app
+rsb-archive --------------------> rsb-tool  ──┤
+wem-audio -> WEM worker --------> wem-tool  ──┤
 toolkit-ui ---------------------> tools -----┘
 ```
 
@@ -38,18 +45,22 @@ compile time, keeps their workspaces mounted while switching pages, and owns the
 single appearance preference. Tool-specific state never flows back into the app
 shell.
 
-Tool pages use the same composition: a page header for primary actions, one
-central workspace card for the format-specific editor, and temporary context
-sheets for resources or inspection. PAM and RTON keep their action components
-under `page_actions/`; neither tool creates a second navigation shell, permanent
-sidebars, resizable layout frame, or bottom status bar.
+Tool pages use the same composition: a floating toolbar for primary actions and
+one central workspace card for the format-specific workflow. PAM and RTON keep
+their focused editor layouts; RSB uses an archive-manager layout with an address
+bar, directory tree, file table, details inspector, and a compact operation
+status. PTX entries can be decoded from their archive metadata and previewed
+without extracting them first. None of the tools creates a second app navigation
+shell.
 
 Public libraries are intentionally independent:
 
 ```toml
 [dependencies]
 pam-codec = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "pam-codec" }
+rsb-archive = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "rsb-archive" }
 serde_rton = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "serde_rton" }
+wem-audio = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "wem-audio" }
 ```
 
 Enable `serde_rton`'s optional `crypto` feature only when encrypted PvZ2 RTON

@@ -3,17 +3,22 @@ members = [
     "apps/toolkit",
     "crates/ui/toolkit-ui",
     "crates/formats/pam-codec",
-    "crates/formats/rsb-codec",
+    "crates/formats/rsb-archive",
     "crates/formats/serde_rton",
+    "crates/formats/wem-audio",
     "crates/pam/core",
     "crates/pam/formats",
     "crates/pam/native-window",
     "crates/pam/renderer",
     "crates/pam/worker",
+    "crates/rsb/worker",
     "crates/rton/core",
     "crates/rton/worker",
+    "crates/wem/worker",
     "crates/tools/pam-tool",
+    "crates/tools/rsb-tool",
     "crates/tools/rton-tool",
+    "crates/tools/wem-tool",
 ]
 resolver = "3"
 
@@ -25,7 +30,9 @@ repository = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit"
 publish = false
 
 [workspace.dependencies]
+arboard = "3.6"
 base64 = "0.23"
+byteorder = "1.5"
 bytemuck = { version = "1.24", features = ["derive"] }
 crc32fast = "1.5"
 dioxus = { version = "0.7.9", default-features = false }
@@ -34,6 +41,8 @@ dioxus-html = "0.7.9"
 futures-channel = "0.3"
 futures-util = "0.3"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
+hound = "3.5"
+ogg = "0.9.2"
 pam-codec = { path = "crates/formats/pam-codec", version = "0.1.2" }
 parking_lot = "0.12"
 png = "0.18"
@@ -41,15 +50,19 @@ quick-xml = "0.41"
 rayon = "1"
 regex = "1.13"
 roxmltree = "0.21"
-rsb-codec = { path = "crates/formats/rsb-codec", version = "0.1.0" }
+rsb-archive = { path = "crates/formats/rsb-archive", version = "0.1.0" }
+rsb_preview_worker = { path = "crates/rsb/worker" }
 serde = { version = "1", features = ["derive"] }
 serde_bytes = "0.11"
 serde_json = { version = "1", features = ["float_roundtrip"] }
 serde_rton = { path = "crates/formats/serde_rton", version = "0.4.0", default-features = false }
 serde_yaml = "0.9.33"
+symphonia = { version = "0.6", default-features = false, features = ["aac", "isomp4", "ogg", "vorbis"] }
 thiserror = "2"
 toml = "1.1"
 toolkit-ui = { path = "crates/ui/toolkit-ui" }
+wem-audio = { path = "crates/formats/wem-audio", version = "0.1.0" }
+wem_audio_worker = { path = "crates/wem/worker" }
 wgpu = { version = "30", features = ["webgl"] }
 zip = { version = "8", default-features = false, features = ["deflate"] }
 

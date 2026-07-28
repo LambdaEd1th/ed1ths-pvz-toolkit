@@ -1,0 +1,43 @@
+[package]
+name = "wem-tool"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+description = "Internal WEM audio workspace for Ed1th's PvZ Toolkit"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+base64.workspace = true
+dioxus-html.workspace = true
+toolkit-ui.workspace = true
+wem_audio_worker.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+dioxus = { workspace = true, features = ["desktop"] }
+futures-channel.workspace = true
+rayon.workspace = true
+rfd = "0.17"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+dioxus = { workspace = true, features = ["web"] }
+js-sys = "0.3"
+serde.workspace = true
+serde-wasm-bindgen = "0.6"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = [
+    "Blob",
+    "BlobPropertyBag",
+    "Document",
+    "HtmlAnchorElement",
+    "MessageEvent",
+    "Url",
+    "Window",
+    "Worker",
+    "WorkerOptions",
+    "WorkerType",
+] }

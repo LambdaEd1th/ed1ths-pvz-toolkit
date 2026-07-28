@@ -63,6 +63,25 @@ pub fn init(inner: Box<dyn Log>, max_level: LevelFilter) {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+struct SilentLogger;
+
+#[cfg(not(target_arch = "wasm32"))]
+impl Log for SilentLogger {
+    fn enabled(&self, _metadata: &Metadata<'_>) -> bool {
+        false
+    }
+
+    fn log(&self, _record: &Record<'_>) {}
+
+    fn flush(&self) {}
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn init_silent(max_level: LevelFilter) {
+    init(Box::new(SilentLogger), max_level);
+}
+
 #[cfg(target_arch = "wasm32")]
 struct WebConsoleLogger;
 

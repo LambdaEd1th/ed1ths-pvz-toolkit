@@ -1,3 +1,4 @@
+use crate::RtonOpenRequest;
 use crate::i18n::I18n;
 use dioxus::prelude::*;
 use rton_editor_core::{BinaryEncoding, EncodeOptions, TextFormat};
@@ -41,7 +42,11 @@ const APP_CSS: Asset = asset!("/assets/rton/style.css");
 const PAGE_CSS: Asset = asset!("/assets/rton/page.css");
 
 #[component]
-pub(crate) fn App(theme: ThemePreference) -> Element {
+pub(crate) fn App(
+    theme: ThemePreference,
+    open_request: Option<RtonOpenRequest>,
+    active: bool,
+) -> Element {
     #[cfg(not(target_arch = "wasm32"))]
     let _loaded_i18n_count = use_hook(load_i18n_sources);
     let initial_locale_snapshot = initial_locale();
@@ -69,6 +74,9 @@ pub(crate) fn App(theme: ThemePreference) -> Element {
 
     #[cfg(target_arch = "wasm32")]
     if !*signals.preferences.i18n_loaded.read() {
+        if !active {
+            return rsx! {};
+        }
         return rsx! {
             document::Stylesheet { href: TAILWIND_CSS }
             document::Stylesheet { href: TOKENS_CSS }
@@ -78,13 +86,17 @@ pub(crate) fn App(theme: ThemePreference) -> Element {
         };
     }
 
+    if !active {
+        return rsx! {};
+    }
+
     rsx! {
-        RtonPage {}
+        RtonPage { open_request }
     }
 }
 
 #[component]
-fn RtonPage() -> Element {
+fn RtonPage(open_request: Option<RtonOpenRequest>) -> Element {
     let signals = use_context::<AppSignals>();
     let AppSignals {
         workspace:
@@ -235,6 +247,28 @@ fn RtonPage() -> Element {
     let locale_snapshot = *locale.read();
     let _i18n_revision_snapshot = *i18n_revision.read();
     let i18n = I18n::new(locale_snapshot);
+    let mut handled_open_request_id = use_signal(|| None::<u64>);
+    use_effect(use_reactive(&open_request, move |request| {
+        let Some(request) = request else {
+            return;
+        };
+        if handled_open_request_id() == Some(request.id) {
+            return;
+        }
+        handled_open_request_id.set(Some(request.id));
+        open_external_file(
+            request.name,
+            request.bytes,
+            next_tab_id,
+            tabs,
+            active_tab_id,
+            compact_output,
+            encrypt_output,
+            *preferred_editor_mode.peek(),
+            status,
+            i18n,
+        );
+    }));
     let line_wrapping_snapshot = *line_wrapping.read();
     let editor_search_panel_visible_snapshot = *editor_search_panel_visible.read();
     let editor_search_text_snapshot = editor_search_text.read().clone();

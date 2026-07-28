@@ -1,6 +1,8 @@
 use dioxus::prelude::*;
 use pam_tool::PamTool;
-use rton_tool::RtonTool;
+use rsb_tool::{RsbRtonOpenRequest, RsbTool};
+use rton_tool::{RtonOpenRequest, RtonTool};
+use wem_tool::WemTool;
 
 use crate::navigation::{AppRoute, navigate};
 use crate::pages::{AboutPage, HomeDashboard};
@@ -11,6 +13,8 @@ pub(crate) fn ContentHost(
     sidebar_open: Signal<bool>,
     compact: bool,
 ) -> Element {
+    let mut next_rton_open_request_id = use_signal(|| 1_u64);
+    let mut rton_open_request = use_signal(|| None::<RtonOpenRequest>);
     let active_route = route();
     rsx! {
         div {
@@ -26,14 +30,38 @@ pub(crate) fn ContentHost(
             AboutPage {}
         }
         div {
+            class: if active_route == AppRoute::Rsb { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
+            aria_hidden: active_route != AppRoute::Rsb,
+            RsbTool {
+                on_open_rton: move |request: RsbRtonOpenRequest| {
+                    let id = next_rton_open_request_id();
+                    next_rton_open_request_id.set(id.wrapping_add(1).max(1));
+                    rton_open_request.set(Some(RtonOpenRequest::new(
+                        id,
+                        request.name,
+                        request.bytes,
+                    )));
+                    navigate(route, sidebar_open, compact, AppRoute::Rton);
+                }
+            }
+        }
+        div {
+            class: if active_route == AppRoute::Rton { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
+            aria_hidden: active_route != AppRoute::Rton,
+            RtonTool {
+                active: active_route == AppRoute::Rton,
+                open_request: rton_open_request(),
+            }
+        }
+        div {
             class: if active_route == AppRoute::Pam { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
             aria_hidden: active_route != AppRoute::Pam,
             PamTool { active: active_route == AppRoute::Pam }
         }
         div {
-            class: if active_route == AppRoute::Rton { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
-            aria_hidden: active_route != AppRoute::Rton,
-            RtonTool {}
+            class: if active_route == AppRoute::Wem { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
+            aria_hidden: active_route != AppRoute::Wem,
+            WemTool { active: active_route == AppRoute::Wem }
         }
     }
 }
