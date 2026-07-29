@@ -14,6 +14,7 @@ use pam_viewer_core::Rect;
 #[cfg(target_arch = "wasm32")]
 use pam_viewer_core::{RenderDocumentPayload, RenderScenePayload, RenderViewPayload};
 use serde::Deserialize;
+use toolkit_ui::DropIndicator;
 
 use crate::actions::{input_files_from_dioxus, load_inputs};
 use crate::i18n::tr;
@@ -191,6 +192,9 @@ pub fn Stage() -> Element {
                 }
             },
             StageCanvas {}
+            if *dragging_files.read() {
+                DropIndicator { title: tr(locale, "drop_title") }
+            }
             if tab.is_none() {
                 div { class: "pam-drop-hint",
                     div { class: "pam-empty-stage-icon", {icon(LdFolderOpen)} }

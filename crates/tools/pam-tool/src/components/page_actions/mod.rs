@@ -181,12 +181,12 @@ fn FileGroup() -> Element {
         LoadButton {}
         button {
             r#type: "button",
-            class: "pam-button quiet",
+            class: "pam-icon-button quiet",
             disabled,
             title: tr(locale, "clear"),
+            aria_label: tr(locale, "clear"),
             onclick: move |_| clear_tabs(context),
             {icon(LdX)}
-            span { {tr(locale, "clear")} }
         }
     }
 }
@@ -199,11 +199,12 @@ pub fn LoadButton(#[props(default)] large: bool) -> Element {
     let class = if large {
         "pam-button primary large"
     } else {
-        "pam-button primary"
+        "pam-icon-button primary"
     };
     rsx! {
         label { class,
             title: tr(locale, "load"),
+            aria_label: tr(locale, "load"),
             input {
                 class: "pam-file-input",
                 r#type: "file",
@@ -221,7 +222,9 @@ pub fn LoadButton(#[props(default)] large: bool) -> Element {
                 },
             }
             {icon(LdFolderOpen)}
-            span { {tr(locale, "load")} }
+            if large {
+                span { {tr(locale, "load")} }
+            }
         }
     }
 }
@@ -234,20 +237,23 @@ pub fn LoadButton(#[props(default)] large: bool) -> Element {
     let class = if large {
         "pam-button primary large"
     } else {
-        "pam-button primary"
+        "pam-icon-button primary"
     };
     rsx! {
         button {
             r#type: "button",
             class,
             title: tr(locale, "load"),
+            aria_label: tr(locale, "load"),
             onclick: move |_| {
                 if let Some(root) = crate::platform::pick_animation_folder() {
                     crate::actions::load_folder(context, root);
                 }
             },
             {icon(LdFolderOpen)}
-            span { {tr(locale, "load")} }
+            if large {
+                span { {tr(locale, "load")} }
+            }
         }
     }
 }

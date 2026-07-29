@@ -43,13 +43,28 @@
   z-index: 2;
   display: flex;
   min-width: 0;
-  min-height: 44px;
+  min-height: 34px;
   flex: 0 0 auto;
-  align-items: stretch;
+  align-items: flex-end;
+  padding: 0 8px;
   overflow: hidden;
-  border: 1px solid var(--tk-border);
-  border-radius: 17px;
-  background: color-mix(in srgb, var(--tk-surface-muted) 78%, transparent);
+  border: 0;
+  border-bottom: 1px solid var(--tk-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  filter: none;
+}
+
+/*
+ * Tool styles are loaded after the shared primitives and may still carry the
+ * former translucent strip background. Keep the browser-style tab rail flat
+ * across every workspace without requiring per-tool overrides.
+ */
+.ui-document-tab-strip.ui-document-tab-strip {
+  background: transparent;
+  box-shadow: none;
+  filter: none;
 }
 
 .ui-document-tab-strip .ui-document-tab-list {
@@ -58,63 +73,67 @@
   display: flex;
   width: 100%;
   min-width: 0;
-  height: 42px;
-  flex: 1 1 0%;
-  align-items: center;
-  gap: 3px;
-  padding: 4px 6px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  flex: 1 1 auto;
+  align-items: flex-end;
+  gap: 1px;
+  padding: 0;
+  overflow: hidden;
   border: 0;
   border-radius: 0;
   background: transparent;
-  scrollbar-width: none;
-}
-
-.ui-document-tab-strip .ui-document-tab-list::-webkit-scrollbar {
-  display: none;
 }
 
 .ui-document-tab-strip .ui-document-tab {
   position: relative;
   display: flex;
-  width: auto;
-  min-width: 118px;
-  max-width: 230px;
-  height: 34px;
-  flex: 0 1 auto;
+  width: clamp(150px, 22vw, 260px);
+  max-width: 260px;
+  min-width: 0;
+  height: 33px;
+  flex: 0 1 clamp(150px, 22vw, 260px);
   align-items: center;
-  overflow: hidden;
-  border: 1px solid transparent;
-  border-radius: 13px;
-  background: transparent;
+  border: 0;
+  border-radius: 12px 12px 0 0;
+  background: color-mix(in srgb, var(--tk-surface-strong) 48%, transparent);
   color: var(--tk-muted);
-  cursor: grab;
+  container-type: inline-size;
   touch-action: none;
   transition:
-    background 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease,
+    background-color 150ms ease,
+    color 150ms ease,
     opacity 150ms ease;
   user-select: none;
 }
 
 .ui-document-tab-strip .ui-document-tab:hover {
-  background: var(--tk-control-hover);
+  background: color-mix(in srgb, var(--tk-surface-strong) 76%, var(--tk-accent-soft));
   color: var(--tk-ink);
 }
 
 .ui-document-tab-strip .ui-document-tab.is-active {
-  border-color: transparent;
+  z-index: 1;
   background: var(--tk-accent-soft);
-  color: var(--tk-accent-strong);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--tk-accent) 22%, transparent),
-    0 5px 14px color-mix(in srgb, var(--tk-accent) 10%, transparent);
+  color: var(--tk-ink);
+}
+
+.ui-document-tab-strip .ui-document-tab::after {
+  position: absolute;
+  right: 10px;
+  bottom: -1px;
+  left: 10px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--tk-accent);
+  content: "";
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.ui-document-tab-strip .ui-document-tab.is-active::after {
+  opacity: 1;
 }
 
 .ui-document-tab-strip .ui-document-tab.is-dragging {
-  cursor: grabbing;
   opacity: 0.5;
 }
 
@@ -124,17 +143,22 @@
   height: 100%;
   flex: 1 1 auto;
   align-items: center;
-  gap: 6px;
-  padding: 0 7px 0 11px;
-  overflow: hidden;
+  gap: 8px;
+  padding: 0 5px 0 13px;
   border: 0;
+  outline: 0;
   background: transparent;
   color: inherit;
   cursor: pointer;
   font: inherit;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-align: left;
+}
+
+.ui-document-tab-strip .ui-document-tab-label:focus-visible {
+  border-radius: 10px 8px 0 0;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--tk-accent) 54%, transparent);
 }
 
 .ui-document-tab-strip .ui-document-tab-name {
@@ -145,26 +169,51 @@
   white-space: nowrap;
 }
 
+.ui-document-tab-strip .ui-document-tab-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--tk-muted) 42%, transparent);
+}
+
+.ui-document-tab-strip .ui-document-tab.is-active .ui-document-tab-dot,
+.ui-document-tab-strip .ui-document-tab.is-dirty .ui-document-tab-dot {
+  background: var(--tk-accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--tk-accent) 42%, transparent);
+}
+
 .ui-document-tab-strip .ui-document-tab-close {
   display: grid;
-  width: 27px;
-  height: 27px;
-  flex: 0 0 27px;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  align-self: center;
   margin-right: 3px;
   padding: 0;
-  place-items: center;
   border: 0;
-  border-radius: 8px;
+  border-radius: 9px;
+  outline: 0;
   background: transparent;
-  color: inherit;
+  color: var(--tk-faint);
   cursor: pointer;
-  opacity: 0.55;
+  opacity: 0;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    opacity 140ms ease;
+}
+
+.ui-document-tab-strip .ui-document-tab:hover .ui-document-tab-close,
+.ui-document-tab-strip .ui-document-tab.is-active .ui-document-tab-close,
+.ui-document-tab-strip .ui-document-tab-close:focus-visible {
+  opacity: 1;
 }
 
 .ui-document-tab-strip .ui-document-tab-close:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-error, #c62836) 10%, transparent);
-  color: var(--color-error, #c62836);
-  opacity: 1;
+  background: color-mix(in srgb, var(--tk-surface-strong) 80%, transparent);
+  color: var(--tk-ink);
 }
 
 .ui-document-tab-strip .ui-document-tab-close:disabled {
@@ -172,42 +221,85 @@
   opacity: 0.25;
 }
 
+.ui-document-tab-strip .ui-document-tab-close svg {
+  width: 13px;
+  height: 13px;
+}
+
 .ui-document-tab-strip .ui-document-new-tab {
   display: grid;
-  width: 32px;
-  min-width: 32px;
-  height: 32px;
-  min-height: 32px;
-  flex: 0 0 32px;
-  margin: 0 3px;
-  padding: 0;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  flex: 0 0 auto;
   place-items: center;
-  border: 1px solid transparent;
-  border-radius: 13px;
-  background: transparent;
+  align-self: center;
+  margin: 0 0 1px 3px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--tk-surface-strong) 58%, transparent);
   box-shadow: none;
   color: var(--tk-muted);
   cursor: pointer;
   transition:
-    border-color 180ms ease,
-    background 180ms ease,
-    color 180ms ease,
-    transform 180ms var(--tk-spring);
+    background-color 140ms ease,
+    color 140ms ease;
 }
 
 .ui-document-tab-strip .ui-document-new-tab:hover {
-  border-color: color-mix(in srgb, var(--tk-accent) 28%, transparent);
   background: var(--tk-accent-soft);
+  border-color: transparent;
   box-shadow: none;
   color: var(--tk-accent-strong);
   transform: none;
 }
 
-.ui-document-tab-strip .ui-document-tab-label:focus-visible,
-.ui-document-tab-strip .ui-document-tab-close:focus-visible,
-.ui-document-tab-strip .ui-document-new-tab:focus-visible {
+.ui-document-tab-strip .ui-document-new-tab:active {
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.ui-document-tab-strip .ui-document-new-tab svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ui-document-tab-strip .ui-document-tab-close:focus-visible {
   outline: 2px solid var(--tk-accent);
   outline-offset: -2px;
+}
+
+.ui-document-tab-strip .ui-document-new-tab:focus-visible {
+  outline: 0;
+  background: var(--tk-accent-soft);
+  box-shadow: none;
+  color: var(--tk-accent-strong);
+}
+
+@container (max-width: 88px) {
+  .ui-document-tab-strip .ui-document-tab-label {
+    gap: 4px;
+    padding: 0 8px;
+  }
+
+  .ui-document-tab-strip .ui-document-tab-dot {
+    display: none;
+  }
+
+  .ui-document-tab-strip .ui-document-tab-close {
+    position: absolute;
+    right: 2px;
+    width: 25px;
+    margin: 0;
+    background: color-mix(in srgb, var(--tk-surface-strong) 88%, transparent);
+  }
+
+  .ui-document-tab-strip .ui-document-tab.is-active .ui-document-tab-label {
+    padding-right: 28px;
+  }
 }
 
 .ui-icon-button {
@@ -366,6 +458,75 @@
   border-radius: 28px;
   background: color-mix(in srgb, var(--tk-island-glass) 88%, transparent);
   box-shadow: var(--tk-shadow-high);
+}
+
+.ui-workspace-drop-indicator {
+  position: absolute;
+  z-index: 60;
+  top: 14px;
+  left: 50%;
+  display: flex;
+  width: max-content;
+  max-width: calc(100% - 28px);
+  min-height: 42px;
+  align-items: center;
+  gap: 9px;
+  overflow: hidden;
+  padding: 8px 14px 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--tk-accent) 58%, var(--tk-border));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--tk-island-glass) 92%, var(--tk-accent) 8%);
+  box-shadow:
+    var(--tk-shadow-control),
+    0 0 22px color-mix(in srgb, var(--tk-accent) 18%, transparent);
+  color: var(--tk-ink);
+  pointer-events: none;
+  transform: translate3d(-50%, 0, 0);
+  animation: ui-workspace-drop-indicator-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  backdrop-filter: blur(18px) saturate(170%);
+}
+
+.ui-workspace-drop-indicator strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-workspace-drop-indicator-icon {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--tk-accent);
+  color: #fff;
+}
+
+.ui-workspace-drop-indicator-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+@keyframes ui-workspace-drop-indicator-in {
+  from {
+    opacity: 0;
+    transform: translate3d(-50%, -6px, 0) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-workspace-drop-indicator {
+    animation: none;
+  }
 }
 
 .ui-context-sheet-layer {

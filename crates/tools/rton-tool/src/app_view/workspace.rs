@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 use rton_editor_core::{BinaryEncoding, EncodeOptions, TextFormat};
 use std::cell::RefCell;
 use std::rc::Rc;
-use toolkit_ui::{ContextSheet, ToolPage, ToolPageToolbar, WorkspaceCard};
+use toolkit_ui::{ContextSheet, DropIndicator, ToolPage, ToolPageToolbar, WorkspaceCard};
 
 use crate::app_actions::*;
 #[cfg(not(target_arch = "wasm32"))]
@@ -798,22 +798,22 @@ fn RtonPage(open_request: Option<RtonOpenRequest>) -> Element {
                     },
                 }
 
-                WorkspaceCard { class: "rton-editor-card", aria_label: "RTON Editor",
-                    TabStrip {
-                        tabs: tab_headers.clone(),
-                        active_tab_id: active_id_snapshot,
-                        dragged_tab_id: dragged_tab_id_snapshot,
-                        drop_marker: tab_drop_marker_snapshot,
-                        new_tab_mode: new_tab_mode_snapshot,
-                        i18n,
-                        on_activate: activate_tab,
-                        on_close: request_close_tab,
-                        on_new: create_blank_tab,
-                        on_drag_start: start_tab_drag,
-                        on_drop_marker: update_tab_drop_marker,
-                        on_drag_end: finish_tab_drag
-                    }
+                TabStrip {
+                    tabs: tab_headers.clone(),
+                    active_tab_id: active_id_snapshot,
+                    dragged_tab_id: dragged_tab_id_snapshot,
+                    drop_marker: tab_drop_marker_snapshot,
+                    new_tab_mode: new_tab_mode_snapshot,
+                    i18n,
+                    on_activate: activate_tab,
+                    on_close: request_close_tab,
+                    on_new: create_blank_tab,
+                    on_drag_start: start_tab_drag,
+                    on_drop_marker: update_tab_drop_marker,
+                    on_drag_end: finish_tab_drag
+                }
 
+                WorkspaceCard { class: "rton-editor-card", aria_label: "RTON Editor",
                     EditorStage {
                         i18n,
                         active_tab: active_stage_tab_snapshot.clone(),
@@ -849,11 +849,8 @@ fn RtonPage(open_request: Option<RtonOpenRequest>) -> Element {
                         on_replace_key: EventHandler::new(handle_editor_replace_key),
                         suppress_resize_observer: false
                     }
-                }
-
-                if *dragging_files.read() {
-                    div { class: "rton-page-drop-indicator",
-                        strong { {i18n.t("drop-title")} }
+                    if *dragging_files.read() {
+                        DropIndicator { title: i18n.t("drop-title") }
                     }
                 }
 

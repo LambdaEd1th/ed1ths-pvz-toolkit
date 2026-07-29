@@ -15,7 +15,7 @@ use crate::virtual_scroll::{
     TABLE_DEFAULT_VIEWPORT_HEIGHT, measured_table_viewport_height, table_row_top,
     table_virtual_window,
 };
-use crate::{RsbRtonOpenRequest, loader, platform, processing};
+use crate::{RsbRtonOpenRequest, RsbWemOpenRequest, loader, platform, processing};
 use dioxus::prelude::*;
 use dioxus_html::{
     FileData, HasFileData, ScrollBehavior, geometry::PixelsVector2D, input_data::MouseButton,
@@ -31,7 +31,9 @@ use std::io::Cursor;
 #[cfg(target_arch = "wasm32")]
 use std::io::Write;
 use std::sync::Arc;
-use toolkit_ui::{ContextSheet, ToolPage, ToolPageToolbar, WorkspaceCard, push_application_log};
+use toolkit_ui::{
+    ContextSheet, DropIndicator, ToolPage, ToolPageToolbar, WorkspaceCard, push_application_log,
+};
 
 const RSB_PAGE_CSS: Asset = asset!("/assets/rsb/page.css");
 const RSB_PREVIEW_POINTER_CAPTURE: &str = r#"
@@ -265,6 +267,265 @@ struct NavigationSignals {
     scroll_restore: Signal<ScrollRestore>,
 }
 
+#[derive(Clone)]
+struct ArchiveTabSession {
+    id: u64,
+    archive: Arc<ArchiveDocument>,
+    packet: Option<Arc<PacketDocument>>,
+    packet_edits: PacketEdits,
+    removed_packets: RemovedPackets,
+    virtual_directories: VirtualDirectories,
+    ptx_infos: Vec<RsbPtxInfo>,
+    location: BrowserLocation,
+    selection: Option<RowSelection>,
+    query: String,
+    status: AppStatus,
+    table_scroll_top: f64,
+    scroll_restore: ScrollRestore,
+    navigation_history: Vec<NavigationSnapshot>,
+}
+
+impl ArchiveTabSession {
+    fn has_unsaved_changes(&self) -> bool {
+        !self.packet_edits.is_empty()
+            || !self.removed_packets.is_empty()
+            || self.ptx_infos.as_slice() != self.archive.ptx_infos.as_slice()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct ArchiveTabItem {
+    id: u64,
+    name: String,
+    dirty: bool,
+    active: bool,
+}
+
+impl ArchiveTabItem {
+    const fn class(&self) -> &'static str {
+        match (self.active, self.dirty) {
+            (true, true) => "rsb-tab ui-document-tab is-active is-dirty",
+            (true, false) => "rsb-tab ui-document-tab is-active",
+            (false, true) => "rsb-tab ui-document-tab is-dirty",
+            (false, false) => "rsb-tab ui-document-tab",
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+struct ArchiveSessionSignals {
+    archive: Signal<Option<Arc<ArchiveDocument>>>,
+    packet: Signal<Option<Arc<PacketDocument>>>,
+    packet_edits: Signal<PacketEdits>,
+    removed_packets: Signal<RemovedPackets>,
+    virtual_directories: Signal<VirtualDirectories>,
+    ptx_infos: Signal<Vec<RsbPtxInfo>>,
+    location: Signal<BrowserLocation>,
+    selection: Signal<Option<RowSelection>>,
+    query: Signal<String>,
+    status: Signal<AppStatus>,
+    archive_identity: Signal<usize>,
+    table_scroll_top: Signal<f64>,
+    scroll_restore: Signal<ScrollRestore>,
+    navigation_history: Signal<Vec<NavigationSnapshot>>,
+}
+
+impl ArchiveSessionSignals {
+    fn capture(self, id: u64) -> Option<ArchiveTabSession> {
+        Some(ArchiveTabSession {
+            id,
+            archive: (self.archive)()?,
+            packet: (self.packet)(),
+            packet_edits: self.packet_edits.read().clone(),
+            removed_packets: self.removed_packets.read().clone(),
+            virtual_directories: self.virtual_directories.read().clone(),
+            ptx_infos: self.ptx_infos.read().clone(),
+            location: (self.location)(),
+            selection: (self.selection)(),
+            query: (self.query)(),
+            status: (self.status)(),
+            table_scroll_top: *self.table_scroll_top.peek(),
+            scroll_restore: (self.scroll_restore)(),
+            navigation_history: self.navigation_history.read().clone(),
+        })
+    }
+
+    fn install(mut self, session: &ArchiveTabSession) {
+        self.archive_identity.set(session.archive.identity());
+        self.archive.set(Some(session.archive.clone()));
+        self.packet.set(session.packet.clone());
+        self.packet_edits.set(session.packet_edits.clone());
+        self.removed_packets.set(session.removed_packets.clone());
+        self.virtual_directories
+            .set(session.virtual_directories.clone());
+        self.ptx_infos.set(session.ptx_infos.clone());
+        self.location.set(session.location.clone());
+        self.selection.set(session.selection.clone());
+        self.query.set(session.query.clone());
+        self.status.set(session.status.clone());
+        self.table_scroll_top.set(session.table_scroll_top);
+        self.scroll_restore.set(session.scroll_restore);
+        self.navigation_history
+            .set(session.navigation_history.clone());
+    }
+
+    fn install_new(mut self, document: ArchiveDocument) {
+        self.archive_identity.set(document.identity());
+        self.virtual_directories.write().clear();
+        self.table_scroll_top.set(0.0);
+        self.scroll_restore.set(ScrollRestore::default());
+        self.navigation_history.write().clear();
+        install_editable_archive(
+            document,
+            self.archive,
+            self.packet,
+            self.location,
+            self.selection,
+            self.query,
+            self.status,
+            self.packet_edits,
+            self.removed_packets,
+            self.ptx_infos,
+        );
+    }
+
+    fn clear(mut self) {
+        self.archive_identity.set(0);
+        self.archive.set(None);
+        self.packet.set(None);
+        self.packet_edits.write().clear();
+        self.removed_packets.write().clear();
+        self.virtual_directories.write().clear();
+        self.ptx_infos.write().clear();
+        self.location.set(BrowserLocation::default());
+        self.selection.set(None);
+        self.query.set(String::new());
+        self.status.set(AppStatus::new(
+            "打开或拖入一个 RSB 归档",
+            StatusTone::Neutral,
+        ));
+        self.table_scroll_top.set(0.0);
+        self.scroll_restore.set(ScrollRestore::default());
+        self.navigation_history.write().clear();
+    }
+}
+
+#[derive(Clone, Copy)]
+struct ArchiveTransientSignals {
+    ptx_preview: Signal<Option<PtxPreviewState>>,
+    detail_preview: Signal<Option<PtxPreviewState>>,
+    preview_open: Signal<bool>,
+    preview_cache: Signal<PreviewCache>,
+    edit_dialog: Signal<Option<EditDialog>>,
+    context_menu: Signal<Option<ArchiveContextMenuState>>,
+    preview_context_menu: Signal<Option<PtxPreviewContextMenuState>>,
+}
+
+impl ArchiveTransientSignals {
+    fn reset(mut self) {
+        processing::begin_request();
+        self.ptx_preview.set(None);
+        self.detail_preview.set(None);
+        self.preview_open.set(false);
+        self.preview_cache.write().clear();
+        self.edit_dialog.set(None);
+        self.context_menu.set(None);
+        self.preview_context_menu.set(None);
+    }
+}
+
+fn store_active_archive_tab(
+    mut tabs: Signal<Vec<ArchiveTabSession>>,
+    active_id: Option<u64>,
+    signals: ArchiveSessionSignals,
+) {
+    let Some(active_id) = active_id else {
+        return;
+    };
+    let Some(snapshot) = signals.capture(active_id) else {
+        return;
+    };
+    if let Some(tab) = tabs.write().iter_mut().find(|tab| tab.id == active_id) {
+        *tab = snapshot;
+    }
+}
+
+fn open_archive_tab(
+    document: ArchiveDocument,
+    mut tabs: Signal<Vec<ArchiveTabSession>>,
+    mut active_id: Signal<Option<u64>>,
+    mut next_id: Signal<u64>,
+    signals: ArchiveSessionSignals,
+    transient: ArchiveTransientSignals,
+) {
+    store_active_archive_tab(tabs, active_id(), signals);
+    let tab_id = next_id();
+    next_id.set(tab_id.wrapping_add(1).max(1));
+    transient.reset();
+    signals.install_new(document);
+    let Some(session) = signals.capture(tab_id) else {
+        return;
+    };
+    tabs.write().push(session);
+    active_id.set(Some(tab_id));
+}
+
+fn activate_archive_tab(
+    tab_id: u64,
+    tabs: Signal<Vec<ArchiveTabSession>>,
+    mut active_id: Signal<Option<u64>>,
+    signals: ArchiveSessionSignals,
+    transient: ArchiveTransientSignals,
+) {
+    if active_id() == Some(tab_id) {
+        return;
+    }
+    store_active_archive_tab(tabs, active_id(), signals);
+    let session = tabs.read().iter().find(|tab| tab.id == tab_id).cloned();
+    let Some(session) = session else {
+        return;
+    };
+    transient.reset();
+    signals.install(&session);
+    active_id.set(Some(tab_id));
+}
+
+fn close_archive_tab(
+    tab_id: u64,
+    mut tabs: Signal<Vec<ArchiveTabSession>>,
+    mut active_id: Signal<Option<u64>>,
+    signals: ArchiveSessionSignals,
+    transient: ArchiveTransientSignals,
+) {
+    store_active_archive_tab(tabs, active_id(), signals);
+    let (was_active, next_session) = {
+        let mut tabs = tabs.write();
+        let Some(index) = tabs.iter().position(|tab| tab.id == tab_id) else {
+            return;
+        };
+        let was_active = active_id() == Some(tab_id);
+        tabs.remove(index);
+        let next_session = if was_active {
+            let next_index = index.min(tabs.len().saturating_sub(1));
+            tabs.get(next_index).cloned()
+        } else {
+            None
+        };
+        (was_active, next_session)
+    };
+    if !was_active {
+        return;
+    }
+    transient.reset();
+    if let Some(session) = next_session {
+        signals.install(&session);
+        active_id.set(Some(session.id));
+    } else {
+        signals.clear();
+        active_id.set(None);
+    }
+}
+
 const NAVIGATION_HISTORY_LIMIT: usize = 128;
 
 impl NavigationSignals {
@@ -322,6 +583,12 @@ fn is_rton_file(path: &str) -> bool {
         .is_some_and(|(_, extension)| extension.eq_ignore_ascii_case("rton"))
 }
 
+fn is_wem_file(path: &str) -> bool {
+    archive_file_name(path)
+        .rsplit_once('.')
+        .is_some_and(|(_, extension)| extension.eq_ignore_ascii_case("wem"))
+}
+
 fn archive_context_capabilities(
     target: &RowSelection,
     packet: Option<&PacketDocument>,
@@ -353,6 +620,7 @@ fn archive_context_capabilities(
             ArchiveContextCapabilities {
                 open: file.is_some_and(|file| {
                     is_rton_file(&file.path)
+                        || is_wem_file(&file.path)
                         || (file.is_part1 && file.path.to_ascii_lowercase().ends_with(".ptx"))
                 }),
                 replace: file.is_some(),
@@ -379,6 +647,8 @@ fn archive_context_open_label(
                 .map_or("打开", |file| {
                     if is_rton_file(&file.path) {
                         "在 RTON Editor 中打开"
+                    } else if is_wem_file(&file.path) {
+                        "在 WEM Audio 中打开"
                     } else if file.is_part1 && file.path.to_ascii_lowercase().ends_with(".ptx") {
                         "预览"
                     } else {
@@ -1014,6 +1284,7 @@ fn open_file_item(
     mut preview_open: Signal<bool>,
     status: Signal<AppStatus>,
     on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>,
+    on_open_wem: Option<EventHandler<RsbWemOpenRequest>>,
 ) {
     selection.set(Some(RowSelection::File(index)));
     ptx_preview.set(None);
@@ -1043,6 +1314,25 @@ fn open_file_item(
                 format!("已在 RTON Editor 中打开 {name}"),
                 StatusTone::Success,
             ),
+        );
+        return;
+    }
+    if is_wem_file(&file.path) {
+        let Some(on_open_wem) = on_open_wem else {
+            set_status(
+                status,
+                AppStatus::new("当前宿主没有可用的 WEM Audio", StatusTone::Warning),
+            );
+            return;
+        };
+        let name = archive_file_name(&file.path).to_string();
+        on_open_wem.call(RsbWemOpenRequest {
+            name: name.clone(),
+            bytes: Arc::from(file.data.clone()),
+        });
+        set_status(
+            status,
+            AppStatus::new(format!("已在 WEM Audio 中打开 {name}"), StatusTone::Success),
         );
         return;
     }
@@ -3039,7 +3329,10 @@ fn save_edited_archive(
 }
 
 #[component]
-pub fn RsbArchivePage(on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>) -> Element {
+pub fn RsbArchivePage(
+    on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>,
+    on_open_wem: Option<EventHandler<RsbWemOpenRequest>>,
+) -> Element {
     let mut archive = use_signal(|| None::<Arc<ArchiveDocument>>);
     let packet = use_signal(|| None::<Arc<PacketDocument>>);
     let packet_edits = use_signal(PacketEdits::new);
@@ -3049,7 +3342,7 @@ pub fn RsbArchivePage(on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>) ->
     let mut location = use_signal(BrowserLocation::default);
     let mut selection = use_signal(|| None::<RowSelection>);
     let mut query = use_signal(String::new);
-    let status = use_signal(|| AppStatus::new("打开或拖入一个 RSB 归档", StatusTone::Neutral));
+    let mut status = use_signal(|| AppStatus::new("打开或拖入一个 RSB 归档", StatusTone::Neutral));
     let mut dragging = use_signal(|| false);
     let mut tree_visible = use_signal(|| false);
     let mut inspector_visible = use_signal(|| false);
@@ -3064,7 +3357,10 @@ pub fn RsbArchivePage(on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>) ->
     let mut edit_dialog = use_signal(|| None::<EditDialog>);
     let mut context_menu = use_signal(|| None::<ArchiveContextMenuState>);
     let mut preview_context_menu = use_signal(|| None::<PtxPreviewContextMenuState>);
-    let mut pending_archive = use_signal(|| None::<ArchiveDocument>);
+    let archive_tabs = use_signal(Vec::<ArchiveTabSession>::new);
+    let active_archive_tab = use_signal(|| None::<u64>);
+    let next_archive_tab = use_signal(|| 1_u64);
+    let mut pending_close_tab = use_signal(|| None::<u64>);
     let navigation = NavigationSignals {
         location,
         selection,
@@ -3072,6 +3368,31 @@ pub fn RsbArchivePage(on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>) ->
         table_scroll_top,
         history: navigation_history,
         scroll_restore,
+    };
+    let session_signals = ArchiveSessionSignals {
+        archive,
+        packet,
+        packet_edits,
+        removed_packets,
+        virtual_directories,
+        ptx_infos,
+        location,
+        selection,
+        query,
+        status,
+        archive_identity,
+        table_scroll_top,
+        scroll_restore,
+        navigation_history,
+    };
+    let transient_signals = ArchiveTransientSignals {
+        ptx_preview,
+        detail_preview,
+        preview_open,
+        preview_cache,
+        edit_dialog,
+        context_menu,
+        preview_context_menu,
     };
 
     use_effect(move || {
@@ -3132,6 +3453,24 @@ pub fn RsbArchivePage(on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>) ->
         || archive_snapshot
             .as_ref()
             .is_some_and(|document| ptx_infos.read().as_slice() != document.ptx_infos.as_slice());
+    let active_archive_tab_snapshot = active_archive_tab();
+    let archive_tab_items = archive_tabs
+        .read()
+        .iter()
+        .map(|tab| {
+            let active = Some(tab.id) == active_archive_tab_snapshot;
+            ArchiveTabItem {
+                id: tab.id,
+                name: tab.archive.display_name.clone(),
+                dirty: if active {
+                    has_unsaved_changes
+                } else {
+                    tab.has_unsaved_changes()
+                },
+                active,
+            }
+        })
+        .collect::<Vec<_>>();
     let can_export_png = selection_snapshot.as_ref().is_some_and(|target| {
         archive_context_capabilities(target, packet_snapshot.as_deref(), None, false).export_png
     });
@@ -3165,28 +3504,22 @@ pub fn RsbArchivePage(on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>) ->
                     let Some(file) = event.files().into_iter().next() else {
                         return;
                     };
+                    let previous_status = status();
                     set_status(
                         status,
                         AppStatus::new("正在读取归档索引…", StatusTone::Neutral),
                     );
                     match open_file_data(file).await {
                         Ok(document) => {
-                            if has_unsaved_changes {
-                                pending_archive.set(Some(document));
-                            } else {
-                                install_editable_archive(
-                                    document,
-                                    archive,
-                                    packet,
-                                    location,
-                                    selection,
-                                    query,
-                                    status,
-                                    packet_edits,
-                                    removed_packets,
-                                    ptx_infos,
-                                );
-                            }
+                            status.set(previous_status);
+                            open_archive_tab(
+                                document,
+                                archive_tabs,
+                                active_archive_tab,
+                                next_archive_tab,
+                                session_signals,
+                                transient_signals,
+                            );
                         }
                         Err(error) => set_status(
                             status,
@@ -3234,24 +3567,14 @@ pub fn RsbArchivePage(on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>) ->
                     can_go_up: !matches!(location_snapshot, BrowserLocation::Archive),
                     tree_visible: tree_visible(),
                     inspector_visible: inspector_visible(),
-                    on_open: move |document| {
-                        if has_unsaved_changes {
-                            pending_archive.set(Some(document));
-                        } else {
-                            install_editable_archive(
-                                document,
-                                archive,
-                                packet,
-                                location,
-                                selection,
-                                query,
-                                status,
-                                packet_edits,
-                                removed_packets,
-                                ptx_infos,
-                            );
-                        }
-                    },
+                    on_open: move |document| open_archive_tab(
+                        document,
+                        archive_tabs,
+                        active_archive_tab,
+                        next_archive_tab,
+                        session_signals,
+                        transient_signals,
+                    ),
                     on_error: move |error| set_status(
                         status,
                         AppStatus::new(format!("打开失败：{error}"), StatusTone::Error),
@@ -3418,6 +3741,52 @@ pub fn RsbArchivePage(on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>) ->
                 } },
                 }
 
+                ArchiveTabBar {
+                    tabs: archive_tab_items,
+                    on_activate: move |tab_id| activate_archive_tab(
+                        tab_id,
+                        archive_tabs,
+                        active_archive_tab,
+                        session_signals,
+                        transient_signals,
+                    ),
+                    on_close: move |tab_id| {
+                        store_active_archive_tab(
+                            archive_tabs,
+                            active_archive_tab(),
+                            session_signals,
+                        );
+                        let dirty = archive_tabs
+                            .read()
+                            .iter()
+                            .find(|tab| tab.id == tab_id)
+                            .is_some_and(ArchiveTabSession::has_unsaved_changes);
+                        if dirty {
+                            pending_close_tab.set(Some(tab_id));
+                        } else {
+                            close_archive_tab(
+                                tab_id,
+                                archive_tabs,
+                                active_archive_tab,
+                                session_signals,
+                                transient_signals,
+                            );
+                        }
+                    },
+                    on_open: move |document| open_archive_tab(
+                        document,
+                        archive_tabs,
+                        active_archive_tab,
+                        next_archive_tab,
+                        session_signals,
+                        transient_signals,
+                    ),
+                    on_error: move |error| set_status(
+                        status,
+                        AppStatus::new(format!("打开失败：{error}"), StatusTone::Error),
+                    ),
+                }
+
                 WorkspaceCard { class: "rsb-browser-card", aria_label: "RSB Archive",
                     if let Some(document) = archive_snapshot.as_ref() {
                         AddressBar {
@@ -3514,6 +3883,7 @@ pub fn RsbArchivePage(on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>) ->
                                     preview_open,
                                     status,
                                     on_open_rton,
+                                    on_open_wem,
                                 ),
                             }
                         }
@@ -3529,23 +3899,22 @@ pub fn RsbArchivePage(on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>) ->
                         }
                     } else {
                         EmptyArchive {
-                            on_open: move |document| install_editable_archive(
+                            on_open: move |document| open_archive_tab(
                                 document,
-                                archive,
-                                packet,
-                                location,
-                                selection,
-                                query,
-                                status,
-                                packet_edits,
-                                removed_packets,
-                                ptx_infos,
+                                archive_tabs,
+                                active_archive_tab,
+                                next_archive_tab,
+                                session_signals,
+                                transient_signals,
                             ),
                             on_error: move |error| set_status(
                                 status,
                                 AppStatus::new(format!("打开失败：{error}"), StatusTone::Error),
                             ),
                         }
+                    }
+                    if dragging() {
+                        DropIndicator { title: "释放以打开 RSB 归档" }
                     }
                 }
 
@@ -3718,6 +4087,7 @@ pub fn RsbArchivePage(on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>) ->
                                     preview_open,
                                     status,
                                     on_open_rton,
+                                    on_open_wem,
                                 ),
                             }
                         },
@@ -3838,14 +4208,6 @@ pub fn RsbArchivePage(on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>) ->
                                 ),
                             );
                         },
-                    }
-                }
-
-                if dragging() {
-                    div { class: "rsb-drop-overlay",
-                        Glyph { name: "archive" }
-                        strong { "释放以打开 RSB 归档" }
-                        span { "文件只在本地处理" }
                     }
                 }
 
@@ -4060,28 +4422,80 @@ pub fn RsbArchivePage(on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>) ->
                     }
                 }
 
-                if let Some(document) = pending_archive() {
-                    UnsavedChangesDialog {
-                        name: document.display_name.clone(),
-                        on_cancel: move |_| pending_archive.set(None),
+                if let Some(tab_id) = pending_close_tab() {
+                    if let Some(tab) = archive_tabs.read().iter().find(|tab| tab.id == tab_id) {
+                        UnsavedTabDialog {
+                        name: tab.archive.display_name.clone(),
+                        on_cancel: move |_| pending_close_tab.set(None),
                         on_discard: move |_| {
-                            let Some(document) = pending_archive.take() else {
+                            let Some(tab_id) = pending_close_tab.take() else {
                                 return;
                             };
-                            install_editable_archive(
-                                document,
-                                archive,
-                                packet,
-                                location,
-                                selection,
-                                query,
-                                status,
-                                packet_edits,
-                                removed_packets,
-                                ptx_infos,
+                            close_archive_tab(
+                                tab_id,
+                                archive_tabs,
+                                active_archive_tab,
+                                session_signals,
+                                transient_signals,
                             );
                         },
                     }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn ArchiveTabBar(
+    tabs: Vec<ArchiveTabItem>,
+    on_activate: EventHandler<u64>,
+    on_close: EventHandler<u64>,
+    on_open: EventHandler<ArchiveDocument>,
+    on_error: EventHandler<String>,
+) -> Element {
+    rsx! {
+        div { class: "rsb-tab-strip ui-document-tab-strip",
+            div {
+                class: "rsb-tab-list ui-document-tab-list",
+                role: "tablist",
+                aria_label: "打开的 RSB 归档",
+                for tab in tabs {
+                    div {
+                        key: "{tab.id}",
+                        class: tab.class(),
+                        button {
+                            r#type: "button",
+                            class: "rsb-tab-select ui-document-tab-label",
+                            role: "tab",
+                            aria_selected: tab.active,
+                            tabindex: if tab.active { "0" } else { "-1" },
+                            title: "{tab.name}",
+                            onclick: {
+                                let tab_id = tab.id;
+                                move |_| on_activate.call(tab_id)
+                            },
+                            span { class: "rsb-tab-dot ui-document-tab-dot" }
+                            span { class: "rsb-tab-name ui-document-tab-name", "{tab.name}" }
+                        }
+                        button {
+                            r#type: "button",
+                            class: "rsb-tab-close ui-document-tab-close",
+                            title: "关闭 {tab.name}",
+                            aria_label: "关闭 {tab.name}",
+                            onclick: {
+                                let tab_id = tab.id;
+                                move |_| on_close.call(tab_id)
+                            },
+                            Glyph { name: "close" }
+                        }
+                    }
+                }
+                OpenArchiveButton {
+                    on_open,
+                    on_error,
+                    tab_add: true,
                 }
             }
         }
@@ -4352,19 +4766,26 @@ fn OpenArchiveButton(
     on_error: EventHandler<String>,
     #[props(default)] primary: bool,
     #[props(default)] icon_only: bool,
+    #[props(default)] tab_add: bool,
 ) -> Element {
-    let class = match (primary, icon_only) {
-        (true, true) => "rsb-tool-button rsb-tool-button--primary rsb-tool-button--icon",
-        (true, false) => "rsb-tool-button rsb-tool-button--primary",
-        (false, true) => "rsb-tool-button rsb-tool-button--icon",
-        (false, false) => "rsb-tool-button",
+    let class = match (tab_add, primary, icon_only) {
+        (true, _, _) => "rsb-tab-add ui-document-new-tab",
+        (false, true, true) => "rsb-tool-button rsb-tool-button--primary rsb-tool-button--icon",
+        (false, true, false) => "rsb-tool-button rsb-tool-button--primary",
+        (false, false, true) => "rsb-tool-button rsb-tool-button--icon",
+        (false, false, false) => "rsb-tool-button",
+    };
+    let title = if tab_add {
+        "添加 RSB 标签页"
+    } else {
+        "打开 RSB"
     };
     rsx! {
         button {
             r#type: "button",
             class,
-            title: "打开 RSB",
-            aria_label: "打开 RSB 归档",
+            title,
+            aria_label: title,
             onclick: move |_| async move {
                 let Some(path) = platform::pick_archive().await else {
                     return;
@@ -4374,8 +4795,12 @@ fn OpenArchiveButton(
                     Err(error) => on_error.call(error),
                 }
             },
-            Glyph { name: "open" }
-            if !icon_only {
+            if tab_add {
+                Glyph { name: "add" }
+            } else {
+                Glyph { name: "open" }
+            }
+            if !icon_only && !tab_add {
                 span { "打开" }
             }
         }
@@ -4389,18 +4814,25 @@ fn OpenArchiveButton(
     on_error: EventHandler<String>,
     #[props(default)] primary: bool,
     #[props(default)] icon_only: bool,
+    #[props(default)] tab_add: bool,
 ) -> Element {
-    let class = match (primary, icon_only) {
-        (true, true) => "rsb-tool-button rsb-tool-button--primary rsb-tool-button--icon",
-        (true, false) => "rsb-tool-button rsb-tool-button--primary",
-        (false, true) => "rsb-tool-button rsb-tool-button--icon",
-        (false, false) => "rsb-tool-button",
+    let class = match (tab_add, primary, icon_only) {
+        (true, _, _) => "rsb-tab-add ui-document-new-tab",
+        (false, true, true) => "rsb-tool-button rsb-tool-button--primary rsb-tool-button--icon",
+        (false, true, false) => "rsb-tool-button rsb-tool-button--primary",
+        (false, false, true) => "rsb-tool-button rsb-tool-button--icon",
+        (false, false, false) => "rsb-tool-button",
+    };
+    let title = if tab_add {
+        "添加 RSB 标签页"
+    } else {
+        "打开 RSB"
     };
     rsx! {
         label {
             class,
-            title: "打开 RSB",
-            aria_label: "打开 RSB 归档",
+            title,
+            aria_label: title,
             input {
                 class: "rsb-file-input",
                 r#type: "file",
@@ -4415,8 +4847,12 @@ fn OpenArchiveButton(
                     }
                 },
             }
-            Glyph { name: "open" }
-            if !icon_only {
+            if tab_add {
+                Glyph { name: "add" }
+            } else {
+                Glyph { name: "open" }
+            }
+            if !icon_only && !tab_add {
                 span { "打开" }
             }
         }
@@ -4858,24 +5294,6 @@ fn ArchiveTable(
     rsx! {
         main {
             class: "rsb-table-pane",
-            onmounted: move |event| {
-                mounted.set(Some(event.clone()));
-                async move {
-                    if let Ok(rect) = event.get_client_rect().await {
-                        viewport_height.set(measured_table_viewport_height(rect.height()));
-                    }
-                }
-            },
-            onresize: move |event| {
-                if let Ok(size) = event.get_content_box_size() {
-                    viewport_height.set(measured_table_viewport_height(size.height));
-                }
-            },
-            onscroll: move |event| {
-                let top = event.scroll_top();
-                scroll_top.set(top);
-                on_scroll.call(top);
-            },
             div { class: "rsb-table-head",
                 span { class: "rsb-col-name", "名称" }
                 span { class: "rsb-col-type", "类型" }
@@ -4885,6 +5303,24 @@ fn ArchiveTable(
             }
             div {
                 class: "rsb-table-body",
+                onmounted: move |event| {
+                    mounted.set(Some(event.clone()));
+                    async move {
+                        if let Ok(rect) = event.get_client_rect().await {
+                            viewport_height.set(measured_table_viewport_height(rect.height()));
+                        }
+                    }
+                },
+                onresize: move |event| {
+                    if let Ok(size) = event.get_content_box_size() {
+                        viewport_height.set(measured_table_viewport_height(size.height));
+                    }
+                },
+                onscroll: move |event| {
+                    let top = event.scroll_top();
+                    scroll_top.set(top);
+                    on_scroll.call(top);
+                },
                 oncontextmenu: move |event| {
                     let Some(directory) = blank_context_directory.clone() else {
                         return;
@@ -6351,7 +6787,7 @@ fn TextureInput(
 }
 
 #[component]
-fn UnsavedChangesDialog(
+fn UnsavedTabDialog(
     name: String,
     on_cancel: EventHandler<()>,
     on_discard: EventHandler<()>,
@@ -6371,8 +6807,8 @@ fn UnsavedChangesDialog(
                 aria_label: "未保存修改",
                 header {
                     div {
-                        strong { "放弃未保存修改？" }
-                        span { "将打开 {name}" }
+                        strong { "关闭未保存的归档？" }
+                        span { "{name}" }
                     }
                 }
                 div { class: "rsb-dialog-body",
@@ -6391,7 +6827,7 @@ fn UnsavedChangesDialog(
                         r#type: "button",
                         class: "rsb-dialog-button rsb-dialog-button--danger",
                         onclick: move |_| on_discard.call(()),
-                        "放弃并打开"
+                        "放弃并关闭"
                     }
                 }
             }
@@ -7051,7 +7487,7 @@ mod tests {
         AddedFileKind, EditDialog, FileImportMode, PreviewDrag, PreviewPoint, PreviewSize,
         added_file_kind, archive_context_capabilities, archive_context_open_label,
         archive_file_name, clamp_preview_pan, file_import_dialog, image_ptx_name,
-        is_raster_image_file, is_rton_file, preview_fit_scale, preview_pan_after_zoom,
+        is_raster_image_file, is_rton_file, is_wem_file, preview_fit_scale, preview_pan_after_zoom,
         preview_pan_from_drag,
     };
     use crate::domain::{PacketDocument, PacketRecord, RowSelection};
@@ -7064,6 +7500,14 @@ mod tests {
         assert!(is_rton_file(r"properties\ZOMBIES.RTON"));
         assert!(!is_rton_file("properties/rton.json"));
         assert!(!is_rton_file("properties/not-rton"));
+    }
+
+    #[test]
+    fn recognizes_wem_archive_paths_case_insensitively() {
+        assert!(is_wem_file("audio/music.wem"));
+        assert!(is_wem_file(r"audio\ZOMBIE.WEM"));
+        assert!(!is_wem_file("audio/wem.ogg"));
+        assert!(!is_wem_file("audio/not-wem"));
     }
 
     #[test]
@@ -7253,8 +7697,14 @@ mod tests {
                     part1_info: None,
                 },
                 UnpackedFile {
-                    path: "IMAGES/ATLAS.PTX".into(),
+                    path: "AUDIO/ZOMBIE.WEM".into(),
                     data: vec![2],
+                    is_part1: false,
+                    part1_info: None,
+                },
+                UnpackedFile {
+                    path: "IMAGES/ATLAS.PTX".into(),
+                    data: vec![3],
                     is_part1: true,
                     part1_info: Some(Part1Extra {
                         id: 0,
@@ -7264,7 +7714,7 @@ mod tests {
                 },
                 UnpackedFile {
                     path: "DATA/RAW.PTX".into(),
-                    data: vec![3],
+                    data: vec![4],
                     is_part1: false,
                     part1_info: None,
                 },
@@ -7281,14 +7731,24 @@ mod tests {
             "在 RTON Editor 中打开"
         );
 
-        let ptx = RowSelection::File(1);
+        let wem = RowSelection::File(1);
+        let wem_capabilities = archive_context_capabilities(&wem, Some(&packet), None, false);
+        assert!(wem_capabilities.open);
+        assert!(wem_capabilities.replace);
+        assert!(wem_capabilities.delete);
+        assert_eq!(
+            archive_context_open_label(&wem, Some(&packet)),
+            "在 WEM Audio 中打开"
+        );
+
+        let ptx = RowSelection::File(2);
         let ptx_capabilities = archive_context_capabilities(&ptx, Some(&packet), None, false);
         assert!(ptx_capabilities.open);
         assert!(ptx_capabilities.delete);
         assert!(ptx_capabilities.export_png);
         assert_eq!(archive_context_open_label(&ptx, Some(&packet)), "预览");
 
-        let direct_ptx = RowSelection::File(2);
+        let direct_ptx = RowSelection::File(3);
         let direct_ptx_capabilities =
             archive_context_capabilities(&direct_ptx, Some(&packet), None, false);
         assert!(!direct_ptx_capabilities.open);

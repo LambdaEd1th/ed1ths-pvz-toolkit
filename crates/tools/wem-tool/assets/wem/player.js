@@ -1,5 +1,5 @@
 (() => {
-    const VERSION = 1;
+    const VERSION = 2;
     const BAR_COUNT = 56;
     const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 2];
     const existing = window.wemPlayer;
@@ -334,8 +334,6 @@
         if (!button || !controls?.contains(button)) return;
         const action = button.dataset.wemAction;
         if (action === "play") togglePlayback();
-        if (action === "skip-back") skip(-15);
-        if (action === "skip-forward") skip(15);
         if (action === "mute") toggleMute();
         if (action === "rate") cycleRate();
     };
@@ -364,10 +362,10 @@
             togglePlayback();
         } else if (key === "arrowleft") {
             event.preventDefault();
-            skip(event.shiftKey ? -15 : -5);
+            skip(-5);
         } else if (key === "arrowright") {
             event.preventDefault();
-            skip(event.shiftKey ? 15 : 5);
+            skip(5);
         } else if (key === "m") {
             event.preventDefault();
             toggleMute();
