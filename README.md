@@ -3,8 +3,9 @@
 A single cross-platform app for inspecting and editing Plants vs. Zombies
 resources, backed by reusable, format-focused Rust libraries.
 
-The app combines the editable RSB archive workspace, RTON editor, PAM viewer/exporter,
-and WEM audio converter/player behind one MoeSekai-inspired home page. More format tools can be added without
+The app combines the editable RSB archive workspace, RTON editor, PAM
+viewer/exporter, WEM audio converter/player, and NEWTON manifest editor behind
+one MoeSekai-inspired home page. More format tools can be added without
 turning the public libraries into an aggregate SDK.
 
 ## Project layout
@@ -14,6 +15,7 @@ apps/toolkit/             The only desktop/Web application
   src/shell/              Persistent top bar, sidebar, settings, and content host
   src/pages/              App-level pages such as Home
 crates/formats/
+  newton-manifest/        Public NEWTON resource-manifest reader/writer
   pam-codec/              Public PAM reader/writer
   rsb-archive/            Public RSB/RSG archive, zlib, and PTX codecs
   serde_rton/             Public Serde RTON reader/writer
@@ -21,6 +23,7 @@ crates/formats/
 crates/ui/
   toolkit-ui/             Internal design system and appearance runtime
 crates/tools/
+  newton-tool/            NEWTON manifest editor feature
   pam-tool/               PAM application feature
   rsb-tool/               RSB archive editor, extractor, and PTX preview feature
   rton-tool/              RTON application feature
@@ -33,10 +36,11 @@ crates/wem/               Internal Web conversion worker
 The dependency direction is intentionally one-way:
 
 ```text
-pam-codec  -> PAM core/workers  -> pam-tool  ┐
+newton-manifest -------------> newton-tool ─┐
+pam-codec  -> PAM core/workers  -> pam-tool ─┤
 serde_rton -> RTON core/worker  -> rton-tool ├-> toolkit-app
-rsb-archive --------------------> rsb-tool  ──┤
-wem-audio -> WEM worker --------> wem-tool  ──┤
+rsb-archive --------------------> rsb-tool  ─┤
+wem-audio -> WEM worker --------> wem-tool  ─┤
 toolkit-ui ---------------------> tools -----┘
 ```
 
@@ -46,17 +50,19 @@ single appearance preference. Tool-specific state never flows back into the app
 shell.
 
 Tool pages use the same composition: a floating toolbar for primary actions and
-one central workspace card for the format-specific workflow. PAM and RTON keep
-their focused editor layouts; RSB uses an archive-manager layout with an address
-bar, directory tree, file table, details inspector, and a compact operation
-status. PTX entries can be decoded from their archive metadata and previewed
-without extracting them first. None of the tools creates a second app navigation
-shell.
+one central workspace card for the format-specific workflow. NEWTON uses
+browser-style document tabs with group, record, and inspector cards; PAM and
+RTON keep their focused editor layouts. RSB uses an archive-manager layout with
+an address bar, directory tree, file table, details inspector, and a compact
+operation status. PTX entries can be decoded from their archive metadata and
+previewed without extracting them first. None of the tools creates a second app
+navigation shell.
 
 Public libraries are intentionally independent:
 
 ```toml
 [dependencies]
+newton-manifest = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "newton-manifest" }
 pam-codec = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "pam-codec" }
 rsb-archive = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "rsb-archive" }
 serde_rton = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "serde_rton" }

@@ -15,7 +15,9 @@ use crate::virtual_scroll::{
     TABLE_DEFAULT_VIEWPORT_HEIGHT, measured_table_viewport_height, table_row_top,
     table_virtual_window,
 };
-use crate::{RsbRtonOpenRequest, RsbWemOpenRequest, loader, platform, processing};
+use crate::{
+    RsbNewtonOpenRequest, RsbRtonOpenRequest, RsbWemOpenRequest, loader, platform, processing,
+};
 use dioxus::prelude::*;
 use dioxus_html::{
     FileData, HasFileData, ScrollBehavior, geometry::PixelsVector2D, input_data::MouseButton,
@@ -583,6 +585,12 @@ fn is_rton_file(path: &str) -> bool {
         .is_some_and(|(_, extension)| extension.eq_ignore_ascii_case("rton"))
 }
 
+fn is_newton_file(path: &str) -> bool {
+    archive_file_name(path)
+        .rsplit_once('.')
+        .is_some_and(|(_, extension)| extension.eq_ignore_ascii_case("newton"))
+}
+
 fn is_wem_file(path: &str) -> bool {
     archive_file_name(path)
         .rsplit_once('.')
@@ -619,7 +627,8 @@ fn archive_context_capabilities(
             let file = packet.and_then(|packet| packet.files.get(*index));
             ArchiveContextCapabilities {
                 open: file.is_some_and(|file| {
-                    is_rton_file(&file.path)
+                    is_newton_file(&file.path)
+                        || is_rton_file(&file.path)
                         || is_wem_file(&file.path)
                         || (file.is_part1 && file.path.to_ascii_lowercase().ends_with(".ptx"))
                 }),
@@ -645,7 +654,9 @@ fn archive_context_open_label(
             packet
                 .and_then(|packet| packet.files.get(*index))
                 .map_or("打开", |file| {
-                    if is_rton_file(&file.path) {
+                    if is_newton_file(&file.path) {
+                        "在 NEWTON Manifest 中打开"
+                    } else if is_rton_file(&file.path) {
                         "在 RTON Editor 中打开"
                     } else if is_wem_file(&file.path) {
                         "在 WEM Audio 中打开"
@@ -1283,6 +1294,7 @@ fn open_file_item(
     preview_cache: Signal<PreviewCache>,
     mut preview_open: Signal<bool>,
     status: Signal<AppStatus>,
+    on_open_newton: Option<EventHandler<RsbNewtonOpenRequest>>,
     on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>,
     on_open_wem: Option<EventHandler<RsbWemOpenRequest>>,
 ) {
@@ -1295,6 +1307,28 @@ fn open_file_item(
     let Some(file) = packet.files.get(index) else {
         return;
     };
+    if is_newton_file(&file.path) {
+        let Some(on_open_newton) = on_open_newton else {
+            set_status(
+                status,
+                AppStatus::new("当前宿主没有可用的 NEWTON Manifest", StatusTone::Warning),
+            );
+            return;
+        };
+        let name = archive_file_name(&file.path).to_string();
+        on_open_newton.call(RsbNewtonOpenRequest {
+            name: name.clone(),
+            bytes: Arc::from(file.data.clone()),
+        });
+        set_status(
+            status,
+            AppStatus::new(
+                format!("已在 NEWTON Manifest 中打开 {name}"),
+                StatusTone::Success,
+            ),
+        );
+        return;
+    }
     if is_rton_file(&file.path) {
         let Some(on_open_rton) = on_open_rton else {
             set_status(
@@ -3330,6 +3364,7 @@ fn save_edited_archive(
 
 #[component]
 pub fn RsbArchivePage(
+    on_open_newton: Option<EventHandler<RsbNewtonOpenRequest>>,
     on_open_rton: Option<EventHandler<RsbRtonOpenRequest>>,
     on_open_wem: Option<EventHandler<RsbWemOpenRequest>>,
 ) -> Element {
@@ -3882,6 +3917,7 @@ pub fn RsbArchivePage(
                                     preview_cache,
                                     preview_open,
                                     status,
+                                    on_open_newton,
                                     on_open_rton,
                                     on_open_wem,
                                 ),
@@ -4086,6 +4122,7 @@ pub fn RsbArchivePage(
                                     preview_cache,
                                     preview_open,
                                     status,
+                                    on_open_newton,
                                     on_open_rton,
                                     on_open_wem,
                                 ),
@@ -7486,7 +7523,7 @@ mod tests {
     use super::{
         AddedFileKind, EditDialog, FileImportMode, PreviewDrag, PreviewPoint, PreviewSize,
         added_file_kind, archive_context_capabilities, archive_context_open_label,
-        archive_file_name, clamp_preview_pan, file_import_dialog, image_ptx_name,
+        archive_file_name, clamp_preview_pan, file_import_dialog, image_ptx_name, is_newton_file,
         is_raster_image_file, is_rton_file, is_wem_file, preview_fit_scale, preview_pan_after_zoom,
         preview_pan_from_drag,
     };
@@ -7500,6 +7537,14 @@ mod tests {
         assert!(is_rton_file(r"properties\ZOMBIES.RTON"));
         assert!(!is_rton_file("properties/rton.json"));
         assert!(!is_rton_file("properties/not-rton"));
+    }
+
+    #[test]
+    fn recognizes_newton_archive_paths_case_insensitively() {
+        assert!(is_newton_file("properties/resources.newton"));
+        assert!(is_newton_file(r"properties\RESOURCES.NEWTON"));
+        assert!(!is_newton_file("properties/newton.json"));
+        assert!(!is_newton_file("properties/not-newton"));
     }
 
     #[test]
@@ -7703,8 +7748,14 @@ mod tests {
                     part1_info: None,
                 },
                 UnpackedFile {
-                    path: "IMAGES/ATLAS.PTX".into(),
+                    path: "PROPERTIES/RESOURCES.NEWTON".into(),
                     data: vec![3],
+                    is_part1: false,
+                    part1_info: None,
+                },
+                UnpackedFile {
+                    path: "IMAGES/ATLAS.PTX".into(),
+                    data: vec![4],
                     is_part1: true,
                     part1_info: Some(Part1Extra {
                         id: 0,
@@ -7714,7 +7765,7 @@ mod tests {
                 },
                 UnpackedFile {
                     path: "DATA/RAW.PTX".into(),
-                    data: vec![4],
+                    data: vec![5],
                     is_part1: false,
                     part1_info: None,
                 },
@@ -7741,14 +7792,24 @@ mod tests {
             "在 WEM Audio 中打开"
         );
 
-        let ptx = RowSelection::File(2);
+        let newton = RowSelection::File(2);
+        let newton_capabilities = archive_context_capabilities(&newton, Some(&packet), None, false);
+        assert!(newton_capabilities.open);
+        assert!(newton_capabilities.replace);
+        assert!(newton_capabilities.delete);
+        assert_eq!(
+            archive_context_open_label(&newton, Some(&packet)),
+            "在 NEWTON Manifest 中打开"
+        );
+
+        let ptx = RowSelection::File(3);
         let ptx_capabilities = archive_context_capabilities(&ptx, Some(&packet), None, false);
         assert!(ptx_capabilities.open);
         assert!(ptx_capabilities.delete);
         assert!(ptx_capabilities.export_png);
         assert_eq!(archive_context_open_label(&ptx, Some(&packet)), "预览");
 
-        let direct_ptx = RowSelection::File(3);
+        let direct_ptx = RowSelection::File(4);
         let direct_ptx_capabilities =
             archive_context_capabilities(&direct_ptx, Some(&packet), None, false);
         assert!(!direct_ptx_capabilities.open);

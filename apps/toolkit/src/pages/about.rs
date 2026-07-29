@@ -20,7 +20,7 @@ pub(crate) fn AboutPage() -> Element {
                     h1 { "关于 Ed1th's PvZ Toolkit" }
                     p {
                         "面向 PopCap / PvZ 资源格式的开源工具工作区。"
-                        "RSB 归档浏览、RTON 数据编辑、PAM 动画查看、WEM 音频转换与可复用格式库在这里共享一致的体验。"
+                        "RSB 归档浏览、RTON 数据编辑、PAM 动画查看、WEM 音频转换、NEWTON 清单维护与可复用格式库在这里共享一致的体验。"
                     }
                 }
 
@@ -43,6 +43,8 @@ pub(crate) fn AboutPage() -> Element {
                             code { "pam-codec" }
                             "、"
                             code { "wem-audio" }
+                            "、"
+                            code { "newton-manifest" }
                             " 保持独立、可测试并可被其他 Rust 项目直接使用。"
                         }
                         p {
@@ -124,7 +126,7 @@ pub(crate) fn AboutPage() -> Element {
                                 span { class: "tk-about-card-label", "Workspaces & libraries" }
                                 h2 { "专业工具，共享设计语言" }
                             }
-                            span { class: "tk-about-count", "4 formats" }
+                            span { class: "tk-about-count", "5 formats" }
                         }
                         div { class: "tk-about-format-grid",
                             section { class: "tk-about-format tk-about-format--rsb",
@@ -166,6 +168,16 @@ pub(crate) fn AboutPage() -> Element {
                                     }
                                 }
                                 p { "WEM 与常见音频的本地播放、编码、解码及无损音频流重封装。" }
+                            }
+                            section { class: "tk-about-format tk-about-format--newton",
+                                div { class: "tk-about-format-heading",
+                                    span { aria_hidden: "true", "N" }
+                                    div {
+                                        h3 { "NEWTON Manifest" }
+                                        code { "newton-manifest" }
+                                    }
+                                }
+                                p { "资源清单、资源组、槽位、子组引用与图集几何的查看、校验和编辑。" }
                             }
                         }
                     }

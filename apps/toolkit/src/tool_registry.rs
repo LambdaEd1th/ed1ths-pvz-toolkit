@@ -11,7 +11,7 @@ pub(crate) struct ToolDescriptor {
     pub action: &'static str,
 }
 
-pub(crate) const TOOLS: [ToolDescriptor; 4] = [
+pub(crate) const TOOLS: [ToolDescriptor; 5] = [
     ToolDescriptor {
         route: AppRoute::Rsb,
         slug: "rsb",
@@ -48,6 +48,15 @@ pub(crate) const TOOLS: [ToolDescriptor; 4] = [
         tags: ["Playback", "Vorbis", "WAV"],
         action: "打开音频工具",
     },
+    ToolDescriptor {
+        route: AppRoute::Newton,
+        slug: "newton",
+        label: "NEWTON Manifest",
+        glyph: "N",
+        description: "查看和编辑 PvZ2 资源清单，并在 NEWTON、JSON、YAML 与 TOML 之间转换。",
+        tags: ["Manifest", "JSON", "YAML"],
+        action: "打开清单编辑器",
+    },
 ];
 
 #[cfg(test)]
@@ -56,10 +65,16 @@ mod tests {
     use crate::navigation::AppRoute;
 
     #[test]
-    fn tools_follow_archive_data_animation_audio_order() {
+    fn tools_place_newton_after_audio() {
         assert_eq!(
             TOOLS.map(|tool| tool.route),
-            [AppRoute::Rsb, AppRoute::Rton, AppRoute::Pam, AppRoute::Wem,]
+            [
+                AppRoute::Rsb,
+                AppRoute::Rton,
+                AppRoute::Pam,
+                AppRoute::Wem,
+                AppRoute::Newton,
+            ]
         );
     }
 }
