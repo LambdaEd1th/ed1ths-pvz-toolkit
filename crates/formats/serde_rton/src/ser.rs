@@ -123,6 +123,14 @@ impl<W: Write> Serializer<W> {
         }
     }
 
+    fn require_nested_value(&self) -> Result<()> {
+        if self.is_root {
+            Err(Error::NonObjectRoot)
+        } else {
+            Ok(())
+        }
+    }
+
     fn write_interned_string(&mut self, v: &str) -> Result<()> {
         if fits_latin1_string(v) {
             if let Some(&idx) = self.standard_latin1_indices_by_string.get(v) {
@@ -167,7 +175,9 @@ impl<W: Write> Serializer<W> {
 /// Serializes `value` to a complete standard RTON file in memory.
 ///
 /// The returned bytes include the `RTON` header, version word, encoded payload,
-/// and `DONE` footer.
+/// and `DONE` footer. PvZ2 RTON files require an object at the root; arrays,
+/// scalars, strings, RTIDs, blobs, and null roots return
+/// [`Error::NonObjectRoot`].
 pub fn to_bytes<T: Serialize>(value: &T) -> Result<Vec<u8>> {
     let mut data = Vec::new();
     to_writer(&mut data, value)?;
@@ -178,15 +188,17 @@ pub fn to_bytes<T: Serialize>(value: &T) -> Result<Vec<u8>> {
 ///
 /// Strings are interned by default using `StringLatin1Definition` /
 /// `StringUtf8Definition` and their reference tags. Wrap strings in
-/// [`crate::DirectStr`] to force direct string tags instead.
+/// [`crate::DirectStr`] to force direct string tags instead. The root value must
+/// serialize as an object.
 pub fn to_writer<W: Write, T: Serialize>(mut writer: W, value: &T) -> Result<()> {
     write_header(&mut writer)?;
 
-    // Create serializer borrowing the writer
-    {
-        let mut serializer = Serializer::new(&mut writer);
-        value.serialize(&mut serializer)?;
+    let mut serializer = Serializer::new(&mut writer);
+    value.serialize(&mut serializer)?;
+    if serializer.is_root {
+        return Err(Error::NonObjectRoot);
     }
+    drop(serializer);
 
     write_footer(&mut writer)?;
     Ok(())
@@ -196,18 +208,23 @@ pub fn to_writer<W: Write, T: Serialize>(mut writer: W, value: &T) -> Result<()>
 ///
 /// Compact RTON uses version [`COMPACT_FILE_VERSION`] and compact tags such as
 /// `0xB0`-`0xBC`. It is intended for runtime-compatible semantic output rather
-/// than preserving every original standard RTON tag.
+/// than preserving every original standard RTON tag. Only
+/// [`Value::Object`] is accepted at the root.
 pub fn to_compact_bytes(value: &Value) -> Result<Vec<u8>> {
     let mut data = Vec::new();
     to_compact_writer(&mut data, value)?;
     Ok(data)
 }
 
-/// Serializes a semantic [`Value`] as compact runtime RTON into `writer`.
+/// Serializes a root [`Value::Object`] as compact runtime RTON into `writer`.
 pub fn to_compact_writer<W: Write>(mut writer: W, value: &Value) -> Result<()> {
+    let Value::Object(entries) = value else {
+        return Err(Error::NonObjectRoot);
+    };
+
     let mut compact = CompactRtonWriter::new();
     compact.write_header()?;
-    compact.write_value(value)?;
+    compact.write_object(entries)?;
     compact.write_footer()?;
     writer.write_all(&compact.bytes)?;
     Ok(())
@@ -508,6 +525,15 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         name: &'static str,
         value: &T,
     ) -> Result<()> {
+        if self.is_root
+            && matches!(
+                name,
+                "RTID" | "VarIntI32" | "VarIntU32" | "VarIntI64" | "VarIntU64" | "DirectStr"
+            )
+        {
+            return Err(Error::NonObjectRoot);
+        }
+
         match name {
             "RTID" => {
                 self.writer.write_u8(RtonTag::Rtid as u8)?;
@@ -551,6 +577,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
     }
 
     fn serialize_i32(self, v: i32) -> Result<()> {
+        self.require_nested_value()?;
         if self.pending_varint == PendingVarInt::I32 {
             self.writer.write_u8(RtonTag::ZigZagVarInt32 as u8)?;
             self.writer.write_varint(v)?;
@@ -577,6 +604,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         Ok(())
     }
     fn serialize_u32(self, v: u32) -> Result<()> {
+        self.require_nested_value()?;
         if self.pending_rtid {
             self.writer.write_u32::<LittleEndian>(v)?;
             return Ok(());
@@ -604,6 +632,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         Ok(())
     }
     fn serialize_i64(self, v: i64) -> Result<()> {
+        self.require_nested_value()?;
         if self.pending_varint == PendingVarInt::I64 {
             self.writer.write_u8(RtonTag::ZigZagVarInt64 as u8)?;
             self.writer.write_varint(v)?;
@@ -629,7 +658,12 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         }
         Ok(())
     }
+    fn serialize_i128(self, _v: i128) -> Result<()> {
+        self.require_nested_value()?;
+        Err(Error::Message("i128 not supported".into()))
+    }
     fn serialize_u64(self, v: u64) -> Result<()> {
+        self.require_nested_value()?;
         if self.pending_rtid {
             self.writer.write_varint(v)?;
             return Ok(());
@@ -656,6 +690,10 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         }
         Ok(())
     }
+    fn serialize_u128(self, _v: u128) -> Result<()> {
+        self.require_nested_value()?;
+        Err(Error::Message("u128 not supported".into()))
+    }
 
     fn serialize_unit_variant(
         self,
@@ -663,6 +701,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         variant_index: u32,
         _variant: &'static str,
     ) -> Result<()> {
+        self.require_nested_value()?;
         if name == "RTID" && variant_index == 0x84 {
             self.writer.write_u8(RtonTag::RtidNull as u8)?;
             return Ok(());
@@ -672,6 +711,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
     }
 
     fn serialize_str(self, v: &str) -> Result<()> {
+        self.require_nested_value()?;
         if self.pending_rtid {
             write_utf8_string_payload(&mut self.writer, v)?;
             return Ok(());
@@ -692,6 +732,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
     }
 
     fn serialize_bytes(self, v: &[u8]) -> Result<()> {
+        self.require_nested_value()?;
         self.writer.write_u8(RtonTag::BinaryBlob as u8)?;
         self.writer.write_u8(0)?;
 
@@ -707,9 +748,11 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
     }
 
     fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple> {
+        self.require_nested_value()?;
         Ok(self)
     }
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq> {
+        self.require_nested_value()?;
         let count = len.ok_or(Error::UnknownLength)?;
         self.writer.write_u8(RtonTag::ArrayBegin as u8)?;
         self.writer.write_u8(RtonTag::ArrayCapacity as u8)?;
@@ -718,6 +761,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
     }
 
     fn serialize_none(self) -> Result<()> {
+        self.require_nested_value()?;
         // PvZ2 maps JSON null → RtidNull (0x84), not StringAsterisk (0x02).
         // Hopper: sub_1024ee170 (JSON null) → sub_1024e78dc (RTID writer)
         // confirms that null RTID pointer → tag 0x84.
@@ -728,6 +772,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         value.serialize(self)
     }
     fn serialize_bool(self, v: bool) -> Result<()> {
+        self.require_nested_value()?;
         self.writer.write_u8(if v {
             RtonTag::BooleanTrue as u8
         } else {
@@ -736,6 +781,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         Ok(())
     }
     fn serialize_i8(self, v: i8) -> Result<()> {
+        self.require_nested_value()?;
         if v == 0 {
             self.writer.write_u8(RtonTag::I8Zero as u8)?;
         } else {
@@ -745,6 +791,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         Ok(())
     }
     fn serialize_u8(self, v: u8) -> Result<()> {
+        self.require_nested_value()?;
         if v == 0 {
             self.writer.write_u8(RtonTag::U8Zero as u8)?;
         } else {
@@ -754,6 +801,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         Ok(())
     }
     fn serialize_i16(self, v: i16) -> Result<()> {
+        self.require_nested_value()?;
         if v == 0 {
             self.writer.write_u8(RtonTag::I16Zero as u8)?;
         } else {
@@ -763,6 +811,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         Ok(())
     }
     fn serialize_u16(self, v: u16) -> Result<()> {
+        self.require_nested_value()?;
         if v == 0 {
             self.writer.write_u8(RtonTag::U16Zero as u8)?;
         } else {
@@ -772,6 +821,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         Ok(())
     }
     fn serialize_f32(self, v: f32) -> Result<()> {
+        self.require_nested_value()?;
         if v == 0.0 {
             self.writer.write_u8(RtonTag::F32Zero as u8)?;
         } else {
@@ -781,6 +831,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         Ok(())
     }
     fn serialize_f64(self, v: f64) -> Result<()> {
+        self.require_nested_value()?;
         if v == 0.0 {
             self.writer.write_u8(RtonTag::F64Zero as u8)?;
             return Ok(());
@@ -807,6 +858,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         Ok(self)
     }
     fn serialize_char(self, _v: char) -> Result<()> {
+        self.require_nested_value()?;
         Err(Error::Message("char not supported".into()))
     }
     fn serialize_unit(self) -> Result<()> {
@@ -822,6 +874,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         _variant: &'static str,
         _value: &T,
     ) -> Result<()> {
+        self.require_nested_value()?;
         Err(Error::Message("enum variants not supported".into()))
     }
     fn serialize_tuple_struct(
@@ -829,6 +882,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         _name: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeTupleStruct> {
+        self.require_nested_value()?;
         Err(Error::Message("tuple structs not supported".into()))
     }
     fn serialize_tuple_variant(
@@ -838,6 +892,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         _variant: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeTupleVariant> {
+        self.require_nested_value()?;
         Err(Error::Message("tuple variants not supported".into()))
     }
     fn serialize_struct_variant(
@@ -847,6 +902,7 @@ impl<W: Write> ser::Serializer for &mut Serializer<W> {
         _variant: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeStructVariant> {
+        self.require_nested_value()?;
         Err(Error::Message("struct variants not supported".into()))
     }
 }
