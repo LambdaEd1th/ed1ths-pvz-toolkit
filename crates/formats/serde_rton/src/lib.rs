@@ -138,8 +138,19 @@ mod tests {
         a: Option<Rtid>,
     }
 
+    #[derive(Serialize)]
+    struct PayloadField<'a, T: ?Sized> {
+        #[serde(rename = "")]
+        value: &'a T,
+    }
+
+    fn payload_bytes<T: Serialize + ?Sized>(value: &T) -> Vec<u8> {
+        to_bytes(&PayloadField { value }).expect("Serialization failed")
+    }
+
     fn payload_tag(bytes: &[u8]) -> u8 {
-        bytes[FILE_HEADER.len() + 4]
+        // Header + empty Latin-1 key definition (0x90, length 0).
+        bytes[FILE_HEADER.len() + 6]
     }
 
     fn round_trip(value: &Value) -> Result<Value> {
@@ -432,6 +443,36 @@ mod tests {
     }
 
     #[test]
+    fn test_standard_writer_rejects_non_object_roots() {
+        let values = [
+            Value::Null,
+            Value::Int32(1),
+            Value::String("value".to_string()),
+            Value::Binary(BinaryBlob(vec![1, 2, 3])),
+            Value::Rtid(Rtid::Null),
+            Value::Array(vec![Value::Bool(true)]),
+        ];
+
+        for value in values {
+            let error = to_bytes(&value).expect_err("non-object root should be rejected");
+            assert!(matches!(error, Error::NonObjectRoot));
+        }
+    }
+
+    #[test]
+    fn test_compact_writer_rejects_non_object_roots() {
+        for value in [
+            Value::Null,
+            Value::Int32(1),
+            Value::String("value".to_string()),
+            Value::Array(vec![Value::Bool(true)]),
+        ] {
+            let error = to_compact_bytes(&value).expect_err("non-object root should be rejected");
+            assert!(matches!(error, Error::NonObjectRoot));
+        }
+    }
+
+    #[test]
     fn test_header_rejects_version_high_word_above_one() {
         let mut bytes = compact_file_prefix_with_version(0x0002_0001);
         bytes.push(RtonTag::CompactObjectBegin as u8);
@@ -482,14 +523,14 @@ mod tests {
 
     #[test]
     fn test_explicit_u32_varint_uses_alt_tag() {
-        let bytes = to_bytes(&VarIntU32(300)).expect("Serialization failed");
+        let bytes = payload_bytes(&VarIntU32(300));
 
         assert_eq!(payload_tag(&bytes), RtonTag::UnsignedVarInt32 as u8);
     }
 
     #[test]
     fn test_explicit_u64_varint_uses_alt_tag() {
-        let bytes = to_bytes(&VarIntU64(300)).expect("Serialization failed");
+        let bytes = payload_bytes(&VarIntU64(300));
 
         assert_eq!(payload_tag(&bytes), RtonTag::UnsignedVarInt64 as u8);
     }
@@ -511,56 +552,56 @@ mod tests {
 
     #[test]
     fn test_small_positive_i32_uses_compact_signed_positive_tag() {
-        let bytes = to_bytes(&123i32).expect("Serialization failed");
+        let bytes = payload_bytes(&123i32);
 
         assert_eq!(payload_tag(&bytes), RtonTag::RawVarInt32 as u8);
     }
 
     #[test]
     fn test_negative_i32_uses_zigzag_tag() {
-        let bytes = to_bytes(&-1i32).expect("Serialization failed");
+        let bytes = payload_bytes(&-1i32);
 
         assert_eq!(payload_tag(&bytes), RtonTag::ZigZagVarInt32 as u8);
     }
 
     #[test]
     fn test_large_i32_uses_fixed_width_tag() {
-        let bytes = to_bytes(&(1i32 << 21)).expect("Serialization failed");
+        let bytes = payload_bytes(&(1i32 << 21));
 
         assert_eq!(payload_tag(&bytes), RtonTag::I32 as u8);
     }
 
     #[test]
     fn test_small_positive_i64_uses_compact_signed_positive_tag() {
-        let bytes = to_bytes(&123i64).expect("Serialization failed");
+        let bytes = payload_bytes(&123i64);
 
         assert_eq!(payload_tag(&bytes), RtonTag::RawVarInt64 as u8);
     }
 
     #[test]
     fn test_negative_i64_uses_zigzag_tag() {
-        let bytes = to_bytes(&-1i64).expect("Serialization failed");
+        let bytes = payload_bytes(&-1i64);
 
         assert_eq!(payload_tag(&bytes), RtonTag::ZigZagVarInt64 as u8);
     }
 
     #[test]
     fn test_large_i64_uses_fixed_width_tag() {
-        let bytes = to_bytes(&(1i64 << 49)).expect("Serialization failed");
+        let bytes = payload_bytes(&(1i64 << 49));
 
         assert_eq!(payload_tag(&bytes), RtonTag::I64 as u8);
     }
 
     #[test]
     fn test_f64_uses_typed_double_tag_even_when_f32_exact() {
-        let bytes = to_bytes(&1.5f64).expect("Serialization failed");
+        let bytes = payload_bytes(&1.5f64);
 
         assert_eq!(payload_tag(&bytes), RtonTag::F64 as u8);
     }
 
     #[test]
     fn test_f64_zero_uses_double_zero_tag() {
-        let bytes = to_bytes(&0.0f64).expect("Serialization failed");
+        let bytes = payload_bytes(&0.0f64);
 
         assert_eq!(payload_tag(&bytes), RtonTag::F64Zero as u8);
     }
@@ -586,28 +627,28 @@ mod tests {
     #[test]
     fn test_small_u32_uses_compact_alt_tag() {
         // 300 fits in 2 varint bytes (< 4) → should use 0x28 (UnsignedVarInt32)
-        let bytes = to_bytes(&300u32).expect("Serialization failed");
+        let bytes = payload_bytes(&300u32);
         assert_eq!(payload_tag(&bytes), RtonTag::UnsignedVarInt32 as u8);
     }
 
     #[test]
     fn test_large_u32_uses_fixed_width_tag() {
         // 1 << 28 needs 5 varint bytes (>= 4) → should use 0x26 (U32)
-        let bytes = to_bytes(&(1u32 << 28)).expect("Serialization failed");
+        let bytes = payload_bytes(&(1u32 << 28));
         assert_eq!(payload_tag(&bytes), RtonTag::U32 as u8);
     }
 
     #[test]
     fn test_small_u64_uses_compact_alt_tag() {
         // 300 fits in 2 varint bytes (< 8) → should use 0x48 (UnsignedVarInt64)
-        let bytes = to_bytes(&300u64).expect("Serialization failed");
+        let bytes = payload_bytes(&300u64);
         assert_eq!(payload_tag(&bytes), RtonTag::UnsignedVarInt64 as u8);
     }
 
     #[test]
     fn test_large_u64_uses_fixed_width_tag() {
         // 1 << 56 needs 9 varint bytes (>= 8) → should use 0x46 (U64)
-        let bytes = to_bytes(&(1u64 << 56)).expect("Serialization failed");
+        let bytes = payload_bytes(&(1u64 << 56));
         assert_eq!(payload_tag(&bytes), RtonTag::U64 as u8);
     }
 

@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
+use newton_tool::{NewtonOpenRequest, NewtonTool};
 use pam_tool::PamTool;
-use rsb_tool::{RsbRtonOpenRequest, RsbTool, RsbWemOpenRequest};
+use rsb_tool::{RsbNewtonOpenRequest, RsbRtonOpenRequest, RsbTool, RsbWemOpenRequest};
 use rton_tool::{RtonOpenRequest, RtonTool};
 use wem_tool::{WemOpenRequest, WemTool};
 
@@ -13,6 +14,8 @@ pub(crate) fn ContentHost(
     sidebar_open: Signal<bool>,
     compact: bool,
 ) -> Element {
+    let mut next_newton_open_request_id = use_signal(|| 1_u64);
+    let mut newton_open_request = use_signal(|| None::<NewtonOpenRequest>);
     let mut next_rton_open_request_id = use_signal(|| 1_u64);
     let mut rton_open_request = use_signal(|| None::<RtonOpenRequest>);
     let mut next_wem_open_request_id = use_signal(|| 1_u64);
@@ -35,6 +38,16 @@ pub(crate) fn ContentHost(
             class: if active_route == AppRoute::Rsb { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
             aria_hidden: active_route != AppRoute::Rsb,
             RsbTool {
+                on_open_newton: move |request: RsbNewtonOpenRequest| {
+                    let id = next_newton_open_request_id();
+                    next_newton_open_request_id.set(id.wrapping_add(1).max(1));
+                    newton_open_request.set(Some(NewtonOpenRequest::new(
+                        id,
+                        request.name,
+                        request.bytes,
+                    )));
+                    navigate(route, sidebar_open, compact, AppRoute::Newton);
+                },
                 on_open_rton: move |request: RsbRtonOpenRequest| {
                     let id = next_rton_open_request_id();
                     next_rton_open_request_id.set(id.wrapping_add(1).max(1));
@@ -76,6 +89,14 @@ pub(crate) fn ContentHost(
             WemTool {
                 active: active_route == AppRoute::Wem,
                 open_request: wem_open_request(),
+            }
+        }
+        div {
+            class: if active_route == AppRoute::Newton { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
+            aria_hidden: active_route != AppRoute::Newton,
+            NewtonTool {
+                active: active_route == AppRoute::Newton,
+                open_request: newton_open_request(),
             }
         }
     }

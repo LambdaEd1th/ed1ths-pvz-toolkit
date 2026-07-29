@@ -36,6 +36,9 @@ pub enum Error {
     #[error("RTON arrays require a known length in advance")]
     UnknownLength,
 
+    #[error("RTON root value must be an object")]
+    NonObjectRoot,
+
     #[error("Unknown Identifier Byte: {0:#04x}")]
     UnknownTag(u8),
 

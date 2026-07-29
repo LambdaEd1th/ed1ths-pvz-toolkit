@@ -1275,6 +1275,11 @@ button {
   color: #298c78;
 }
 
+.tk-about-format--newton .tk-about-format-heading > span {
+  background: rgba(70, 153, 171, 0.13);
+  color: #34879a;
+}
+
 .tk-about-format--wem .tk-about-format-heading > span {
   background: rgba(157, 112, 196, 0.13);
   color: #9666bd;
@@ -1822,6 +1827,12 @@ button {
   --tk-card-accent: #329b86;
   --tk-card-soft: rgba(50, 155, 134, 0.13);
   --tk-card-glow: rgba(60, 184, 160, 0.12);
+}
+
+.tk-workspace-card--newton {
+  --tk-card-accent: #3e91a4;
+  --tk-card-soft: rgba(62, 145, 164, 0.13);
+  --tk-card-glow: rgba(70, 165, 184, 0.12);
 }
 
 .tk-workspace-card--wem {

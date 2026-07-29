@@ -3,6 +3,7 @@ members = [
     "apps/toolkit",
     "crates/ui/toolkit-ui",
     "crates/formats/pam-codec",
+    "crates/formats/newton-manifest",
     "crates/formats/rsb-archive",
     "crates/formats/serde_rton",
     "crates/formats/wem-audio",
@@ -16,6 +17,7 @@ members = [
     "crates/rton/worker",
     "crates/wem/worker",
     "crates/tools/pam-tool",
+    "crates/tools/newton-tool",
     "crates/tools/rsb-tool",
     "crates/tools/rton-tool",
     "crates/tools/wem-tool",
@@ -42,6 +44,8 @@ futures-channel = "0.3"
 futures-util = "0.3"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
 hound = "3.5"
+newton-manifest = { path = "crates/formats/newton-manifest", version = "0.1.0" }
+newton-tool = { path = "crates/tools/newton-tool" }
 ogg = "0.9.2"
 pam-codec = { path = "crates/formats/pam-codec", version = "0.1.2" }
 parking_lot = "0.12"

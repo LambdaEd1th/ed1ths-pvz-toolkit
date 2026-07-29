@@ -1,0 +1,1145 @@
+.newton-page-host {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  color: var(--tk-ink);
+  container: newton-workspace / inline-size;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.newton-page {
+  grid-template-rows: auto auto minmax(0, 1fr);
+  overflow: clip;
+}
+
+.newton-glyph {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+.newton-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.newton-toolbar-actions {
+  display: flex;
+  width: min(620px, calc(100vw - 64px));
+  min-width: 0;
+  min-height: 48px;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 7px;
+  overflow: visible;
+  border: 1px solid var(--tk-island-border);
+  border-radius: 22px;
+  background: var(--tk-island-glass);
+  box-shadow: var(--tk-shadow);
+  backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
+  -webkit-backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
+}
+
+.newton-icon-button,
+.newton-action-button,
+.newton-compact-button,
+.newton-panel-footer-actions button,
+.newton-danger-button {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid transparent;
+  color: var(--tk-muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 760;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease,
+    transform 150ms var(--tk-spring);
+}
+
+.newton-icon-button {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 12px;
+  background: transparent;
+}
+
+.newton-icon-button:hover:not(:disabled),
+.newton-compact-button:hover:not(:disabled),
+.newton-panel-footer-actions button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--tk-accent) 28%, var(--tk-border));
+  background: var(--tk-accent-soft);
+  color: var(--tk-accent-strong);
+}
+
+.newton-icon-button.primary,
+.newton-action-button.primary {
+  border-color: transparent;
+  background: var(--tk-accent);
+  color: var(--tk-accent-contrast);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--tk-accent) 20%, transparent);
+}
+
+.newton-icon-button.primary:hover:not(:disabled),
+.newton-action-button.primary:hover:not(:disabled) {
+  background: var(--tk-accent-strong);
+  color: var(--tk-accent-contrast);
+}
+
+.newton-icon-button:active:not(:disabled),
+.newton-action-button:active:not(:disabled),
+.newton-compact-button:active:not(:disabled),
+.newton-panel-footer-actions button:active:not(:disabled) {
+  transform: scale(0.965);
+}
+
+.newton-icon-button:disabled,
+.newton-compact-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.36;
+}
+
+.newton-toolbar-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 2px;
+  background: var(--tk-border);
+}
+
+.newton-toolbar-spacer {
+  min-width: 8px;
+  flex: 1 1 auto;
+}
+
+.newton-export-control {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+}
+
+.newton-export-backdrop {
+  position: fixed;
+  z-index: 1;
+  inset: 0;
+  border: 0;
+  background: transparent;
+}
+
+.newton-export-menu {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 10px);
+  right: 0;
+  display: grid;
+  width: 230px;
+  gap: 4px;
+  padding: 7px;
+  border: 1px solid var(--tk-island-border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--tk-surface-opaque) 96%, var(--tk-accent) 4%);
+  box-shadow: var(--tk-shadow-high);
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+}
+
+.newton-export-menu > button {
+  display: flex;
+  width: 100%;
+  min-height: 46px;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--tk-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+}
+
+.newton-export-menu > button:hover {
+  background: var(--tk-accent-soft);
+  color: var(--tk-ink);
+}
+
+.newton-export-format-mark {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--tk-accent-soft);
+  color: var(--tk-accent-strong);
+}
+
+.newton-export-menu > button > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.newton-export-menu strong {
+  color: inherit;
+  font-size: 10px;
+  font-weight: 820;
+}
+
+.newton-export-menu small {
+  color: var(--tk-faint);
+  font-size: 8px;
+}
+
+.newton-tab-strip {
+  margin: 0 2px;
+}
+
+.newton-tab-add {
+  position: relative;
+}
+
+.newton-workspace-card {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 48% -18%, color-mix(in srgb, var(--tk-accent) 8%, transparent), transparent 38%),
+    color-mix(in srgb, var(--tk-island-glass) 92%, transparent);
+}
+
+.newton-document {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.newton-summary-grid {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.newton-summary-card {
+  display: flex;
+  min-width: 0;
+  min-height: 62px;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--tk-border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--tk-surface) 88%, transparent);
+  box-shadow: var(--tk-shadow-control);
+}
+
+.newton-summary-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--tk-accent-soft);
+  color: var(--tk-accent-strong);
+}
+
+.newton-summary-card div {
+  min-width: 0;
+}
+
+.newton-summary-card small,
+.newton-summary-card strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.newton-summary-card small {
+  color: var(--tk-muted);
+  font-size: 9px;
+  font-weight: 720;
+  letter-spacing: 0.05em;
+}
+
+.newton-summary-card strong {
+  margin-top: 3px;
+  color: var(--tk-ink);
+  font-size: 15px;
+  font-weight: 790;
+}
+
+.newton-editor-grid {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: minmax(190px, 0.72fr) minmax(320px, 1.75fr) minmax(250px, 0.95fr);
+  gap: 10px;
+  overflow: hidden;
+}
+
+.newton-panel {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--tk-border);
+  border-radius: 21px;
+  background: color-mix(in srgb, var(--tk-surface) 91%, transparent);
+  box-shadow: var(--tk-shadow-control);
+}
+
+.newton-group-panel,
+.newton-record-panel,
+.newton-inspector-panel {
+  display: grid;
+}
+
+.newton-group-panel {
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+}
+
+.newton-record-panel {
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.newton-inspector-panel {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.newton-panel-heading {
+  display: flex;
+  min-width: 0;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 13px;
+  border-bottom: 1px solid var(--tk-border);
+}
+
+.newton-panel-heading > div {
+  min-width: 0;
+}
+
+.newton-eyebrow {
+  display: block;
+  color: var(--tk-accent-strong);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+}
+
+.newton-panel-heading h2 {
+  margin: 3px 0 0;
+  overflow: hidden;
+  color: var(--tk-ink);
+  font-size: 13px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.newton-panel-count,
+.newton-kind-badge,
+.newton-dirty-indicator {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: var(--tk-accent-soft);
+  color: var(--tk-accent-strong);
+  font-size: 8px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.newton-search-field {
+  display: flex;
+  min-width: 0;
+  height: 34px;
+  align-items: center;
+  gap: 7px;
+  margin: 9px 10px;
+  padding: 0 10px;
+  border: 1px solid var(--tk-border);
+  border-radius: 12px;
+  background: var(--tk-surface-muted);
+  color: var(--tk-muted);
+}
+
+.newton-search-field .newton-glyph {
+  width: 14px;
+  height: 14px;
+}
+
+.newton-search-field input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--tk-ink);
+  font: inherit;
+  font-size: 10px;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.newton-search-field:focus-within {
+  border-color: color-mix(in srgb, var(--tk-accent) 45%, var(--tk-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tk-accent) 10%, transparent);
+}
+
+.newton-group-list,
+.newton-record-list,
+.newton-inspector-scroll {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--tk-muted) 38%, transparent) transparent;
+}
+
+.newton-group-list {
+  padding: 0 8px 8px;
+}
+
+.newton-group-item,
+.newton-record-row {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--tk-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: 140ms ease;
+}
+
+.newton-group-item {
+  min-height: 50px;
+  gap: 9px;
+  padding: 6px 8px;
+  border-radius: 13px;
+}
+
+.newton-group-item:hover,
+.newton-record-row:hover {
+  background: var(--tk-surface-muted);
+  color: var(--tk-ink);
+}
+
+.newton-group-item.is-active,
+.newton-record-row.is-active {
+  border-color: color-mix(in srgb, var(--tk-accent) 27%, var(--tk-border));
+  background: var(--tk-accent-soft);
+  color: var(--tk-ink);
+}
+
+.newton-group-mark,
+.newton-record-type {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--tk-accent-soft);
+  color: var(--tk-accent-strong);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 8px;
+  font-weight: 850;
+}
+
+.newton-group-mark {
+  width: 29px;
+  height: 29px;
+}
+
+.newton-group-mark.composite,
+.newton-record-type.subgroup {
+  background: color-mix(in srgb, var(--tk-complement) 14%, transparent);
+  color: var(--tk-complement);
+}
+
+.newton-group-copy,
+.newton-record-main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.newton-group-copy strong,
+.newton-group-copy small,
+.newton-record-main strong,
+.newton-record-main small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.newton-group-copy strong,
+.newton-record-main strong {
+  color: inherit;
+  font-size: 10px;
+  font-weight: 780;
+}
+
+.newton-group-copy small,
+.newton-record-main small {
+  margin-top: 3px;
+  color: var(--tk-faint);
+  font-size: 8px;
+}
+
+.newton-group-item > .newton-glyph,
+.newton-record-row > .newton-glyph {
+  width: 13px;
+  height: 13px;
+  color: var(--tk-faint);
+}
+
+.newton-panel-footer-actions,
+.newton-list-pagination,
+.newton-record-footer {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--tk-border);
+}
+
+.newton-list-pagination {
+  min-height: 38px;
+  justify-content: space-between;
+  color: var(--tk-muted);
+  font-size: 8px;
+}
+
+.newton-list-pagination > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.newton-list-pagination button {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: var(--tk-surface-muted);
+  color: var(--tk-muted);
+  cursor: pointer;
+}
+
+.newton-list-pagination button:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.newton-list-pagination .newton-glyph {
+  width: 12px;
+  height: 12px;
+}
+
+.newton-panel-footer-actions button {
+  min-width: 0;
+  height: 32px;
+  flex: 1 1 0;
+  padding: 0 8px;
+  border-radius: 11px;
+  background: var(--tk-surface-muted);
+}
+
+.newton-record-toolbar {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  padding-right: 9px;
+}
+
+.newton-record-toolbar .newton-search-field {
+  flex: 1 1 auto;
+}
+
+.newton-compact-button {
+  height: 32px;
+  flex: 0 0 auto;
+  padding: 0 9px;
+  border-radius: 11px;
+  background: var(--tk-surface-muted);
+}
+
+.newton-record-list {
+  padding: 1px 9px 9px;
+}
+
+.newton-record-row {
+  min-height: 47px;
+  gap: 10px;
+  padding: 6px 9px;
+  border-radius: 13px;
+}
+
+.newton-record-type {
+  width: 34px;
+  height: 28px;
+}
+
+.newton-record-meta {
+  flex: 0 0 auto;
+  color: var(--tk-faint);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.newton-record-footer {
+  min-height: 43px;
+  justify-content: flex-end;
+  color: var(--tk-muted);
+  font-size: 9px;
+}
+
+.newton-record-footer button {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: var(--tk-surface-muted);
+  color: var(--tk-muted);
+  cursor: pointer;
+}
+
+.newton-record-footer button:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.newton-record-footer .newton-glyph {
+  width: 13px;
+  height: 13px;
+}
+
+.newton-list-empty,
+.newton-record-empty {
+  display: grid;
+  min-height: 110px;
+  place-items: center;
+  padding: 20px;
+  color: var(--tk-faint);
+  font-size: 10px;
+  text-align: center;
+}
+
+.newton-no-group {
+  place-content: center;
+  justify-items: center;
+  padding: 30px;
+  color: var(--tk-muted);
+  text-align: center;
+}
+
+.newton-no-group > .newton-glyph {
+  width: 38px;
+  height: 38px;
+  color: var(--tk-accent);
+}
+
+.newton-no-group h2 {
+  margin: 12px 0 5px;
+  color: var(--tk-ink);
+  font-size: 15px;
+}
+
+.newton-no-group p {
+  max-width: 340px;
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.newton-inspector-scroll {
+  padding: 10px;
+}
+
+.newton-field-section {
+  padding: 11px;
+  border: 1px solid var(--tk-border);
+  border-radius: 16px;
+  background: var(--tk-surface-muted);
+}
+
+.newton-field-section + .newton-field-section,
+.newton-field-section + .newton-validation-panel,
+.newton-validation-panel + .newton-field-section {
+  margin-top: 9px;
+}
+
+.newton-field-section-label {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--tk-accent-strong);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.newton-form-field {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  color: var(--tk-muted);
+  font-size: 8px;
+  font-weight: 730;
+}
+
+.newton-form-field + .newton-form-field,
+.newton-form-field + .newton-toggle-field,
+.newton-toggle-field + .newton-form-field,
+.newton-inspector-kind + .newton-form-field,
+.newton-form-field + .newton-danger-button,
+.newton-toggle-field + .newton-danger-button {
+  margin-top: 8px;
+}
+
+.newton-form-field input,
+.newton-form-field select {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--tk-border);
+  border-radius: 11px;
+  outline: 0;
+  background: var(--tk-surface);
+  color: var(--tk-ink);
+  font: inherit;
+  font-size: 10px;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.newton-form-field input:focus,
+.newton-form-field select:focus {
+  border-color: color-mix(in srgb, var(--tk-accent) 45%, var(--tk-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tk-accent) 10%, transparent);
+}
+
+.newton-field-grid.two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.newton-field-grid.two .newton-form-field + .newton-form-field {
+  margin-top: 0;
+}
+
+.newton-toggle-field {
+  display: grid;
+  min-height: 34px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  color: var(--tk-muted);
+  font-size: 9px;
+  font-weight: 730;
+  cursor: pointer;
+}
+
+.newton-toggle-field input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.newton-toggle-field i {
+  position: relative;
+  display: block;
+  width: 34px;
+  height: 19px;
+  border: 1px solid var(--tk-border);
+  border-radius: 999px;
+  background: var(--tk-surface-strong);
+  transition: 150ms ease;
+}
+
+.newton-toggle-field i::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--tk-muted);
+  content: "";
+  transition: 150ms var(--tk-spring);
+}
+
+.newton-toggle-field input:checked + i {
+  border-color: color-mix(in srgb, var(--tk-accent) 45%, transparent);
+  background: var(--tk-accent);
+}
+
+.newton-toggle-field input:checked + i::after {
+  background: var(--tk-accent-contrast);
+  transform: translateX(15px);
+}
+
+.newton-inspector-kind {
+  padding: 8px 9px;
+  border-radius: 10px;
+  background: var(--tk-accent-soft);
+  color: var(--tk-accent-strong);
+  font-size: 9px;
+  font-weight: 790;
+}
+
+.newton-danger-button {
+  width: 100%;
+  min-height: 33px;
+  padding: 0 10px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--tk-danger) 8%, transparent);
+  color: var(--tk-danger);
+}
+
+.newton-danger-button:hover {
+  border-color: color-mix(in srgb, var(--tk-danger) 30%, transparent);
+  background: color-mix(in srgb, var(--tk-danger) 14%, transparent);
+}
+
+.newton-validation-panel {
+  padding: 11px;
+  border: 1px solid var(--tk-border);
+  border-radius: 16px;
+  background: var(--tk-surface-muted);
+}
+
+.newton-validation-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--tk-ink);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.newton-validation-heading span:last-child {
+  color: var(--tk-muted);
+  font-size: 8px;
+}
+
+.newton-validation-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0 !important;
+  border-radius: 50%;
+  background: var(--tk-accent);
+  box-shadow: 0 0 0 4px var(--tk-accent-soft);
+}
+
+.newton-validation-dot.warning {
+  background: var(--tk-warning);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--tk-warning) 12%, transparent);
+}
+
+.newton-validation-dot.error {
+  background: var(--tk-danger);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--tk-danger) 12%, transparent);
+}
+
+.newton-issue-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.newton-issue {
+  padding: 7px 8px;
+  border-left: 2px solid var(--tk-warning);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tk-warning) 8%, transparent);
+  color: var(--tk-muted);
+  font-size: 8px;
+  line-height: 1.5;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.newton-issue.error {
+  border-left-color: var(--tk-danger);
+  background: color-mix(in srgb, var(--tk-danger) 8%, transparent);
+}
+
+.newton-issue > span {
+  display: none;
+}
+
+.newton-issue strong,
+.newton-issue p {
+  margin: 0;
+}
+
+.newton-issue strong {
+  display: block;
+  color: var(--tk-ink);
+  font-size: 8px;
+}
+
+.newton-issue p {
+  margin-top: 2px;
+}
+
+.newton-empty-workspace {
+  display: grid;
+  min-height: 100%;
+  place-content: center;
+  justify-items: center;
+  padding: 32px;
+  text-align: center;
+}
+
+.newton-empty-icon {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 14px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--tk-accent) 26%, var(--tk-border));
+  border-radius: 22px;
+  background: var(--tk-accent-soft);
+  color: var(--tk-accent-strong);
+  box-shadow: 0 16px 44px color-mix(in srgb, var(--tk-accent) 13%, transparent);
+}
+
+.newton-empty-icon .newton-glyph {
+  width: 28px;
+  height: 28px;
+}
+
+.newton-empty-workspace h2 {
+  margin: 8px 0 5px;
+  color: var(--tk-ink);
+  font-size: 20px;
+}
+
+.newton-empty-workspace p {
+  max-width: 500px;
+  margin: 0;
+  color: var(--tk-muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.newton-empty-workspace small {
+  margin-top: 14px;
+  color: var(--tk-faint);
+  font-size: 9px;
+}
+
+.newton-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.newton-action-button {
+  position: relative;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 13px;
+  background: var(--tk-surface-strong);
+}
+
+.newton-status-notice {
+  position: absolute;
+  z-index: 45;
+  right: 16px;
+  bottom: 14px;
+  max-width: min(480px, calc(100% - 32px));
+}
+
+.newton-dialog-layer {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.newton-dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(3, 10, 18, 0.46);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.newton-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(360px, 100%);
+  padding: 22px;
+  border: 1px solid var(--tk-island-border);
+  border-radius: 24px;
+  background: var(--tk-island-glass);
+  box-shadow: var(--tk-shadow-high);
+  text-align: center;
+}
+
+.newton-dialog-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 11px;
+  place-items: center;
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--tk-warning) 13%, transparent);
+  color: var(--tk-warning);
+}
+
+.newton-dialog h2 {
+  margin: 0;
+  color: var(--tk-ink);
+  font-size: 16px;
+}
+
+.newton-dialog p {
+  margin: 7px 0 18px;
+  color: var(--tk-muted);
+  font-size: 10px;
+}
+
+.newton-dialog > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.newton-dialog button:not(.newton-dialog-backdrop) {
+  min-height: 35px;
+  padding: 0 13px;
+  border: 1px solid var(--tk-border);
+  border-radius: 11px;
+  background: var(--tk-surface-strong);
+  color: var(--tk-ink);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.newton-dialog button.danger {
+  border-color: transparent;
+  background: var(--tk-danger);
+  color: #fff;
+}
+
+@container newton-workspace (max-width: 980px) {
+  .newton-editor-grid {
+    grid-template-columns: minmax(175px, 0.7fr) minmax(300px, 1.55fr);
+    grid-template-rows: minmax(420px, 1fr) minmax(300px, auto);
+    overflow: auto;
+  }
+
+  .newton-inspector-panel {
+    min-height: 300px;
+    grid-column: 1 / -1;
+  }
+}
+
+@container newton-workspace (max-width: 700px) {
+  .newton-document {
+    padding: 8px;
+  }
+
+  .newton-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .newton-summary-card {
+    min-height: 50px;
+    padding: 7px 9px;
+  }
+
+  .newton-summary-icon {
+    width: 29px;
+    height: 29px;
+  }
+
+  .newton-editor-grid {
+    grid-template-columns: minmax(150px, 0.62fr) minmax(250px, 1.38fr);
+    gap: 7px;
+    overflow-x: auto;
+  }
+}
+
+@container newton-workspace (max-width: 520px) {
+  .newton-summary-grid {
+    display: none;
+  }
+
+  .newton-document {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .newton-editor-grid {
+    grid-template-columns: 150px minmax(250px, 1fr);
+  }
+
+  .newton-panel-footer-actions {
+    display: grid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .newton-page-host *,
+  .newton-page-host *::before,
+  .newton-page-host *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

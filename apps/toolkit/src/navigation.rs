@@ -9,6 +9,7 @@ pub(crate) enum AppRoute {
     Rton,
     Pam,
     Wem,
+    Newton,
 }
 
 impl AppRoute {
@@ -20,6 +21,7 @@ impl AppRoute {
             Self::Rton => "RTON Editor",
             Self::Pam => "PAM Viewer",
             Self::Wem => "WEM Audio",
+            Self::Newton => "NEWTON Manifest",
         }
     }
 }
@@ -34,7 +36,7 @@ pub(crate) fn navigate(
     if compact_shell
         || matches!(
             target,
-            AppRoute::Rsb | AppRoute::Rton | AppRoute::Pam | AppRoute::Wem
+            AppRoute::Rsb | AppRoute::Rton | AppRoute::Pam | AppRoute::Wem | AppRoute::Newton
         )
     {
         sidebar_open.set(false);
