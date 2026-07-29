@@ -768,6 +768,16 @@ button {
   font-size: 9px;
 }
 
+.tk-nav-glyph--rsb {
+  color: #3ca58f;
+  font-size: 12px;
+}
+
+.tk-nav-glyph--wem {
+  color: #b286d9;
+  font-size: 12px;
+}
+
 .tk-sidebar-foot {
   display: flex;
   align-items: center;
@@ -844,22 +854,18 @@ button {
   position: absolute;
   inset: 0;
   z-index: 0;
+  display: none;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  opacity: 0;
-  visibility: hidden;
   pointer-events: none;
-  transition: opacity 180ms ease, visibility 0s linear 180ms;
 }
 
 .tk-page-slot--active,
 .tk-tool-slot--active {
   z-index: 1;
-  opacity: 1;
-  visibility: visible;
+  display: block;
   pointer-events: auto;
-  transition-delay: 0s;
 }
 
 .tk-home-scroll {
@@ -1228,7 +1234,7 @@ button {
 
 .tk-about-format-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin-top: 19px;
 }
@@ -1262,6 +1268,16 @@ button {
 .tk-about-format--rton .tk-about-format-heading > span {
   background: rgba(112, 142, 179, 0.13);
   color: #617fa7;
+}
+
+.tk-about-format--rsb .tk-about-format-heading > span {
+  background: rgba(60, 165, 143, 0.13);
+  color: #298c78;
+}
+
+.tk-about-format--wem .tk-about-format-heading > span {
+  background: rgba(157, 112, 196, 0.13);
+  color: #9666bd;
 }
 
 .tk-about-format-heading code {
@@ -1699,7 +1715,7 @@ button {
   font-size: 7px;
 }
 
-.tk-floating-format--pam {
+.tk-floating-format--rsb {
   top: 13px;
   left: 0;
 }
@@ -1707,6 +1723,16 @@ button {
 .tk-floating-format--rton {
   right: -12px;
   bottom: -12px;
+}
+
+.tk-floating-format--pam {
+  top: 73px;
+  right: -4px;
+}
+
+.tk-floating-format--wem {
+  bottom: 15px;
+  left: -8px;
 }
 
 .tk-dashboard-section {
@@ -1751,7 +1777,7 @@ button {
 
 .tk-workspace-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -1790,6 +1816,18 @@ button {
   --tk-card-accent: #6887ad;
   --tk-card-soft: rgba(104, 135, 173, 0.13);
   --tk-card-glow: rgba(100, 150, 202, 0.12);
+}
+
+.tk-workspace-card--rsb {
+  --tk-card-accent: #329b86;
+  --tk-card-soft: rgba(50, 155, 134, 0.13);
+  --tk-card-glow: rgba(60, 184, 160, 0.12);
+}
+
+.tk-workspace-card--wem {
+  --tk-card-accent: #9b70c4;
+  --tk-card-soft: rgba(155, 112, 196, 0.13);
+  --tk-card-glow: rgba(155, 112, 196, 0.12);
 }
 
 .tk-workspace-top {
@@ -2372,6 +2410,10 @@ button {
     transform: scale(0.9);
     transform-origin: right center;
   }
+
+  .tk-workspace-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 1200px) {
@@ -2452,7 +2494,7 @@ button {
     transform: translateX(50%) rotateZ(1deg);
   }
 
-  .tk-floating-format--pam {
+  .tk-floating-format--rsb {
     left: calc(50% - 205px);
   }
 
@@ -2596,7 +2638,7 @@ button {
     transform: translateX(-50%);
   }
 
-  .tk-floating-format--pam {
+  .tk-floating-format--rsb {
     left: calc(50% - 190px);
   }
 
@@ -2679,24 +2721,6 @@ button {
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .tk-ambient--one {
-    animation: tk-ambient-float 12s ease-in-out infinite;
-  }
-
-  .tk-ambient--two {
-    animation: tk-ambient-float 15s ease-in-out -4s infinite reverse;
-  }
-
-  .tk-floating-format--pam {
-    animation: tk-float 5s ease-in-out infinite;
-  }
-
-  .tk-floating-format--rton {
-    animation: tk-float 5.8s ease-in-out -1.7s infinite;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -2704,28 +2728,6 @@ button {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-  }
-}
-
-@keyframes tk-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-7px);
-  }
-}
-
-@keyframes tk-ambient-float {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-
-  50% {
-    transform: translate3d(22px, -16px, 0);
   }
 }
 

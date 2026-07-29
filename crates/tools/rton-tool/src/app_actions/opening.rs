@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use std::sync::Arc;
 
 use rton_editor_core::{
     BinaryEncoding, CoreError, EncodeOptions, RtonValue, encode_rton_bytes, value_to_text,
@@ -158,6 +159,56 @@ pub(crate) fn open_loaded_file_by_id(
             )),
         }
     });
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn open_external_file(
+    name: String,
+    bytes: Arc<[u8]>,
+    mut next_tab_id: Signal<usize>,
+    mut tabs: Signal<Vec<EditorTabState>>,
+    mut active_tab_id: Signal<usize>,
+    compact_output: Signal<bool>,
+    encrypt_output: Signal<bool>,
+    preferred_mode: Option<EditorMode>,
+    mut status: Signal<Status>,
+    i18n: I18n,
+) {
+    let id = *next_tab_id.read();
+    next_tab_id.set(id + 1);
+    match create_tab_from_byte_document(id, name.clone(), ByteDocument::from_arc(bytes)) {
+        Ok(tab) => {
+            let source_mode = tab.mode;
+            let source_options = tab.source_encode_options;
+            tabs.write().push(tab);
+            active_tab_id.set(id);
+            sync_output_encoding_from_options(source_options, compact_output, encrypt_output);
+            status.set(Status::new(
+                i18n.t_args("status-opened-file", &[("name", name)]),
+                Tone::Ok,
+            ));
+            apply_preferred_mode_or_parse(
+                id,
+                source_mode,
+                preferred_mode,
+                EncodeOptions {
+                    encoding: source_options.encoding,
+                    encrypted: false,
+                },
+                tabs,
+                active_tab_id,
+                status,
+                i18n,
+            );
+        }
+        Err(error) => status.set(Status::new(
+            i18n.t_args(
+                "status-file-error",
+                &[("name", name), ("error", error.to_string())],
+            ),
+            Tone::Error,
+        )),
+    }
 }
 
 #[allow(clippy::too_many_arguments)]

@@ -30,9 +30,13 @@ pub(crate) fn launch() {
         let config = Config::new()
             .with_window(window)
             .with_menu(None)
+            .with_disable_context_menu(true)
             .with_on_window(move |window, _| {
                 #[cfg(target_os = "macos")]
-                pam_viewer_native_window::make_opaque(&window);
+                {
+                    pam_viewer_native_window::install_safe_reopen_handler();
+                    pam_viewer_native_window::make_opaque(&window);
+                }
             });
         dioxus::LaunchBuilder::desktop()
             .with_cfg(config)

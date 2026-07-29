@@ -1,0 +1,21 @@
+{
+  "name": "rsb_preview_worker",
+  "type": "module",
+  "description": "Private PTX preview processing worker for Ed1th's PvZ Toolkit",
+  "version": "0.1.0",
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit"
+  },
+  "files": [
+    "rsb_preview_worker_bg.wasm",
+    "rsb_preview_worker.js",
+    "rsb_preview_worker.d.ts"
+  ],
+  "main": "rsb_preview_worker.js",
+  "types": "rsb_preview_worker.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

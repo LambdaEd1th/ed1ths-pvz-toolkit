@@ -21,8 +21,8 @@ pub(crate) use file_selection::{
     toggle_selected_file_key, toggle_selected_file_path,
 };
 pub(crate) use opening::{
-    activate_tab_by_id, open_blank_tab, open_loaded_file_by_id, open_native_files_dialog,
-    open_native_folder_dialog,
+    activate_tab_by_id, open_blank_tab, open_external_file, open_loaded_file_by_id,
+    open_native_files_dialog, open_native_folder_dialog,
 };
 pub(crate) use tabs::{
     close_tab_by_id, finish_tab_drag_state, remove_file_list_item_by_key,

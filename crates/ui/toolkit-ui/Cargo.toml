@@ -11,7 +11,7 @@ description = "Internal Dioxus design system for Ed1th's PvZ Toolkit"
 path = "src/lib.rs"
 
 [dependencies]
-dioxus.workspace = true
+dioxus = { workspace = true, features = ["lib"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = "0.3"

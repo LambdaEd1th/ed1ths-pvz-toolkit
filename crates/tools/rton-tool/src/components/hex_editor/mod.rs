@@ -277,6 +277,7 @@ pub(crate) fn HexEditor(
             selection_range.set(None);
         }
         selected_offset.set(offset);
+
         let mounted = editor_mounted.peek().clone();
         spawn(async move {
             show_context_menu(
@@ -311,7 +312,6 @@ pub(crate) fn HexEditor(
             );
         }
     };
-
     let search_matches_for_previous = search_matches.clone();
     let go_to_previous_match = move |_| {
         if let Some(previous) = relative_search_match(

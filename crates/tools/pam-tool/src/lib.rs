@@ -25,6 +25,16 @@ pub fn PamTool(#[props(default = true)] active: bool) -> Element {
     let theme = pam_theme(appearance);
     let mut context = use_hook(move || AppContext::new(theme));
     use_context_provider(|| context);
+    use_effect(use_reactive(&active, move |active| {
+        if !active {
+            context.playing.set(false);
+            document::eval(
+                "window.pamStage?.destroy?.(); \
+                 window.pamNativeStageHost?.destroy?.(); \
+                 window.pamStagePointerCapture?.destroy?.();",
+            );
+        }
+    }));
     use_effect(use_reactive(&appearance, move |appearance| {
         let theme = pam_theme(appearance);
         if context.preferences.peek().theme != theme {
@@ -57,26 +67,38 @@ pub fn PamTool(#[props(default = true)] active: bool) -> Element {
         }));
     }
     #[cfg(target_arch = "wasm32")]
-    use_effect(|| {
-        spawn(async {
-            match crate::platform::processing::warm_up().await {
-                Ok(()) => {
-                    crate::platform::log_buffer::push("INFO", "WORKER", "Initialized (web)");
-                }
-                Err(error) => {
-                    crate::platform::log_buffer::push(
-                        "ERROR",
-                        "WORKER",
-                        &format!("Warm-up failed: {error}"),
-                    );
-                }
+    {
+        let mut warm_up_started = use_signal(|| false);
+        use_effect(use_reactive(&active, move |active| {
+            if active && !warm_up_started() {
+                warm_up_started.set(true);
+                spawn(async {
+                    match crate::platform::processing::warm_up().await {
+                        Ok(()) => {
+                            crate::platform::log_buffer::push(
+                                "INFO",
+                                "WORKER",
+                                "Initialized (web)",
+                            );
+                        }
+                        Err(error) => {
+                            crate::platform::log_buffer::push(
+                                "ERROR",
+                                "WORKER",
+                                &format!("Warm-up failed: {error}"),
+                            );
+                        }
+                    }
+                });
             }
-        });
-    });
+        }));
+    }
     actions::use_playback_clock();
     rsx! {
-        ToolSurface { namespace: "pam",
-            PamPage {}
+        if active {
+            ToolSurface { namespace: "pam",
+                PamPage {}
+            }
         }
     }
 }

@@ -26,7 +26,6 @@ toolkit-ui.workspace = true
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 dioxus = { version = "0.7.9", features = ["desktop"] }
 futures-timer = "3"
-env_logger = "0.11"
 memmap2 = "0.9"
 rayon = "1"
 rfd = "0.17"

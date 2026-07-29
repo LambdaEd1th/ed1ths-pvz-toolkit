@@ -20,7 +20,7 @@ pub(crate) fn AboutPage() -> Element {
                     h1 { "关于 Ed1th's PvZ Toolkit" }
                     p {
                         "面向 PopCap / PvZ 资源格式的开源工具工作区。"
-                        "PAM 动画查看、RTON 数据编辑与可复用格式库在这里共享一致的体验。"
+                        "RSB 归档浏览、RTON 数据编辑、PAM 动画查看、WEM 音频转换与可复用格式库在这里共享一致的体验。"
                     }
                 }
 
@@ -36,9 +36,13 @@ pub(crate) fn AboutPage() -> Element {
                         div { class: "tk-about-divider" }
                         p {
                             "Toolkit 将多个专业工具组合到一个应用外壳中，同时让 "
-                            code { "pam-codec" }
+                            code { "rsb-archive" }
                             " 与 "
                             code { "serde_rton" }
+                            "、"
+                            code { "pam-codec" }
+                            "、"
+                            code { "wem-audio" }
                             " 保持独立、可测试并可被其他 Rust 项目直接使用。"
                         }
                         p {
@@ -120,18 +124,18 @@ pub(crate) fn AboutPage() -> Element {
                                 span { class: "tk-about-card-label", "Workspaces & libraries" }
                                 h2 { "专业工具，共享设计语言" }
                             }
-                            span { class: "tk-about-count", "2 formats" }
+                            span { class: "tk-about-count", "4 formats" }
                         }
                         div { class: "tk-about-format-grid",
-                            section { class: "tk-about-format tk-about-format--pam",
+                            section { class: "tk-about-format tk-about-format--rsb",
                                 div { class: "tk-about-format-heading",
-                                    span { aria_hidden: "true", "PAM" }
+                                    span { aria_hidden: "true", "RSB" }
                                     div {
-                                        h3 { "PAM Viewer" }
-                                        code { "pam-codec" }
+                                        h3 { "RSB Archive" }
+                                        code { "rsb-archive" }
                                     }
                                 }
-                                p { "动画预览、资源检查、时间轴控制，以及开放格式与 FLA/XFL 导出。" }
+                                p { "归档与 RSG 数据包浏览、zlib 验证、资源提取，以及 PTX 纹理编解码与预览。" }
                             }
                             section { class: "tk-about-format tk-about-format--rton",
                                 div { class: "tk-about-format-heading",
@@ -142,6 +146,26 @@ pub(crate) fn AboutPage() -> Element {
                                     }
                                 }
                                 p { "树、文本与十六进制编辑，标准/紧凑 RTON 转换及可选加密支持。" }
+                            }
+                            section { class: "tk-about-format tk-about-format--pam",
+                                div { class: "tk-about-format-heading",
+                                    span { aria_hidden: "true", "PAM" }
+                                    div {
+                                        h3 { "PAM Viewer" }
+                                        code { "pam-codec" }
+                                    }
+                                }
+                                p { "动画预览、资源检查、时间轴控制，以及开放格式与 FLA/XFL 导出。" }
+                            }
+                            section { class: "tk-about-format tk-about-format--wem",
+                                div { class: "tk-about-format-heading",
+                                    span { aria_hidden: "true", "WEM" }
+                                    div {
+                                        h3 { "WEM Audio" }
+                                        code { "wem-audio" }
+                                    }
+                                }
+                                p { "WEM 与常见音频的本地播放、编码、解码及无损音频流重封装。" }
                             }
                         }
                     }

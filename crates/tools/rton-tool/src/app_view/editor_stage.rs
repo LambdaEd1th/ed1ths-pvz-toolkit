@@ -600,7 +600,6 @@ fn VirtualTextEditor(
                             let drag_selection_for_update = drag_selection;
                             let caret_for_update = caret;
                             let selection_for_update = selection;
-                            let mounted_for_context_menu = mounted;
                             let context_menu_for_open = context_menu;
                             let context_menu_closing_for_open = context_menu_closing;
                             let context_menu_generation_for_open = context_menu_generation;
@@ -630,7 +629,7 @@ fn VirtualTextEditor(
                                             );
                                         }),
                                         on_context_menu: EventHandler::new(move |menu| {
-                                            let mounted = mounted_for_context_menu.peek().clone();
+                                            let mounted = mounted.peek().clone();
                                             spawn(async move {
                                                 show_context_menu(
                                                     context_menu_for_open,
