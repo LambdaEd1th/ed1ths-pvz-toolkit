@@ -194,38 +194,91 @@ async fn export_frames(
     }
     let width = request.size[0].max(1);
     let height = request.size[1].max(1);
-    let rendered = pam_viewer_renderer::render_offscreen_frames_with_cancel(
-        document,
-        request.sprite,
-        &frames,
-        &request.image_filter,
-        &request.sprite_filter,
-        width,
-        height,
-        Some(cancelled),
-    )
-    .await
-    .map_err(|error| error.to_string())?;
-
     match request.kind {
-        ExportKind::Png => pam_viewer_formats::encode_png(&rendered[0], width, height)
-            .map_err(|error| error.to_string()),
-        ExportKind::Apng => pam_viewer_formats::encode_apng_with_cancel(
-            &rendered,
-            width,
-            height,
-            request.fps,
-            Some(cancelled),
-        )
-        .map_err(|error| error.to_string()),
-        ExportKind::Webp => pam_viewer_formats::encode_animated_webp_with_cancel(
-            &rendered,
-            width,
-            height,
-            request.fps,
-            Some(cancelled),
-        )
-        .map_err(|error| error.to_string()),
+        ExportKind::Png => {
+            let rendered = pam_viewer_renderer::render_offscreen_frames_with_cancel(
+                document,
+                request.sprite,
+                &frames,
+                &request.image_filter,
+                &request.sprite_filter,
+                width,
+                height,
+                Some(cancelled),
+            )
+            .await
+            .map_err(|error| error.to_string())?;
+            pam_viewer_formats::encode_png(&rendered[0], width, height)
+                .map_err(|error| error.to_string())
+        }
+        ExportKind::Apng => {
+            let mut encoder =
+                pam_viewer_formats::ApngEncoder::new(width, height, request.fps, frames.len())
+                    .map_err(|error| error.to_string())?;
+            {
+                let mut consume = |frame: Vec<u8>| {
+                    encoder
+                        .write_frame(&frame, Some(cancelled))
+                        .map_err(|error| error.to_string())
+                };
+                pam_viewer_renderer::render_offscreen_frames_into_with_cancel(
+                    document,
+                    request.sprite,
+                    &frames,
+                    &request.image_filter,
+                    &request.sprite_filter,
+                    width,
+                    height,
+                    Some(cancelled),
+                    &mut consume,
+                )
+                .await
+                .map_err(|error| error.to_string())?;
+            }
+            encoder.finish().map_err(|error| error.to_string())
+        }
+        ExportKind::Webp => {
+            const FRAME_BATCH_SIZE: usize = 8;
+            let mut encoder = pam_viewer_formats::AnimatedWebpEncoder::new(
+                width,
+                height,
+                request.fps,
+                frames.len(),
+            )
+            .map_err(|error| error.to_string())?;
+            let mut batch = Vec::with_capacity(FRAME_BATCH_SIZE);
+            {
+                let mut consume = |frame: Vec<u8>| {
+                    batch.push(frame);
+                    if batch.len() == FRAME_BATCH_SIZE {
+                        encoder
+                            .write_frames(&batch, Some(cancelled))
+                            .map_err(|error| error.to_string())?;
+                        batch.clear();
+                    }
+                    Ok(())
+                };
+                pam_viewer_renderer::render_offscreen_frames_into_with_cancel(
+                    document,
+                    request.sprite,
+                    &frames,
+                    &request.image_filter,
+                    &request.sprite_filter,
+                    width,
+                    height,
+                    Some(cancelled),
+                    &mut consume,
+                )
+                .await
+                .map_err(|error| error.to_string())?;
+            }
+            if !batch.is_empty() {
+                encoder
+                    .write_frames(&batch, Some(cancelled))
+                    .map_err(|error| error.to_string())?;
+            }
+            encoder.finish().map_err(|error| error.to_string())
+        }
         _ => unreachable!(),
     }
 }

@@ -52,13 +52,18 @@ pub fn ExportOverlay() -> Element {
         return rsx! {};
     };
     let progress_style = format!("width:{:.1}%", progress.progress * 100.0);
+    let progress_class = if progress.progress < 1.0 {
+        "pam-progress-fill pam-progress-fill--indeterminate"
+    } else {
+        "pam-progress-fill"
+    };
     rsx! {
         div { class: "pam-modal-backdrop",
-            div { class: "pam-export-dialog", role: "dialog", aria_modal: "true",
+            div { class: "pam-export-dialog", role: "dialog", aria_modal: "true", aria_busy: "true",
                 div { class: "pam-export-title", "{progress.title}" }
                 div { class: "pam-export-detail", "{progress.detail}" }
                 div { class: "pam-progress-track",
-                    div { class: "pam-progress-fill", style: "{progress_style}" }
+                    div { class: "{progress_class}", style: "{progress_style}" }
                 }
                 button {
                     r#type: "button",
