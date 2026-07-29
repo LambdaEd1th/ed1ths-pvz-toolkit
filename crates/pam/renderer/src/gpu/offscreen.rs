@@ -45,6 +45,38 @@ pub async fn render_offscreen_frames_with_cancel(
     height: u32,
     cancelled: Option<&AtomicBool>,
 ) -> Result<Vec<Vec<u8>>> {
+    let mut output = Vec::with_capacity(frames.len());
+    let mut consume = |frame| {
+        output.push(frame);
+        Ok(())
+    };
+    render_offscreen_frames_into_with_cancel(
+        document,
+        sprite,
+        frames,
+        image_filter,
+        sprite_filter,
+        width,
+        height,
+        cancelled,
+        &mut consume,
+    )
+    .await?;
+    Ok(output)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub async fn render_offscreen_frames_into_with_cancel(
+    document: Arc<PamDocument>,
+    sprite: SpriteKey,
+    frames: &[usize],
+    image_filter: &[bool],
+    sprite_filter: &[bool],
+    width: u32,
+    height: u32,
+    cancelled: Option<&AtomicBool>,
+    consume: &mut impl FnMut(Vec<u8>) -> std::result::Result<(), String>,
+) -> Result<()> {
     let instance = wgpu::Instance::default();
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions {
@@ -80,7 +112,7 @@ pub async fn render_offscreen_frames_with_cancel(
     };
     renderer.ensure_document_textures(&scene);
     let camera = export_camera(&document, width, height);
-    let build_quads = |frame: &usize| {
+    let build_quads = |frame: &usize| -> Result<_> {
         ensure_not_cancelled(cancelled)?;
         let commands = document.compiled.flatten_frame(
             &document.pam,
@@ -92,43 +124,30 @@ pub async fn render_offscreen_frames_with_cancel(
         )?;
         Ok(draw_commands_to_quads(&commands, &document.images, camera))
     };
-    #[cfg(not(target_arch = "wasm32"))]
-    let frame_quads = if frames.len() >= 8 {
-        use rayon::prelude::*;
-        frames
-            .par_iter()
-            .map(build_quads)
-            .collect::<Result<Vec<_>>>()?
-    } else {
-        frames.iter().map(build_quads).collect::<Result<Vec<_>>>()?
-    };
-    #[cfg(target_arch = "wasm32")]
-    let frame_quads = frames.iter().map(build_quads).collect::<Result<Vec<_>>>()?;
 
     let unpadded = width * 4;
     let padded = unpadded.div_ceil(COPY_BYTES_PER_ROW_ALIGNMENT) * COPY_BYTES_PER_ROW_ALIGNMENT;
-    let pipeline_depth = frame_quads.len().clamp(1, 3);
+    let pipeline_depth = frames.len().clamp(1, 3);
     let targets = (0..pipeline_depth)
         .map(|index| ReadbackTarget::new(&device, width, height, padded, index))
         .collect::<Vec<_>>();
-    let mut output = Vec::with_capacity(frames.len());
     let mut pending = VecDeque::<PendingReadback>::with_capacity(pipeline_depth);
-    for (index, quads) in frame_quads.iter().enumerate() {
+    for (index, frame) in frames.iter().enumerate() {
         ensure_not_cancelled(cancelled)?;
         if pending.len() == pipeline_depth {
             let readback = pending.pop_front().expect("full readback pipeline");
-            output.push(
-                finish_readback(
-                    &device,
-                    &targets[readback.slot],
-                    readback,
-                    unpadded,
-                    padded,
-                    height,
-                )
-                .await?,
-            );
+            let rgba = finish_readback(
+                &device,
+                &targets[readback.slot],
+                readback,
+                unpadded,
+                padded,
+                height,
+            )
+            .await?;
+            consume(rgba).map_err(RendererError::FrameConsumer)?;
         }
+        let quads = build_quads(frame)?;
         let slot = index % pipeline_depth;
         let target = &targets[slot];
         renderer.render_quads(
@@ -142,27 +161,26 @@ pub async fn render_offscreen_frames_with_cancel(
                 clear: wgpu::Color::TRANSPARENT,
                 corner_radii: [0.0; 4],
             },
-            quads,
+            &quads,
         )?;
         pending.push_back(begin_readback(
             &device, &queue, target, width, height, padded, slot,
         ));
     }
     while let Some(readback) = pending.pop_front() {
-        output.push(
-            finish_readback(
-                &device,
-                &targets[readback.slot],
-                readback,
-                unpadded,
-                padded,
-                height,
-            )
-            .await?,
-        );
+        let rgba = finish_readback(
+            &device,
+            &targets[readback.slot],
+            readback,
+            unpadded,
+            padded,
+            height,
+        )
+        .await?;
+        consume(rgba).map_err(RendererError::FrameConsumer)?;
     }
     ensure_not_cancelled(cancelled)?;
-    Ok(output)
+    Ok(())
 }
 
 struct ReadbackTarget {

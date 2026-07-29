@@ -4,8 +4,8 @@ mod loader;
 mod text;
 
 pub use animation::{
-    encode_animated_webp, encode_animated_webp_with_cancel, encode_apng, encode_apng_with_cancel,
-    encode_png,
+    AnimatedWebpEncoder, ApngEncoder, encode_animated_webp, encode_animated_webp_with_cancel,
+    encode_apng, encode_apng_with_cancel, encode_png,
 };
 pub use fla::{export_fla, export_fla_with_cancel, generate_xfl};
 pub use loader::{InputFile, LoadedPam, load_pam_document};
@@ -38,6 +38,8 @@ pub enum FormatError {
     InvalidFrameSize { expected: usize, actual: usize },
     #[error("animation requires at least one frame")]
     NoFrames,
+    #[error("animation expected {expected} frames but received {actual}")]
+    FrameCountMismatch { expected: usize, actual: usize },
     #[error("export was cancelled")]
     Cancelled,
     #[error("FLA error: {0}")]

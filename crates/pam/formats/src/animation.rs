@@ -1,4 +1,6 @@
+use std::cell::RefCell;
 use std::io::Write;
+use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use image::{ExtendedColorType, codecs::webp::WebPEncoder};
@@ -33,26 +35,81 @@ pub fn encode_apng_with_cancel(
     if frames.is_empty() {
         return Err(FormatError::NoFrames);
     }
-    for frame in frames {
-        validate_frame(frame, width, height)?;
-    }
-    let mut output = Vec::new();
-    {
-        let mut encoder = png::Encoder::new(&mut output, width, height);
+    let mut encoder = ApngEncoder::new(width, height, fps, frames.len())?;
+    encoder.write_frames(frames, cancelled)?;
+    encoder.finish()
+}
+
+pub struct ApngEncoder {
+    writer: Option<png::Writer<SharedOutput>>,
+    output: Rc<RefCell<Vec<u8>>>,
+    width: u32,
+    height: u32,
+    expected_frames: usize,
+    written_frames: usize,
+}
+
+impl ApngEncoder {
+    pub fn new(width: u32, height: u32, fps: u32, frame_count: usize) -> Result<Self> {
+        if frame_count == 0 {
+            return Err(FormatError::NoFrames);
+        }
+        let output = Rc::new(RefCell::new(Vec::new()));
+        let mut encoder = png::Encoder::new(SharedOutput(output.clone()), width, height);
         encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
-        encoder.set_compression(png::Compression::Balanced);
-        encoder.set_animated(frames.len() as u32, 0)?;
+        // Animation exports favor responsiveness and bounded memory over a small size gain.
+        encoder.set_compression(png::Compression::Fastest);
+        encoder.set_animated(frame_count as u32, 0)?;
         encoder.set_frame_delay(1, fps.clamp(1, u16::MAX as u32) as u16)?;
         encoder.set_blend_op(png::BlendOp::Source)?;
         encoder.set_dispose_op(png::DisposeOp::None)?;
-        let mut writer = encoder.write_header()?;
-        for frame in frames {
-            ensure_not_cancelled(cancelled)?;
-            writer.write_image_data(frame)?;
-        }
+        let writer = encoder.write_header()?;
+        Ok(Self {
+            writer: Some(writer),
+            output,
+            width,
+            height,
+            expected_frames: frame_count,
+            written_frames: 0,
+        })
     }
-    Ok(output)
+
+    pub fn write_frame(&mut self, frame: &[u8], cancelled: Option<&AtomicBool>) -> Result<()> {
+        ensure_not_cancelled(cancelled)?;
+        validate_frame(frame, self.width, self.height)?;
+        self.writer
+            .as_mut()
+            .expect("APNG encoder is active")
+            .write_image_data(frame)?;
+        self.written_frames += 1;
+        Ok(())
+    }
+
+    pub fn write_frames(
+        &mut self,
+        frames: &[Vec<u8>],
+        cancelled: Option<&AtomicBool>,
+    ) -> Result<()> {
+        for frame in frames {
+            self.write_frame(frame, cancelled)?;
+        }
+        Ok(())
+    }
+
+    pub fn finish(mut self) -> Result<Vec<u8>> {
+        if self.written_frames != self.expected_frames {
+            return Err(FormatError::FrameCountMismatch {
+                expected: self.expected_frames,
+                actual: self.written_frames,
+            });
+        }
+        self.writer
+            .take()
+            .expect("APNG encoder is active")
+            .finish()?;
+        Ok(std::mem::take(&mut *self.output.borrow_mut()))
+    }
 }
 
 /// Encodes full-canvas lossless VP8L frames and assembles the standard animated
@@ -76,65 +133,132 @@ pub fn encode_animated_webp_with_cancel(
     if frames.is_empty() {
         return Err(FormatError::NoFrames);
     }
-    let duration_ms = (1000.0 / fps.max(1) as f64)
-        .round()
-        .clamp(1.0, 16_777_215.0) as u32;
-    let encode_frame = |frame: &Vec<u8>| {
-        ensure_not_cancelled(cancelled)?;
-        validate_frame(frame, width, height)?;
-        let mut still = Vec::new();
-        WebPEncoder::new_lossless(&mut still).encode(
-            frame,
+    let mut encoder = AnimatedWebpEncoder::new(width, height, fps, frames.len())?;
+    encoder.write_frames(frames, cancelled)?;
+    encoder.finish()
+}
+
+pub struct AnimatedWebpEncoder {
+    body: Vec<u8>,
+    width: u32,
+    height: u32,
+    duration_ms: u32,
+    expected_frames: usize,
+    written_frames: usize,
+}
+
+impl AnimatedWebpEncoder {
+    pub fn new(width: u32, height: u32, fps: u32, frame_count: usize) -> Result<Self> {
+        if frame_count == 0 {
+            return Err(FormatError::NoFrames);
+        }
+        let duration_ms = (1000.0 / fps.max(1) as f64)
+            .round()
+            .clamp(1.0, 16_777_215.0) as u32;
+        let mut body = Vec::new();
+        let mut vp8x = vec![(1 << 1) | (1 << 4), 0, 0, 0];
+        push_u24(&mut vp8x, width.saturating_sub(1));
+        push_u24(&mut vp8x, height.saturating_sub(1));
+        write_riff_chunk(&mut body, b"VP8X", &vp8x)?;
+        write_riff_chunk(&mut body, b"ANIM", &[0, 0, 0, 0, 0, 0])?;
+        Ok(Self {
+            body,
             width,
             height,
-            ExtendedColorType::Rgba8,
-        )?;
-        extract_image_chunks(&still)
-    };
-    #[cfg(not(target_arch = "wasm32"))]
-    let chunks = if frames.len() >= 4 {
-        use rayon::prelude::*;
-        frames
-            .par_iter()
-            .map(encode_frame)
-            .collect::<Result<Vec<_>>>()?
-    } else {
-        frames
+            duration_ms,
+            expected_frames: frame_count,
+            written_frames: 0,
+        })
+    }
+
+    pub fn write_frames(
+        &mut self,
+        frames: &[Vec<u8>],
+        cancelled: Option<&AtomicBool>,
+    ) -> Result<()> {
+        let encode_frame = |frame: &Vec<u8>| {
+            ensure_not_cancelled(cancelled)?;
+            validate_frame(frame, self.width, self.height)?;
+            let mut still = Vec::new();
+            WebPEncoder::new_lossless(&mut still).encode(
+                frame,
+                self.width,
+                self.height,
+                ExtendedColorType::Rgba8,
+            )?;
+            extract_image_chunks(&still)
+        };
+        #[cfg(not(target_arch = "wasm32"))]
+        let chunks = if frames.len() >= 4 {
+            use rayon::prelude::*;
+            frames
+                .par_iter()
+                .map(encode_frame)
+                .collect::<Result<Vec<_>>>()?
+        } else {
+            frames
+                .iter()
+                .map(encode_frame)
+                .collect::<Result<Vec<_>>>()?
+        };
+        #[cfg(target_arch = "wasm32")]
+        let chunks = frames
             .iter()
             .map(encode_frame)
-            .collect::<Result<Vec<_>>>()?
-    };
-    #[cfg(target_arch = "wasm32")]
-    let chunks = frames
-        .iter()
-        .map(encode_frame)
-        .collect::<Result<Vec<_>>>()?;
+            .collect::<Result<Vec<_>>>()?;
 
-    let mut body = Vec::new();
-    let mut vp8x = vec![(1 << 1) | (1 << 4), 0, 0, 0];
-    push_u24(&mut vp8x, width.saturating_sub(1));
-    push_u24(&mut vp8x, height.saturating_sub(1));
-    write_riff_chunk(&mut body, b"VP8X", &vp8x)?;
-    write_riff_chunk(&mut body, b"ANIM", &[0, 0, 0, 0, 0, 0])?;
-    for image_chunks in chunks {
-        ensure_not_cancelled(cancelled)?;
+        for image_chunks in chunks {
+            ensure_not_cancelled(cancelled)?;
+            self.write_image_chunks(&image_chunks)?;
+        }
+        Ok(())
+    }
+
+    fn write_image_chunks(&mut self, image_chunks: &[u8]) -> Result<()> {
         let mut frame = Vec::new();
         push_u24(&mut frame, 0);
         push_u24(&mut frame, 0);
-        push_u24(&mut frame, width.saturating_sub(1));
-        push_u24(&mut frame, height.saturating_sub(1));
-        push_u24(&mut frame, duration_ms);
+        push_u24(&mut frame, self.width.saturating_sub(1));
+        push_u24(&mut frame, self.height.saturating_sub(1));
+        push_u24(&mut frame, self.duration_ms);
         frame.push(0b10); // Full-frame replacement; do not alpha-blend with the prior frame.
-        frame.extend_from_slice(&image_chunks);
-        write_riff_chunk(&mut body, b"ANMF", &frame)?;
+        frame.extend_from_slice(image_chunks);
+        write_riff_chunk(&mut self.body, b"ANMF", &frame)?;
+        self.written_frames += 1;
+        Ok(())
     }
 
-    let mut output = Vec::with_capacity(body.len() + 12);
-    output.extend_from_slice(b"RIFF");
-    output.extend_from_slice(&((body.len() + 4) as u32).to_le_bytes());
-    output.extend_from_slice(b"WEBP");
-    output.extend_from_slice(&body);
-    Ok(output)
+    pub fn finish(self) -> Result<Vec<u8>> {
+        if self.written_frames != self.expected_frames {
+            return Err(FormatError::FrameCountMismatch {
+                expected: self.expected_frames,
+                actual: self.written_frames,
+            });
+        }
+        let mut output = Vec::with_capacity(self.body.len() + 12);
+        output.extend_from_slice(b"RIFF");
+        output.extend_from_slice(&((self.body.len() + 4) as u32).to_le_bytes());
+        output.extend_from_slice(b"WEBP");
+        output.extend_from_slice(&self.body);
+        Ok(output)
+    }
+}
+
+#[derive(Clone)]
+struct SharedOutput(Rc<RefCell<Vec<u8>>>);
+
+impl Write for SharedOutput {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        self.0
+            .try_borrow_mut()
+            .map_err(|_| std::io::Error::other("animation output is already borrowed"))?
+            .extend_from_slice(bytes);
+        Ok(bytes.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
 }
 
 fn ensure_not_cancelled(cancelled: Option<&AtomicBool>) -> Result<()> {
@@ -241,6 +365,36 @@ mod tests {
             encoded.windows(4).filter(|chunk| *chunk == b"ANMF").count(),
             2
         );
+    }
+
+    #[test]
+    fn incremental_animation_encoders_accept_frame_batches() {
+        let frames = [
+            vec![255; 2 * 2 * 4],
+            vec![127; 2 * 2 * 4],
+            vec![0; 2 * 2 * 4],
+        ];
+
+        let mut apng = ApngEncoder::new(2, 2, 30, frames.len()).unwrap();
+        apng.write_frame(&frames[0], None).unwrap();
+        apng.write_frames(&frames[1..], None).unwrap();
+        let apng = apng.finish().unwrap();
+        let decoder = png::Decoder::new(Cursor::new(apng));
+        let reader = decoder.read_info().unwrap();
+        assert_eq!(
+            reader
+                .info()
+                .animation_control
+                .as_ref()
+                .map(|value| value.num_frames),
+            Some(3)
+        );
+
+        let mut webp = AnimatedWebpEncoder::new(2, 2, 30, frames.len()).unwrap();
+        webp.write_frames(&frames[..2], None).unwrap();
+        webp.write_frames(&frames[2..], None).unwrap();
+        let webp = webp.finish().unwrap();
+        assert_eq!(webp.windows(4).filter(|chunk| *chunk == b"ANMF").count(), 3);
     }
 
     #[test]

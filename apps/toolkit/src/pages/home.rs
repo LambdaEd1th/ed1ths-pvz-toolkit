@@ -1,8 +1,14 @@
+use std::sync::OnceLock;
+
+use base64::Engine;
 use dioxus::prelude::*;
 
 use crate::navigation::AppRoute;
 use crate::shell::BrandLabel;
 use crate::tool_registry::{TOOLS, ToolDescriptor};
+
+const HOME_SUNFLOWER_BYTES: &[u8] = include_bytes!("../../assets/home/sunflower-pam.webp");
+static HOME_SUNFLOWER_DATA_URL: OnceLock<String> = OnceLock::new();
 
 #[component]
 pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
@@ -70,11 +76,7 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                                     i {}
                                 }
                                 div { class: "tk-preview-canvas",
-                                    div { class: "tk-preview-sun" }
-                                    div { class: "tk-preview-leaf tk-preview-leaf--one" }
-                                    div { class: "tk-preview-leaf tk-preview-leaf--two" }
-                                    div { class: "tk-preview-leaf tk-preview-leaf--three" }
-                                    div { class: "tk-preview-ground" }
+                                    AnimatedSunflower {}
                                 }
                                 div { class: "tk-preview-inspector",
                                     span {}
@@ -195,6 +197,29 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
             }
         }
     }
+}
+
+#[component]
+fn AnimatedSunflower() -> Element {
+    rsx! {
+        div { class: "tk-preview-plant",
+            img {
+                class: "tk-preview-plant-animation",
+                src: home_sunflower_data_url(),
+                alt: "",
+                loading: "eager",
+                decoding: "async",
+                draggable: "false",
+            }
+        }
+    }
+}
+
+fn home_sunflower_data_url() -> &'static str {
+    HOME_SUNFLOWER_DATA_URL.get_or_init(|| {
+        let encoded = base64::engine::general_purpose::STANDARD.encode(HOME_SUNFLOWER_BYTES);
+        format!("data:image/webp;base64,{encoded}")
+    })
 }
 
 #[component]

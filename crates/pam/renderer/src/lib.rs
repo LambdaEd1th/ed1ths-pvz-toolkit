@@ -8,7 +8,8 @@ mod native;
 mod web;
 
 pub use gpu::{
-    GpuRenderer, RenderTarget, render_offscreen_frames, render_offscreen_frames_with_cancel,
+    GpuRenderer, RenderTarget, render_offscreen_frames, render_offscreen_frames_into_with_cancel,
+    render_offscreen_frames_with_cancel,
 };
 #[cfg(not(target_arch = "wasm32"))]
 pub use native::{NativeStageRenderer, NativeViewport};
@@ -32,6 +33,8 @@ pub enum RendererError {
     BufferAccess(String),
     #[error("animation export was cancelled")]
     Cancelled,
+    #[error("animation frame consumer failed: {0}")]
+    FrameConsumer(String),
     #[error("animation render failed: {0}")]
     Core(#[from] pam_viewer_core::CoreError),
     #[error("web canvas is unavailable: {0}")]

@@ -230,15 +230,36 @@ fn read_folder_paths(
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn save_bytes(default_name: &str, bytes: &[u8]) -> Result<bool, String> {
+pub struct SaveTarget {
+    path: std::path::PathBuf,
+}
+
+#[cfg(target_arch = "wasm32")]
+pub struct SaveTarget {
+    default_name: String,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn pick_save_target(default_name: &str) -> Result<Option<SaveTarget>, String> {
     let Some(path) = rfd::FileDialog::new()
         .set_file_name(default_name)
         .save_file()
     else {
-        return Ok(false);
+        return Ok(None);
     };
-    std::fs::write(path, bytes).map_err(|error| error.to_string())?;
-    Ok(true)
+    Ok(Some(SaveTarget { path }))
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn pick_save_target(default_name: &str) -> Result<Option<SaveTarget>, String> {
+    Ok(Some(SaveTarget {
+        default_name: default_name.to_string(),
+    }))
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn save_to_target(target: &SaveTarget, bytes: &[u8]) -> Result<(), String> {
+    std::fs::write(&target.path, bytes).map_err(|error| error.to_string())
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -285,7 +306,7 @@ fn image_mime(bytes: &[u8]) -> &'static str {
 }
 
 #[cfg(target_arch = "wasm32")]
-pub fn save_bytes(default_name: &str, bytes: &[u8]) -> Result<bool, String> {
+pub fn save_to_target(target: &SaveTarget, bytes: &[u8]) -> Result<(), String> {
     use wasm_bindgen::JsCast;
 
     let window = web_sys::window().ok_or_else(|| "window is unavailable".to_string())?;
@@ -305,10 +326,10 @@ pub fn save_bytes(default_name: &str, bytes: &[u8]) -> Result<bool, String> {
         .dyn_into::<web_sys::HtmlAnchorElement>()
         .map_err(|_| "failed to create download anchor".to_string())?;
     anchor.set_href(&url);
-    anchor.set_download(default_name);
+    anchor.set_download(&target.default_name);
     anchor.click();
     web_sys::Url::revoke_object_url(&url).map_err(|error| format!("{error:?}"))?;
-    Ok(true)
+    Ok(())
 }
 
 pub fn load_preferences() -> Preferences {

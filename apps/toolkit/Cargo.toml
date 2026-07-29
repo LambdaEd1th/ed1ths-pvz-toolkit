@@ -12,6 +12,7 @@ name = "pvz-toolkit"
 path = "src/main.rs"
 
 [dependencies]
+base64.workspace = true
 newton-tool.workspace = true
 pam-tool = { path = "../../crates/tools/pam-tool" }
 rsb-tool = { path = "../../crates/tools/rsb-tool" }
