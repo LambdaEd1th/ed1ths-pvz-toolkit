@@ -53,8 +53,9 @@ pub fn PamPage() -> Element {
                     actions: rsx! { PageActions {} },
                 }
 
+                TabStrip {}
+
                 WorkspaceCard { class: "pam-preview-card", aria_label: tr(locale, "animations"),
-                    TabStrip {}
                     div { class: "pam-stage-frame", Stage {} }
                     div { class: "pam-preview-controls",
                         PlaybackDock {}

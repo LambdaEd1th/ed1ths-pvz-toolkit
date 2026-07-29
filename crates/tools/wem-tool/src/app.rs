@@ -1,8 +1,8 @@
-use crate::{platform, processing};
+use crate::{WemOpenRequest, platform, processing};
 use dioxus::prelude::*;
 use dioxus_html::{FileData, HasFileData};
 use std::sync::Arc;
-use toolkit_ui::{InlineNotice, ToolPage, WorkspaceCard, push_application_log};
+use toolkit_ui::{DropIndicator, InlineNotice, ToolPage, WorkspaceCard, push_application_log};
 use wem_audio_worker::{
     AudioInfo, ConvertRequest, ConvertedAudio, ExportTarget, PrepareRequest, PreparedAudio,
     SourceFormat,
@@ -87,7 +87,7 @@ struct TargetOption {
 }
 
 #[component]
-pub fn WemAudioPage() -> Element {
+pub fn WemAudioPage(open_request: Option<WemOpenRequest>) -> Element {
     let tabs = use_signal(Vec::<AudioTab>::new);
     let mut active_tab_id = use_signal(|| None::<u64>);
     let next_tab_id = use_signal(|| 1_u64);
@@ -96,6 +96,26 @@ pub fn WemAudioPage() -> Element {
     let mut status = use_signal(AppStatus::default);
     let mut generation = use_signal(|| 0_u64);
     let mut target_menu_open = use_signal(|| false);
+    let mut handled_open_request_id = use_signal(|| None::<u64>);
+
+    use_effect(use_reactive(&open_request, move |request| {
+        let Some(request) = request else {
+            return;
+        };
+        if handled_open_request_id() == Some(request.id) {
+            return;
+        }
+        handled_open_request_id.set(Some(request.id));
+        load_external_audio(
+            request,
+            tabs,
+            active_tab_id,
+            next_tab_id,
+            busy,
+            status,
+            generation,
+        );
+    }));
 
     let tabs_snapshot = tabs();
     let active_tab_id_snapshot = active_tab_id();
@@ -127,17 +147,6 @@ pub fn WemAudioPage() -> Element {
             );
         }
     }));
-    let active_tab_scroll_key = active_tab_id_snapshot.unwrap_or_default();
-    use_effect(use_reactive(
-        &active_tab_scroll_key,
-        move |active_tab_scroll_key| {
-            if active_tab_scroll_key != 0 {
-                document::eval(&format!(
-                    "requestAnimationFrame(() => document.querySelector('[data-tool=\"wem\"] [data-wem-tab-id=\"{active_tab_scroll_key}\"]')?.scrollIntoView({{ block: 'nearest', inline: 'nearest' }}));"
-                ));
-            }
-        },
-    ));
     let target_options = document_snapshot.map(available_targets).unwrap_or_default();
     let selected_target = if target_options
         .iter()
@@ -206,23 +215,23 @@ pub fn WemAudioPage() -> Element {
                     "wem-page".to_string()
                 },
                 if !tabs_snapshot.is_empty() {
-                    div { class: "wem-tab-strip",
+                    div { class: "wem-tab-strip ui-document-tab-strip",
                         div {
-                            class: "wem-tab-list",
+                            class: "wem-tab-list ui-document-tab-list",
                             role: "tablist",
                             aria_label: "打开的音频",
                             for tab in &tabs_snapshot {
                                 div {
                                     key: "{tab.id}",
                                     class: if Some(tab.id) == active_tab_id_snapshot {
-                                        "wem-tab is-active"
+                                        "wem-tab ui-document-tab is-active"
                                     } else {
-                                        "wem-tab"
+                                        "wem-tab ui-document-tab"
                                     },
                                     "data-wem-tab-id": "{tab.id}",
                                     button {
                                         r#type: "button",
-                                        class: "wem-tab-select",
+                                        class: "wem-tab-select ui-document-tab-label",
                                         role: "tab",
                                         aria_selected: Some(tab.id) == active_tab_id_snapshot,
                                         tabindex: if Some(tab.id) == active_tab_id_snapshot { "0" } else { "-1" },
@@ -239,12 +248,12 @@ pub fn WemAudioPage() -> Element {
                                                 }
                                             }
                                         },
-                                        span { class: "wem-tab-dot" }
-                                        span { class: "wem-tab-name", "{tab.audio.name}" }
+                                        span { class: "wem-tab-dot ui-document-tab-dot" }
+                                        span { class: "wem-tab-name ui-document-tab-name", "{tab.audio.name}" }
                                     }
                                     button {
                                         r#type: "button",
-                                        class: "wem-tab-close",
+                                        class: "wem-tab-close ui-document-tab-close",
                                         title: "关闭 {tab.audio.name}",
                                         aria_label: "关闭 {tab.audio.name}",
                                         disabled: busy(),
@@ -266,36 +275,36 @@ pub fn WemAudioPage() -> Element {
                                     }
                                 }
                             }
-                        }
-                        label {
-                            class: if busy() {
-                                "wem-tab-add is-disabled"
-                            } else {
-                                "wem-tab-add"
-                            },
-                            title: "添加音频",
-                            aria_label: "添加音频",
-                            Glyph { name: "open" }
-                            input {
-                                class: "wem-file-input",
-                                r#type: "file",
-                                accept: ".wem,.wav,.ogg,.oga,.m4a,.mp4,.aac,audio/*",
-                                multiple: true,
-                                disabled: busy(),
-                                onchange: move |event| {
-                                    let files = event.files();
-                                    if !files.is_empty() {
-                                        load_files(
-                                            files,
-                                            tabs,
-                                            active_tab_id,
-                                            next_tab_id,
-                                            busy,
-                                            status,
-                                            generation,
-                                        );
-                                    }
+                            label {
+                                class: if busy() {
+                                    "wem-tab-add ui-document-new-tab is-disabled"
+                                } else {
+                                    "wem-tab-add ui-document-new-tab"
                                 },
+                                title: "添加音频",
+                                aria_label: "添加音频",
+                                Glyph { name: "add" }
+                                input {
+                                    class: "wem-file-input",
+                                    r#type: "file",
+                                    accept: ".wem,.wav,.ogg,.oga,.m4a,.mp4,.aac,audio/*",
+                                    multiple: true,
+                                    disabled: busy(),
+                                    onchange: move |event| {
+                                        let files = event.files();
+                                        if !files.is_empty() {
+                                            load_files(
+                                                files,
+                                                tabs,
+                                                active_tab_id,
+                                                next_tab_id,
+                                                busy,
+                                                status,
+                                                generation,
+                                            );
+                                        }
+                                    },
+                                }
                             }
                         }
                     }
@@ -377,28 +386,12 @@ pub fn WemAudioPage() -> Element {
                                 div { class: "wem-transport-controls",
                                     button {
                                         r#type: "button",
-                                        class: "wem-player-button wem-skip-button",
-                                        title: "后退 15 秒",
-                                        aria_label: "后退 15 秒",
-                                        "data-wem-action": "skip-back",
-                                        SkipGlyph { forward: false }
-                                    }
-                                    button {
-                                        r#type: "button",
                                         class: "wem-player-button wem-play-button",
                                         title: "播放",
                                         aria_label: "播放",
                                         "data-wem-action": "play",
                                         span { class: "wem-play-glyph", Glyph { name: "play" } }
                                         span { class: "wem-pause-glyph", Glyph { name: "pause" } }
-                                    }
-                                    button {
-                                        r#type: "button",
-                                        class: "wem-player-button wem-skip-button",
-                                        title: "前进 15 秒",
-                                        aria_label: "前进 15 秒",
-                                        "data-wem-action": "skip-forward",
-                                        SkipGlyph { forward: true }
                                     }
                                 }
                                 div { class: "wem-player-timeline",
@@ -623,6 +616,9 @@ pub fn WemAudioPage() -> Element {
                             },
                         }
                     }
+                    if dragging() {
+                        DropIndicator { title: "松开以打开音频" }
+                    }
                 }
 
                 if !status_snapshot.message.is_empty() {
@@ -634,18 +630,87 @@ pub fn WemAudioPage() -> Element {
                     }
                 }
 
-                if dragging() {
-                    div { class: "wem-drop-overlay", aria_hidden: "true",
-                        div {
-                            Glyph { name: "open" }
-                            strong { "松开以打开音频" }
-                            span { "WEM、WAV、OGG、M4A 或 AAC" }
-                        }
-                    }
-                }
             }
         }
     }
+}
+
+fn load_external_audio(
+    request: WemOpenRequest,
+    mut tabs: Signal<Vec<AudioTab>>,
+    mut active_tab_id: Signal<Option<u64>>,
+    mut next_tab_id: Signal<u64>,
+    mut busy: Signal<bool>,
+    mut status: Signal<AppStatus>,
+    mut generation: Signal<u64>,
+) {
+    let WemOpenRequest { name, bytes, .. } = request;
+    let tab_id = next_tab_id();
+    next_tab_id.set(tab_id.wrapping_add(1).max(1));
+    let request_id = generation().wrapping_add(1).max(1);
+    generation.set(request_id);
+    busy.set(true);
+    status.set(AppStatus::new(
+        format!("正在读取并分析 {name}…"),
+        StatusTone::Neutral,
+    ));
+
+    spawn(async move {
+        let data = bytes.as_ref().to_vec();
+        let result = processing::prepare_audio(PrepareRequest {
+            name: name.clone(),
+            data: data.clone(),
+        })
+        .await
+        .and_then(|prepared| install_audio(name.clone(), data, prepared));
+
+        if generation() != request_id {
+            if let Ok(audio) = result {
+                platform::release_audio_url(&audio.playback_url);
+            }
+            return;
+        }
+
+        busy.set(false);
+        match result {
+            Ok(audio) => {
+                let summary = format!(
+                    "Opened {} ({}, {})",
+                    audio.name,
+                    format_label(audio.info.format),
+                    audio.info.codec
+                );
+                push_application_log("WEM", "INFO", "OPEN", &summary);
+                let has_warning = audio.warning.is_some();
+                tabs.write().push(AudioTab::new(tab_id, audio));
+                active_tab_id.set(Some(tab_id));
+                status.set(AppStatus::new(
+                    if has_warning {
+                        "音频已打开，但部分播放或转换能力可能受限。"
+                    } else {
+                        "音频已就绪，可以播放或转换。"
+                    },
+                    if has_warning {
+                        StatusTone::Warning
+                    } else {
+                        StatusTone::Success
+                    },
+                ));
+            }
+            Err(error) => {
+                push_application_log(
+                    "WEM",
+                    "ERROR",
+                    "OPEN",
+                    format!("Open {name} failed: {error}"),
+                );
+                status.set(AppStatus::new(
+                    format!("{name}：{error}"),
+                    StatusTone::Error,
+                ));
+            }
+        }
+    });
 }
 
 fn load_files(
@@ -1203,37 +1268,12 @@ fn output_glyph(name: &str) -> Element {
 }
 
 #[component]
-fn SkipGlyph(forward: bool) -> Element {
-    let path = if forward {
-        "M21 12a9 9 0 1 1-2.64-6.36L21 8M21 3v5h-5"
-    } else {
-        "M3 12a9 9 0 1 0 2.64-6.36L3 8M3 3v5h5"
-    };
-    rsx! {
-        svg {
-            class: "wem-skip-glyph",
-            view_box: "0 0 24 24",
-            fill: "none",
-            stroke: "currentColor",
-            stroke_width: "1.65",
-            stroke_linecap: "round",
-            stroke_linejoin: "round",
-            path { d: "{path}" }
-            text {
-                x: "12",
-                y: "12.25",
-                "15"
-            }
-        }
-    }
-}
-
-#[component]
 fn Glyph(name: &'static str) -> Element {
     let path = match name {
         "open" => {
             "M3 7a3 3 0 0 1 3-3h4l2 2h6a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V7Zm0 3h18"
         }
+        "add" => "M12 5v14M5 12h14",
         "close" => "M6 6l12 12M18 6 6 18",
         "audio" => "M9 18V5l10-2v13M9 18a3 3 0 1 1-3-3h3m10 1a3 3 0 1 1-3-3h3",
         "convert" => "M7 7h11l-3-3m3 3-3 3M17 17H6l3 3m-3-3 3-3",

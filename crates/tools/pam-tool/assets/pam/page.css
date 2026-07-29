@@ -36,6 +36,7 @@ html.native-wgpu-host .pam-stage {
 
 .pam-app {
   height: 100%;
+  grid-template-rows: auto auto minmax(0, 1fr);
 }
 
 .pam-page-toolbar {
@@ -232,7 +233,7 @@ html.native-wgpu-host .pam-stage {
 
 .pam-preview-card {
   display: grid;
-  grid-template-rows: 44px minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   background:
     radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--color-accent) 8%, transparent), transparent 38%),
     var(--color-surface);
@@ -1204,9 +1205,9 @@ html.native-wgpu-host .pam-stage {
 }
 
 .pam-preview-card {
-  grid-template-rows: 44px minmax(0, 1fr) auto;
-  gap: 8px;
-  padding: 8px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0;
+  padding: 0;
   background:
     radial-gradient(circle at 14% 0%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 34%),
     radial-gradient(circle at 92% 110%, color-mix(in srgb, var(--tk-complement) 7%, transparent), transparent 38%),
@@ -1214,33 +1215,34 @@ html.native-wgpu-host .pam-stage {
 }
 
 .pam-tab-strip {
-  min-height: 44px;
+  min-height: 34px;
+  align-items: flex-end;
+  padding: 0 8px;
   overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: 17px;
-  background: color-mix(in srgb, var(--color-surface-soft) 78%, transparent);
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--color-surface-soft) 58%, transparent);
 }
 
 .pam-tab-viewport {
-  padding: 4px 6px;
+  padding: 0;
 }
 
 .pam-tab {
-  height: 34px;
-  border-radius: 13px;
+  height: 33px;
+  border-radius: 12px 12px 0 0;
 }
 
 .pam-tab:hover {
-  background: var(--tk-control-hover);
+  background: color-mix(in srgb, var(--color-surface) 76%, var(--color-accent-soft));
 }
 
 .pam-tab.active {
   border-color: transparent;
   background: var(--color-accent-soft);
-  color: var(--color-accent-strong);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 22%, transparent),
-    0 5px 14px color-mix(in srgb, var(--color-accent) 10%, transparent);
+  color: var(--color-text-strong);
+  box-shadow: none;
 }
 
 .pam-stage-frame {

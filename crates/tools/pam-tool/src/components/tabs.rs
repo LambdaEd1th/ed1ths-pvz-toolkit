@@ -51,8 +51,10 @@ pub fn TabStrip() -> Element {
                                     class: "pam-tab-label ui-document-tab-label",
                                     role: "tab",
                                     aria_selected: active == Some(id),
+                                    tabindex: if active == Some(id) { "0" } else { "-1" },
                                     title: "{name}",
                                     onclick: move |_| activate_tab(context, id),
+                                    span { class: "pam-tab-dot ui-document-tab-dot" }
                                     span { class: "ui-document-tab-name", "{name}" }
                                 }
                                 button {

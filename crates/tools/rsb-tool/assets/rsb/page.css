@@ -28,6 +28,7 @@
 
 .ui-tool-page.rsb-app {
   height: 100%;
+  grid-template-rows: auto auto minmax(0, 1fr);
   overflow: clip;
 }
 
@@ -193,6 +194,207 @@
   overflow: hidden;
   clip: rect(0 0 0 0);
   clip-path: inset(50%);
+}
+
+.rsb-tab-strip {
+  display: flex;
+  min-width: 0;
+  min-height: 34px;
+  align-items: flex-end;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--rsb-border);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--rsb-surface-muted) 58%, transparent);
+}
+
+.rsb-tab-list {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: flex-end;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.rsb-tab {
+  position: relative;
+  display: flex;
+  width: clamp(150px, 22vw, 260px);
+  max-width: 260px;
+  min-width: 0;
+  height: 33px;
+  flex: 0 1 clamp(150px, 22vw, 260px);
+  align-items: center;
+  border-radius: 12px 12px 0 0;
+  background: color-mix(in srgb, var(--rsb-surface) 48%, transparent);
+  color: var(--rsb-muted);
+  container-type: inline-size;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.rsb-tab:hover {
+  background: color-mix(in srgb, var(--rsb-surface) 76%, var(--rsb-accent-soft));
+  color: var(--rsb-text);
+}
+
+.rsb-tab.is-active {
+  z-index: 1;
+  background: var(--rsb-accent-soft);
+  color: var(--rsb-text);
+}
+
+.rsb-tab::after {
+  position: absolute;
+  right: 10px;
+  bottom: -1px;
+  left: 10px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--rsb-accent);
+  content: "";
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.rsb-tab.is-active::after {
+  opacity: 1;
+}
+
+.rsb-tab-select {
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 0 5px 0 13px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rsb-tab-select:focus-visible {
+  border-radius: 10px 8px 0 0;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--rsb-accent) 54%, transparent);
+}
+
+.rsb-tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rsb-tab-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--rsb-muted) 42%, transparent);
+}
+
+.rsb-tab.is-active .rsb-tab-dot,
+.rsb-tab.is-dirty .rsb-tab-dot {
+  background: var(--rsb-accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--rsb-accent) 42%, transparent);
+}
+
+.rsb-tab-close {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  align-self: center;
+  margin-right: 3px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  outline: 0;
+  background: transparent;
+  color: var(--rsb-faint);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    opacity 140ms ease;
+}
+
+.rsb-tab:hover .rsb-tab-close,
+.rsb-tab.is-active .rsb-tab-close,
+.rsb-tab-close:focus-visible {
+  opacity: 1;
+}
+
+.rsb-tab-close:hover,
+.rsb-tab-close:focus-visible {
+  background: color-mix(in srgb, var(--rsb-surface) 80%, transparent);
+  color: var(--rsb-text);
+}
+
+.rsb-tab-close .rsb-glyph {
+  width: 13px;
+  height: 13px;
+}
+
+.rsb-tab-add {
+  position: relative;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  align-self: center;
+  margin: 0 0 1px 3px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--rsb-surface) 58%, transparent);
+  color: var(--rsb-muted);
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.rsb-tab-add:hover {
+  background: var(--rsb-accent-soft);
+  color: var(--rsb-accent-strong);
+}
+
+.rsb-tab-add .rsb-glyph {
+  width: 16px;
+  height: 16px;
+}
+
+@container (max-width: 88px) {
+  .rsb-tab-select {
+    gap: 4px;
+    padding: 0 8px;
+  }
+
+  .rsb-tab-dot {
+    display: none;
+  }
+
+  .rsb-tab-close {
+    position: absolute;
+    right: 2px;
+    width: 25px;
+    margin: 0;
+    background: color-mix(in srgb, var(--rsb-surface) 88%, transparent);
+  }
+
+  .rsb-tab.is-active .rsb-tab-select {
+    padding-right: 28px;
+  }
 }
 
 .rsb-context-backdrop {
@@ -1036,15 +1238,17 @@
 }
 
 .rsb-table-pane {
+  display: grid;
   min-width: 0;
   min-height: 0;
-  overflow: auto;
+  grid-template-rows: 40px minmax(0, 1fr);
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid var(--rsb-border);
   border-radius: 18px;
   background: color-mix(in srgb, var(--rsb-surface) 92%, transparent);
   box-shadow: inset 0 1px 8px rgba(20, 48, 44, 0.04);
   overscroll-behavior: contain;
-  scrollbar-gutter: stable;
 }
 
 .rsb-table-head,
@@ -1057,9 +1261,8 @@
 }
 
 .rsb-table-head {
-  position: sticky;
+  position: relative;
   z-index: 2;
-  top: 0;
   height: 40px;
   padding: 0 14px;
   border-bottom: 1px solid var(--rsb-border);
@@ -1072,9 +1275,14 @@
 
 .rsb-table-body {
   position: relative;
-  min-height: calc(100% - 40px);
+  min-width: 650px;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   box-sizing: border-box;
   padding: 5px 6px 10px;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .rsb-table-virtual-space {
@@ -2019,37 +2227,6 @@
   font-weight: 700;
 }
 
-.rsb-drop-overlay {
-  position: absolute;
-  z-index: 12;
-  inset: 4px;
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: 7px;
-  border: 2px dashed color-mix(in srgb, var(--rsb-accent) 58%, transparent);
-  border-radius: 24px;
-  background: color-mix(in srgb, var(--rsb-surface) 82%, transparent);
-  color: var(--rsb-accent-strong);
-  text-align: center;
-  backdrop-filter: blur(20px);
-  pointer-events: none;
-}
-
-.rsb-drop-overlay .rsb-glyph {
-  width: 30px;
-  height: 30px;
-}
-
-.rsb-drop-overlay strong {
-  font-size: 14px;
-}
-
-.rsb-drop-overlay span {
-  color: var(--rsb-muted);
-  font-size: 9px;
-}
-
 @container rsb-workspace (max-width: 720px) {
   .rsb-page-actions {
     width: 100%;
@@ -2073,6 +2250,11 @@
   .rsb-table-row {
     min-width: 480px;
     grid-template-columns: minmax(220px, 1fr) 108px 84px 62px;
+  }
+
+  .rsb-table-body,
+  .rsb-table-virtual-space {
+    min-width: 480px;
   }
 
   .rsb-col-packed {
@@ -2106,6 +2288,11 @@
   .rsb-table-row {
     min-width: 350px;
     grid-template-columns: minmax(205px, 1fr) 76px 58px;
+  }
+
+  .rsb-table-body,
+  .rsb-table-virtual-space {
+    min-width: 350px;
   }
 
   .rsb-col-size,

@@ -94,27 +94,23 @@
   min-width: 0;
   flex: 1 1 auto;
   align-items: flex-end;
-  gap: 3px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-}
-
-.wem-tab-list::-webkit-scrollbar {
-  display: none;
+  gap: 1px;
+  overflow: hidden;
 }
 
 .wem-tab {
   position: relative;
   display: flex;
-  flex: 0 0 clamp(160px, 22vw, 280px);
+  width: clamp(150px, 22vw, 260px);
+  flex: 0 1 clamp(150px, 22vw, 260px);
   min-width: 0;
-  max-width: 280px;
+  max-width: 260px;
   height: 33px;
   align-items: center;
   border-radius: 12px 12px 0 0;
   background: color-mix(in srgb, var(--wem-panel) 48%, transparent);
   color: var(--wem-muted);
+  container-type: inline-size;
   transition:
     background-color 150ms ease,
     color 150ms ease;
@@ -126,6 +122,7 @@
 }
 
 .wem-tab.is-active {
+  z-index: 1;
   background: var(--wem-accent-soft);
   color: var(--wem-text);
 }
@@ -149,7 +146,7 @@
 
 .wem-tab-select {
   display: flex;
-  min-width: 72px;
+  min-width: 0;
   flex: 1 1 auto;
   height: 100%;
   align-items: center;
@@ -235,11 +232,13 @@
 
 .wem-tab-add {
   display: grid;
-  width: 33px;
-  height: 33px;
+  width: 30px;
+  height: 30px;
   flex: 0 0 auto;
   place-items: center;
-  border-radius: 11px 11px 0 0;
+  align-self: center;
+  margin: 0 0 1px 3px;
+  border-radius: 10px;
   background: color-mix(in srgb, var(--wem-panel) 58%, transparent);
   color: var(--wem-muted);
   cursor: pointer;
@@ -260,11 +259,35 @@
 }
 
 .wem-tab-add .wem-glyph {
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
+}
+
+@container (max-width: 88px) {
+  .wem-tab-select {
+    gap: 4px;
+    padding: 0 8px;
+  }
+
+  .wem-tab-dot {
+    display: none;
+  }
+
+  .wem-tab-close {
+    position: absolute;
+    right: 2px;
+    width: 25px;
+    margin: 0;
+    background: color-mix(in srgb, var(--wem-panel) 88%, transparent);
+  }
+
+  .wem-tab.is-active .wem-tab-select {
+    padding-right: 28px;
+  }
 }
 
 .wem-workspace {
+  position: relative;
   grid-row: 2;
   display: grid;
   grid-template-columns: minmax(220px, 270px) minmax(330px, 1fr) minmax(250px, 300px);
@@ -649,24 +672,6 @@
 .wem-player-controls[data-playing="true"] .wem-play-button .wem-pause-glyph,
 .wem-player-controls[data-muted="true"] .wem-volume-button .wem-muted-glyph {
   display: grid;
-}
-
-.wem-skip-glyph {
-  width: 18px;
-  height: 18px;
-  overflow: visible;
-}
-
-.wem-skip-glyph text {
-  fill: currentColor;
-  stroke: none;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 5.4px;
-  font-weight: 800;
-  letter-spacing: -0.35px;
-  dominant-baseline: middle;
-  text-anchor: middle;
-  pointer-events: none;
 }
 
 .wem-player-timeline {
@@ -1373,41 +1378,6 @@
 
 .wem-status--error .wem-status-dot {
   background: #e46e77;
-}
-
-.wem-drop-overlay {
-  position: absolute;
-  z-index: 30;
-  inset: 12px;
-  display: grid;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, var(--wem-accent) 62%, transparent);
-  border-radius: 24px;
-  background: color-mix(in srgb, var(--wem-panel) 84%, transparent);
-  backdrop-filter: blur(20px);
-  pointer-events: none;
-}
-
-.wem-drop-overlay > div {
-  display: grid;
-  justify-items: center;
-  gap: 9px;
-  color: var(--wem-muted);
-}
-
-.wem-drop-overlay .wem-glyph {
-  width: 34px;
-  height: 34px;
-  color: var(--wem-accent);
-}
-
-.wem-drop-overlay strong {
-  color: var(--wem-text);
-  font-size: 15px;
-}
-
-.wem-drop-overlay span {
-  font-size: 9px;
 }
 
 @keyframes wem-disc-drift {

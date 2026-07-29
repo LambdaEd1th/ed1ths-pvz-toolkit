@@ -18,12 +18,20 @@ pub(crate) struct TabHeader {
     pub(crate) closeable: bool,
 }
 
-fn file_tab_class(active: bool, dragging: bool, drop_placement: Option<DropPlacement>) -> String {
+fn file_tab_class(
+    active: bool,
+    dirty: bool,
+    dragging: bool,
+    drop_placement: Option<DropPlacement>,
+) -> String {
     let mut class_name = if active {
         "rton-file-tab active ui-document-tab is-active".to_string()
     } else {
         "rton-file-tab ui-document-tab".to_string()
     };
+    if dirty {
+        class_name.push_str(" is-dirty");
+    }
     if dragging {
         class_name.push_str(" dragging is-dragging");
     }
@@ -56,7 +64,7 @@ fn FileTab(
     rsx! {
         div {
             "data-rton-tab-id": "{tab.id}",
-            class: file_tab_class(active, dragging, drop_placement),
+            class: file_tab_class(active, tab.dirty, dragging, drop_placement),
             onmounted: move |event| {
                 let rendered_width = mounted_width.clone();
                 async move {
@@ -86,20 +94,21 @@ fn FileTab(
             },
             onmouseup: move |_| on_drag_end.call(()),
             button {
+                r#type: "button",
                 class: "rton-file-tab-label ui-document-tab-label",
                 role: "tab",
                 aria_selected: active,
+                tabindex: if active { "0" } else { "-1" },
                 onclick: move |_| on_activate.call(tab.id),
                 title: i18n.t_args("tabs-switch-to", &[("name", tab.file_name.clone())]),
+                span { class: "rton-file-tab-dot ui-document-tab-dot" }
                 span {
                     class: "rton-file-tab-name ui-document-tab-name",
                     "{leaf_display_name(&tab.file_name)}"
                 }
-                if tab.dirty {
-                    span { class: "rton-file-tab-dirty" }
-                }
             }
             button {
+                r#type: "button",
                 class: "rton-file-tab-close ui-document-tab-close",
                 disabled: !tab.closeable,
                 title: i18n.t("title-close-tab"),
