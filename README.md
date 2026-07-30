@@ -15,6 +15,7 @@ apps/toolkit/             The only desktop/Web application
   src/shell/              Persistent top bar, sidebar, settings, and content host
   src/pages/              App-level pages such as Home
 crates/formats/
+  bnk-archive/            Public Wwise BNK reader/writer and embedded media API
   newton-manifest/        Public NEWTON resource-manifest reader/writer
   pam-codec/              Public PAM reader/writer
   rsb-archive/            Public RSB/RSG archive, zlib, and PTX codecs
@@ -37,6 +38,7 @@ The dependency direction is intentionally one-way:
 
 ```text
 newton-manifest -------------> newton-tool ─┐
+bnk-archive -------------------> (library)   │
 pam-codec  -> PAM core/workers  -> pam-tool ─┤
 serde_rton -> RTON core/worker  -> rton-tool ├-> toolkit-app
 rsb-archive --------------------> rsb-tool  ─┤
@@ -62,6 +64,7 @@ Public libraries are intentionally independent:
 
 ```toml
 [dependencies]
+bnk-archive = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "bnk-archive" }
 newton-manifest = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "newton-manifest" }
 pam-codec = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "pam-codec" }
 rsb-archive = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "rsb-archive" }
