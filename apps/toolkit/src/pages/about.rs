@@ -20,7 +20,7 @@ pub(crate) fn AboutPage() -> Element {
                     h1 { "关于 Ed1th's PvZ Toolkit" }
                     p {
                         "面向 PopCap / PvZ 资源格式的开源工具工作区。"
-                        "RSB 归档浏览、RTON 数据编辑、PAM 动画查看、WEM 音频转换、NEWTON 清单维护与可复用格式库在这里共享一致的体验。"
+                        "RSB/PAK 归档浏览、RTON 数据编辑、PAM 动画查看、WEM 音频转换、NEWTON 清单维护与可复用格式库在这里共享一致的体验。"
                     }
                 }
 
@@ -37,6 +37,8 @@ pub(crate) fn AboutPage() -> Element {
                         p {
                             "Toolkit 将多个专业工具组合到一个应用外壳中，同时让 "
                             code { "rsb-archive" }
+                            "、"
+                            code { "pak-archive" }
                             " 与 "
                             code { "serde_rton" }
                             "、"
@@ -126,7 +128,7 @@ pub(crate) fn AboutPage() -> Element {
                                 span { class: "tk-about-card-label", "Workspaces & libraries" }
                                 h2 { "专业工具，共享设计语言" }
                             }
-                            span { class: "tk-about-count", "5 formats" }
+                            span { class: "tk-about-count", "7 formats" }
                         }
                         div { class: "tk-about-format-grid",
                             section { class: "tk-about-format tk-about-format--rsb",
@@ -138,6 +140,16 @@ pub(crate) fn AboutPage() -> Element {
                                     }
                                 }
                                 p { "归档与 RSG 数据包浏览、zlib 验证、资源提取，以及 PTX 纹理编解码与预览。" }
+                            }
+                            section { class: "tk-about-format tk-about-format--pak",
+                                div { class: "tk-about-format-heading",
+                                    span { aria_hidden: "true", "PAK" }
+                                    div {
+                                        h3 { "PAK Archive" }
+                                        code { "pak-archive" }
+                                    }
+                                }
+                                p { "PC XOR、Plain、Xbox 360 与 TV ZIP 容器的浏览、编辑、提取和规范化回写。" }
                             }
                             section { class: "tk-about-format tk-about-format--rton",
                                 div { class: "tk-about-format-heading",
@@ -168,6 +180,16 @@ pub(crate) fn AboutPage() -> Element {
                                     }
                                 }
                                 p { "WEM 与常见音频的本地播放、编码、解码及无损音频流重封装。" }
+                            }
+                            section { class: "tk-about-format tk-about-format--bnk",
+                                div { class: "tk-about-format-heading",
+                                    span { aria_hidden: "true", "BNK" }
+                                    div {
+                                        h3 { "BNK Archive" }
+                                        code { "bnk-archive" }
+                                    }
+                                }
+                                p { "实验性 Wwise SoundBank 浏览、HIRC 结构编辑、内嵌 WEM 提取与重建回写。" }
                             }
                             section { class: "tk-about-format tk-about-format--newton",
                                 div { class: "tk-about-format-heading",

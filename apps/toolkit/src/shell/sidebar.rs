@@ -40,6 +40,7 @@ pub(crate) fn Sidebar(route: Signal<AppRoute>, open: Signal<bool>, compact: bool
                             glyph: tool.glyph,
                             label: tool.label,
                             kind: Some(tool.slug),
+                            experimental: tool.experimental,
                             onclick: move |_| navigate(route, open, compact, tool.route),
                         }
                     }
@@ -79,6 +80,7 @@ fn NavItem(
     glyph: &'static str,
     label: &'static str,
     #[props(default)] kind: Option<&'static str>,
+    #[props(default)] experimental: bool,
     onclick: EventHandler<MouseEvent>,
 ) -> Element {
     let glyph_class = kind
@@ -91,6 +93,9 @@ fn NavItem(
             onclick: move |event| onclick.call(event),
             span { class: "{glyph_class}", aria_hidden: "true", "{glyph}" }
             span { "{label}" }
+            if experimental {
+                span { class: "tk-nav-experimental", "EXP" }
+            }
         }
     }
 }

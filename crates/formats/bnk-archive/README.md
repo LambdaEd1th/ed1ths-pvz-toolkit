@@ -123,3 +123,29 @@ for media in bank.embedded_media()? {
 
 Call `SoundBank::build_index()` when an editor repeatedly resolves HIRC or WEM
 identifiers. Rebuild the index after mutating the bank.
+
+An editor can replace one exact embedded-media occurrence—even when identifiers
+are duplicated or a bank contains multiple DIDX/DATA pairs—without changing
+other chunks:
+
+```rust
+use bnk_archive::{EmbeddedMediaLocation, from_bytes, to_bytes};
+
+let mut bank = from_bytes(&std::fs::read("Music.bnk")?)?;
+bank.replace_embedded_media(
+    EmbeddedMediaLocation {
+        index_chunk: 0,
+        data_chunk: 1,
+        entry_index: 3,
+    },
+    std::fs::read("replacement.wem")?,
+    16,
+)?;
+std::fs::write("Music-edited.bnk", to_bytes(&bank)?)?;
+
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+The 16-byte alignment matches Twinning's SoundBank encoder. Replacing media
+rebuilds only the selected DIDX/DATA pair; unknown chunks, HIRC objects, and
+the remaining media stay in their original order.

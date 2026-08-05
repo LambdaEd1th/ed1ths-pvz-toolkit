@@ -408,6 +408,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "bnk-tool"
+version = "0.1.0"
+dependencies = [
+ "bnk-archive",
+ "dioxus",
+ "dioxus-html",
+ "futures-channel",
+ "js-sys",
+ "rayon",
+ "rfd",
+ "serde_json",
+ "toolkit-ui",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "built"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4007,6 +4024,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "pak-archive"
+version = "0.1.0"
+dependencies = [
+ "crc32fast",
+ "flate2",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "thiserror 2.0.19",
+ "zip",
+]
+
+[[package]]
+name = "pak-tool"
+version = "0.1.0"
+dependencies = [
+ "dioxus",
+ "dioxus-html",
+ "futures-channel",
+ "js-sys",
+ "pak-archive",
+ "rayon",
+ "rfd",
+ "toolkit-ui",
+ "wasm-bindgen",
+ "web-sys",
+ "zip",
+]
+
+[[package]]
 name = "pam-codec"
 version = "0.1.2"
 dependencies = [
@@ -6410,8 +6457,10 @@ name = "toolkit-app"
 version = "0.1.0"
 dependencies = [
  "base64 0.23.0",
+ "bnk-tool",
  "dioxus",
  "newton-tool",
+ "pak-tool",
  "pam-tool",
  "pam_viewer_native_window",
  "rsb-tool",
@@ -8034,7 +8083,6 @@ dependencies = [
  "indexmap",
  "memchr",
  "typed-path",
- "zopfli",
 ]
 
 [[package]]
@@ -8048,18 +8096,6 @@ name = "zmij"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
-
-[[package]]
-name = "zopfli"
-version = "0.8.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f05cd8797d63865425ff89b5c4a48804f35ba0ce8d125800027ad6017d2b5249"
-dependencies = [
- "bumpalo",
- "crc32fast",
- "log",
- "simd-adler32",
-]
 
 [[package]]
 name = "zune-core"

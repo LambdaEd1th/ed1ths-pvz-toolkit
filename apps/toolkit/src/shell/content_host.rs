@@ -1,5 +1,7 @@
+use bnk_tool::{BnkTool, BnkWemOpenRequest};
 use dioxus::prelude::*;
 use newton_tool::{NewtonOpenRequest, NewtonTool};
+use pak_tool::{PakNewtonOpenRequest, PakRtonOpenRequest, PakTool, PakWemOpenRequest};
 use pam_tool::PamTool;
 use rsb_tool::{RsbNewtonOpenRequest, RsbRtonOpenRequest, RsbTool, RsbWemOpenRequest};
 use rton_tool::{RtonOpenRequest, RtonTool};
@@ -71,6 +73,31 @@ pub(crate) fn ContentHost(
             }
         }
         div {
+            class: if active_route == AppRoute::Pak { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
+            aria_hidden: active_route != AppRoute::Pak,
+            PakTool {
+                active: active_route == AppRoute::Pak,
+                on_open_newton: move |request: PakNewtonOpenRequest| {
+                    let id = next_newton_open_request_id();
+                    next_newton_open_request_id.set(id.wrapping_add(1).max(1));
+                    newton_open_request.set(Some(NewtonOpenRequest::new(id, request.name, request.bytes)));
+                    navigate(route, sidebar_open, compact, AppRoute::Newton);
+                },
+                on_open_rton: move |request: PakRtonOpenRequest| {
+                    let id = next_rton_open_request_id();
+                    next_rton_open_request_id.set(id.wrapping_add(1).max(1));
+                    rton_open_request.set(Some(RtonOpenRequest::new(id, request.name, request.bytes)));
+                    navigate(route, sidebar_open, compact, AppRoute::Rton);
+                },
+                on_open_wem: move |request: PakWemOpenRequest| {
+                    let id = next_wem_open_request_id();
+                    next_wem_open_request_id.set(id.wrapping_add(1).max(1));
+                    wem_open_request.set(Some(WemOpenRequest::new(id, request.name, request.bytes)));
+                    navigate(route, sidebar_open, compact, AppRoute::Wem);
+                },
+            }
+        }
+        div {
             class: if active_route == AppRoute::Rton { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
             aria_hidden: active_route != AppRoute::Rton,
             RtonTool {
@@ -89,6 +116,23 @@ pub(crate) fn ContentHost(
             WemTool {
                 active: active_route == AppRoute::Wem,
                 open_request: wem_open_request(),
+            }
+        }
+        div {
+            class: if active_route == AppRoute::Bnk { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
+            aria_hidden: active_route != AppRoute::Bnk,
+            BnkTool {
+                active: active_route == AppRoute::Bnk,
+                on_open_wem: move |request: BnkWemOpenRequest| {
+                    let id = next_wem_open_request_id();
+                    next_wem_open_request_id.set(id.wrapping_add(1).max(1));
+                    wem_open_request.set(Some(WemOpenRequest::new(
+                        id,
+                        request.name,
+                        request.bytes,
+                    )));
+                    navigate(route, sidebar_open, compact, AppRoute::Wem);
+                }
             }
         }
         div {
