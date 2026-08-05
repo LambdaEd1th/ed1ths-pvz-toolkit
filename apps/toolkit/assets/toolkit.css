@@ -709,7 +709,7 @@ button {
   display: grid;
   width: 100%;
   min-height: 42px;
-  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-columns: 28px minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   padding: 0 10px;
@@ -776,6 +776,24 @@ button {
 .tk-nav-glyph--wem {
   color: #b286d9;
   font-size: 12px;
+}
+
+.tk-nav-glyph--bnk {
+  color: #d49a3f;
+  font-family: monospace;
+  font-size: 8px;
+  letter-spacing: -0.04em;
+}
+
+.tk-nav-experimental {
+  padding: 3px 5px;
+  border: 1px solid color-mix(in srgb, var(--tk-warning) 30%, var(--tk-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tk-warning) 8%, transparent);
+  color: var(--tk-warning);
+  font-size: 7px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
 }
 
 .tk-sidebar-foot {
@@ -1788,6 +1806,12 @@ button {
   --tk-card-glow: rgba(155, 112, 196, 0.12);
 }
 
+.tk-workspace-card--bnk {
+  --tk-card-accent: #c78b35;
+  --tk-card-soft: rgba(199, 139, 53, 0.13);
+  --tk-card-glow: rgba(221, 158, 65, 0.12);
+}
+
 .tk-workspace-top {
   position: relative;
   z-index: 1;
@@ -1815,6 +1839,20 @@ button {
   border-radius: 50%;
   background: #55b579;
   box-shadow: 0 0 0 5px rgba(85, 181, 121, 0.1);
+}
+
+.tk-experimental-chip {
+  position: relative;
+  z-index: 1;
+  padding: 5px 8px;
+  border: 1px solid color-mix(in srgb, var(--tk-warning) 32%, var(--tk-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tk-warning) 9%, var(--tk-surface));
+  color: var(--tk-warning);
+  font-size: 7px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .tk-workspace-card h3 {

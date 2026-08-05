@@ -157,7 +157,7 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                                 }
                                 div {
                                     span { "工作区" }
-                                    strong { "RSB + RTON + PAM + WEM + NEWTON" }
+                                    strong { "RSB + PAK + RTON + PAM + WEM + BNK + NEWTON" }
                                 }
                             }
                         }
@@ -167,7 +167,7 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                             aria_live: "polite",
                             div { class: "tk-settings-log-summary",
                                 strong { "应用日志" }
-                                span { "RSB、RTON、PAM、WEM 与 NEWTON · {log_count} 条" }
+                                span { "RSB、PAK、RTON、PAM、WEM、BNK 与 NEWTON · {log_count} 条" }
                             }
                             textarea {
                                 class: "tk-settings-log-viewer",

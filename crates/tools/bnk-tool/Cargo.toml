@@ -1,0 +1,35 @@
+[package]
+name = "bnk-tool"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+description = "Internal experimental Wwise BNK workspace for Ed1th's PvZ Toolkit"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+bnk-archive.workspace = true
+dioxus-html.workspace = true
+serde_json.workspace = true
+toolkit-ui.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+dioxus = { workspace = true, features = ["desktop"] }
+futures-channel.workspace = true
+rayon.workspace = true
+rfd = "0.17"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+dioxus = { workspace = true, features = ["web"] }
+js-sys = "0.3"
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = [
+    "Blob",
+    "Document",
+    "HtmlAnchorElement",
+    "Url",
+    "Window",
+] }
