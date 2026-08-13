@@ -177,7 +177,8 @@ pub fn Stage() -> Element {
                 #[cfg(target_arch = "wasm32")]
                 let files = match crate::platform::input_files_from_web_drop(event.as_web_event()).await {
                     Ok(files) if !files.is_empty() => Ok(files),
-                    Ok(_) => input_files_from_dioxus(fallback).await,
+                    Ok(_) | Err(_) if !fallback.is_empty() => input_files_from_dioxus(fallback).await,
+                    Ok(_) => Ok(Vec::new()),
                     Err(error) => Err(error),
                 };
                 #[cfg(not(target_arch = "wasm32"))]

@@ -45,8 +45,10 @@ fn sunflower_frames_render_with_visible_and_changing_pixels() {
         &frames,
         &vec![true; document.pam.image.len()],
         &vec![true; document.pam.sprite.len()],
-        390,
-        390,
+        pam_viewer_renderer::ExportTarget {
+            size: [390, 390],
+            scale: 1.0,
+        },
     ))
     .expect("render frames");
 
@@ -57,6 +59,32 @@ fn sunflower_frames_render_with_visible_and_changing_pixels() {
     assert!(visible_pixels > 500, "only {visible_pixels} visible pixels");
     assert_eq!(rendered.len(), frames.len());
     assert_ne!(rendered[0], rendered[1], "animation frames must differ");
+
+    let expanded = pollster::block_on(pam_viewer_renderer::render_offscreen_frames(
+        document.clone(),
+        SpriteKey::Main,
+        &[frames[0]],
+        &vec![true; document.pam.image.len()],
+        &vec![true; document.pam.sprite.len()],
+        pam_viewer_renderer::ExportTarget {
+            size: [800, 600],
+            scale: 1.0,
+        },
+    ))
+    .expect("render expanded canvas");
+    for row in 0..390 {
+        let original = &rendered[0][row * 390 * 4..(row + 1) * 390 * 4];
+        let expanded_row = &expanded[0][row * 800 * 4..row * 800 * 4 + 390 * 4];
+        for (column, (&expanded_channel, &original_channel)) in
+            expanded_row.iter().zip(original).enumerate()
+        {
+            assert!(
+                expanded_channel.abs_diff(original_channel) <= 1,
+                "expanded canvas changed row {row}, byte {column}: \
+                 {original_channel} -> {expanded_channel}"
+            );
+        }
+    }
 
     let output = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../..")

@@ -38,13 +38,15 @@ struct Runtime {
     config: wgpu::SurfaceConfiguration,
     render_format: wgpu::TextureFormat,
     canvas: CanvasTarget,
+    scale_factor: f32,
     stage: StageScene,
 }
 
 impl Runtime {
-    fn resize(&mut self, width: u32, height: u32) {
+    fn resize(&mut self, width: u32, height: u32, scale_factor: f32) {
         let width = width.max(1);
         let height = height.max(1);
+        self.scale_factor = scale_factor.max(1.0);
         self.canvas.set_size(width, height);
         if self.config.width == width && self.config.height == height {
             return;
@@ -77,7 +79,7 @@ impl Runtime {
                 y: 0,
                 width: self.config.width,
                 height: self.config.height,
-                scale_factor: 1.0,
+                scale_factor: self.scale_factor,
                 clear: wgpu::Color::TRANSPARENT,
                 corner_radii: [0.0; 4],
             },
@@ -114,11 +116,18 @@ impl RendererHandle {
         canvas: web_sys::HtmlCanvasElement,
         width: u32,
         height: u32,
+        scale_factor: f32,
     ) -> Result<(), JsValue> {
         *self.runtime.borrow_mut() = Some(
-            create_runtime(CanvasTarget::Html(canvas), width, height, true)
-                .await
-                .map_err(renderer_js_error)?,
+            create_runtime(
+                CanvasTarget::Html(canvas),
+                width,
+                height,
+                scale_factor,
+                true,
+            )
+            .await
+            .map_err(renderer_js_error)?,
         );
         Ok(())
     }
@@ -128,11 +137,18 @@ impl RendererHandle {
         canvas: web_sys::HtmlCanvasElement,
         width: u32,
         height: u32,
+        scale_factor: f32,
     ) -> Result<(), JsValue> {
         *self.runtime.borrow_mut() = Some(
-            create_runtime(CanvasTarget::Html(canvas), width, height, false)
-                .await
-                .map_err(renderer_js_error)?,
+            create_runtime(
+                CanvasTarget::Html(canvas),
+                width,
+                height,
+                scale_factor,
+                false,
+            )
+            .await
+            .map_err(renderer_js_error)?,
         );
         Ok(())
     }
@@ -142,11 +158,18 @@ impl RendererHandle {
         canvas: web_sys::OffscreenCanvas,
         width: u32,
         height: u32,
+        scale_factor: f32,
     ) -> Result<(), JsValue> {
         *self.runtime.borrow_mut() = Some(
-            create_runtime(CanvasTarget::Offscreen(canvas), width, height, true)
-                .await
-                .map_err(renderer_js_error)?,
+            create_runtime(
+                CanvasTarget::Offscreen(canvas),
+                width,
+                height,
+                scale_factor,
+                true,
+            )
+            .await
+            .map_err(renderer_js_error)?,
         );
         Ok(())
     }
@@ -189,9 +212,9 @@ impl RendererHandle {
         Ok(())
     }
 
-    pub fn resize(&self, width: u32, height: u32) {
+    pub fn resize(&self, width: u32, height: u32, scale_factor: f32) {
         if let Some(runtime) = self.runtime.borrow_mut().as_mut() {
-            runtime.resize(width, height);
+            runtime.resize(width, height, scale_factor);
         }
     }
 
@@ -212,6 +235,7 @@ async fn create_runtime(
     canvas: CanvasTarget,
     width: u32,
     height: u32,
+    scale_factor: f32,
     allow_webgpu: bool,
 ) -> crate::Result<Runtime> {
     let width = width.max(1);
@@ -311,6 +335,7 @@ async fn create_runtime(
         config,
         render_format,
         canvas,
+        scale_factor: scale_factor.max(1.0),
         stage: StageScene::default(),
     })
 }

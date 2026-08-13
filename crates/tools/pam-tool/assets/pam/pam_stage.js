@@ -1,6 +1,6 @@
 (() => {
     const assetRoot = __PAM_ASSET_ROOT__;
-    const version = "20260723-render-worker-5";
+    const version = "20260813-render-worker-6";
 
     window.pamStage?.destroy?.();
 
@@ -10,6 +10,7 @@
     let startupWorker = null;
     let handle = null;
     let resizeObserver = null;
+    let windowResizeHandler = null;
     let mainFramePending = false;
     let pendingScene = null;
     let pendingView = null;
@@ -38,6 +39,7 @@
         return {
             width: Math.max(1, Math.round(canvas.clientWidth * ratio)),
             height: Math.max(1, Math.round(canvas.clientHeight * ratio)),
+            scaleFactor: ratio,
         };
     };
 
@@ -111,17 +113,22 @@
 
     const installResize = () => {
         resizeObserver?.disconnect();
+        if (windowResizeHandler) {
+            window.removeEventListener("resize", windowResizeHandler);
+        }
         const resize = () => {
             const size = canvasSize();
             if (backend === "worker") {
                 postWorker({ type: "resize", ...size });
             } else if (backend === "main" && handle) {
-                handle.resize(size.width, size.height);
+                handle.resize(size.width, size.height, size.scaleFactor);
                 scheduleMainFrame();
             }
         };
         resizeObserver = new ResizeObserver(resize);
         resizeObserver.observe(canvas);
+        windowResizeHandler = resize;
+        window.addEventListener("resize", windowResizeHandler);
         resize();
     };
 
@@ -149,9 +156,19 @@
         const candidateHandle = new runtime.RendererHandle();
         const size = canvasSize();
         if (forceWebgl) {
-            await candidateHandle.start_webgl(canvas, size.width, size.height);
+            await candidateHandle.start_webgl(
+                canvas,
+                size.width,
+                size.height,
+                size.scaleFactor,
+            );
         } else {
-            await candidateHandle.start(canvas, size.width, size.height);
+            await candidateHandle.start(
+                canvas,
+                size.width,
+                size.height,
+                size.scaleFactor,
+            );
         }
         if (destroyed) {
             candidateHandle.destroy();
@@ -276,6 +293,10 @@
         destroy() {
             destroyed = true;
             resizeObserver?.disconnect();
+            if (windowResizeHandler) {
+                window.removeEventListener("resize", windowResizeHandler);
+                windowResizeHandler = null;
+            }
             startupWorker?.terminate();
             if (worker) {
                 postWorker({ type: "destroy" });

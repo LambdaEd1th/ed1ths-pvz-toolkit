@@ -11,7 +11,7 @@ use geometry::{
     RenderQuad, append_boundary_quads, background_quad, draw_commands_to_quads, stage_camera,
 };
 pub use offscreen::{
-    render_offscreen_frames, render_offscreen_frames_into_with_cancel,
+    ExportTarget, render_offscreen_frames, render_offscreen_frames_into_with_cancel,
     render_offscreen_frames_with_cancel,
 };
 use resources::{

@@ -12,14 +12,19 @@ use super::{GpuRenderer, RenderTarget};
 
 const COPY_BYTES_PER_ROW_ALIGNMENT: u32 = 256;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ExportTarget {
+    pub size: [u32; 2],
+    pub scale: f32,
+}
+
 pub async fn render_offscreen_frames(
     document: Arc<PamDocument>,
     sprite: SpriteKey,
     frames: &[usize],
     image_filter: &[bool],
     sprite_filter: &[bool],
-    width: u32,
-    height: u32,
+    target: ExportTarget,
 ) -> Result<Vec<Vec<u8>>> {
     render_offscreen_frames_with_cancel(
         document,
@@ -27,22 +32,19 @@ pub async fn render_offscreen_frames(
         frames,
         image_filter,
         sprite_filter,
-        width,
-        height,
+        target,
         None,
     )
     .await
 }
 
-#[allow(clippy::too_many_arguments)]
 pub async fn render_offscreen_frames_with_cancel(
     document: Arc<PamDocument>,
     sprite: SpriteKey,
     frames: &[usize],
     image_filter: &[bool],
     sprite_filter: &[bool],
-    width: u32,
-    height: u32,
+    target: ExportTarget,
     cancelled: Option<&AtomicBool>,
 ) -> Result<Vec<Vec<u8>>> {
     let mut output = Vec::with_capacity(frames.len());
@@ -56,8 +58,7 @@ pub async fn render_offscreen_frames_with_cancel(
         frames,
         image_filter,
         sprite_filter,
-        width,
-        height,
+        target,
         cancelled,
         &mut consume,
     )
@@ -72,8 +73,7 @@ pub async fn render_offscreen_frames_into_with_cancel(
     frames: &[usize],
     image_filter: &[bool],
     sprite_filter: &[bool],
-    width: u32,
-    height: u32,
+    target: ExportTarget,
     cancelled: Option<&AtomicBool>,
     consume: &mut impl FnMut(Vec<u8>) -> std::result::Result<(), String>,
 ) -> Result<()> {
@@ -98,8 +98,8 @@ pub async fn render_offscreen_frames_into_with_cancel(
             trace: wgpu::Trace::Off,
         })
         .await?;
-    let width = width.max(1);
-    let height = height.max(1);
+    let width = target.size[0].max(1);
+    let height = target.size[1].max(1);
     let mut renderer = GpuRenderer::new(&device, &queue, wgpu::TextureFormat::Rgba8UnormSrgb);
     let scene = StageScene {
         document: Some(document.clone()),
@@ -111,7 +111,7 @@ pub async fn render_offscreen_frames_into_with_cancel(
         ..StageScene::default()
     };
     renderer.ensure_document_textures(&scene);
-    let camera = export_camera(&document, width, height);
+    let camera = export_camera(&document, target.scale);
     let build_quads = |frame: &usize| -> Result<_> {
         ensure_not_cancelled(cancelled)?;
         let commands = document.compiled.flatten_frame(
