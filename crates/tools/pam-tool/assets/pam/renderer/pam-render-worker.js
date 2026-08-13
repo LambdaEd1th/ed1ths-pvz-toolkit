@@ -1,4 +1,4 @@
-const runtimeVersion = "20260723-render-worker-5";
+const runtimeVersion = "20260813-render-worker-6";
 let handle = null;
 let framePending = false;
 let runtimePromise = null;
@@ -6,7 +6,7 @@ let runtimePromise = null;
 function runtimeReady() {
     runtimePromise ??= (async () => {
         const runtime = await import(
-            "./pkg/pam_viewer_renderer.js?v=20260723-render-worker-5"
+            "./pkg/pam_viewer_renderer.js?v=20260813-render-worker-6"
         );
         await runtime.default({
             module_or_path: new URL(
@@ -81,6 +81,7 @@ self.onmessage = async (event) => {
                     message.canvas,
                     message.width,
                     message.height,
+                    message.scaleFactor,
                 );
                 self.postMessage({ type: "ready" });
                 scheduleFrame();
@@ -95,7 +96,11 @@ self.onmessage = async (event) => {
                 scheduleFrame();
                 break;
             case "resize":
-                handle?.resize(message.width, message.height);
+                handle?.resize(
+                    message.width,
+                    message.height,
+                    message.scaleFactor,
+                );
                 scheduleFrame();
                 break;
             case "destroy":

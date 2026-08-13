@@ -194,6 +194,10 @@ async fn export_frames(
     }
     let width = request.size[0].max(1);
     let height = request.size[1].max(1);
+    let target = pam_viewer_renderer::ExportTarget {
+        size: [width, height],
+        scale: request.render_scale as f32,
+    };
     match request.kind {
         ExportKind::Png => {
             let rendered = pam_viewer_renderer::render_offscreen_frames_with_cancel(
@@ -202,8 +206,7 @@ async fn export_frames(
                 &frames,
                 &request.image_filter,
                 &request.sprite_filter,
-                width,
-                height,
+                target,
                 Some(cancelled),
             )
             .await
@@ -227,8 +230,7 @@ async fn export_frames(
                     &frames,
                     &request.image_filter,
                     &request.sprite_filter,
-                    width,
-                    height,
+                    target,
                     Some(cancelled),
                     &mut consume,
                 )
@@ -264,8 +266,7 @@ async fn export_frames(
                     &frames,
                     &request.image_filter,
                     &request.sprite_filter,
-                    width,
-                    height,
+                    target,
                     Some(cancelled),
                     &mut consume,
                 )
@@ -347,6 +348,7 @@ mod tests {
             image_filter: Vec::new(),
             sprite_filter: Vec::new(),
             size: [64, 64],
+            render_scale: 1,
             fps: 30,
         }
     }

@@ -192,6 +192,7 @@ pub struct ExportRequest {
     pub image_filter: Vec<bool>,
     pub sprite_filter: Vec<bool>,
     pub size: [u32; 2],
+    pub render_scale: u32,
     pub fps: u32,
 }
 

@@ -7,12 +7,12 @@ export class RendererHandle {
     destroy(): void;
     frame(): void;
     constructor();
-    resize(width: number, height: number): void;
+    resize(width: number, height: number, scale_factor: number): void;
     set_scene(scene: any): void;
     set_view(view: any): void;
-    start(canvas: HTMLCanvasElement, width: number, height: number): Promise<void>;
-    start_offscreen(canvas: OffscreenCanvas, width: number, height: number): Promise<void>;
-    start_webgl(canvas: HTMLCanvasElement, width: number, height: number): Promise<void>;
+    start(canvas: HTMLCanvasElement, width: number, height: number, scale_factor: number): Promise<void>;
+    start_offscreen(canvas: OffscreenCanvas, width: number, height: number, scale_factor: number): Promise<void>;
+    start_webgl(canvas: HTMLCanvasElement, width: number, height: number, scale_factor: number): Promise<void>;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -20,21 +20,21 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly __wbg_rendererhandle_free: (a: number, b: number) => void;
-    readonly rendererhandle_destroy: (a: number) => void;
-    readonly rendererhandle_frame: (a: number, b: number) => void;
     readonly rendererhandle_new: () => number;
-    readonly rendererhandle_resize: (a: number, b: number, c: number) => void;
+    readonly rendererhandle_start: (a: number, b: number, c: number, d: number, e: number) => number;
+    readonly rendererhandle_start_webgl: (a: number, b: number, c: number, d: number, e: number) => number;
+    readonly rendererhandle_start_offscreen: (a: number, b: number, c: number, d: number, e: number) => number;
     readonly rendererhandle_set_scene: (a: number, b: number, c: number) => void;
     readonly rendererhandle_set_view: (a: number, b: number, c: number) => void;
-    readonly rendererhandle_start: (a: number, b: number, c: number, d: number) => number;
-    readonly rendererhandle_start_offscreen: (a: number, b: number, c: number, d: number) => number;
-    readonly rendererhandle_start_webgl: (a: number, b: number, c: number, d: number) => number;
-    readonly __wasm_bindgen_func_elem_9826: (a: number, b: number, c: number, d: number) => void;
-    readonly __wasm_bindgen_func_elem_1459: (a: number, b: number, c: number, d: number) => void;
-    readonly __wasm_bindgen_func_elem_1459_2: (a: number, b: number, c: number, d: number) => void;
-    readonly __wasm_bindgen_func_elem_1459_3: (a: number, b: number, c: number, d: number) => void;
-    readonly __wasm_bindgen_func_elem_9828: (a: number, b: number, c: number, d: number) => void;
-    readonly __wasm_bindgen_func_elem_971: (a: number, b: number) => void;
+    readonly rendererhandle_resize: (a: number, b: number, c: number, d: number) => void;
+    readonly rendererhandle_frame: (a: number, b: number) => void;
+    readonly rendererhandle_destroy: (a: number) => void;
+    readonly __wasm_bindgen_func_elem_10212: (a: number, b: number, c: number, d: number) => void;
+    readonly __wasm_bindgen_func_elem_1425: (a: number, b: number, c: number, d: number) => void;
+    readonly __wasm_bindgen_func_elem_1425_2: (a: number, b: number, c: number, d: number) => void;
+    readonly __wasm_bindgen_func_elem_1425_3: (a: number, b: number, c: number, d: number) => void;
+    readonly __wasm_bindgen_func_elem_10202: (a: number, b: number, c: number, d: number) => void;
+    readonly __wasm_bindgen_func_elem_987: (a: number, b: number) => void;
     readonly __wbindgen_export: (a: number, b: number) => number;
     readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_export3: (a: number) => void;

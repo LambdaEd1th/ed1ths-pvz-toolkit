@@ -67,6 +67,7 @@ async fn export_tab(
         image_filter: tab.image_filter.clone(),
         sprite_filter: tab.sprite_filter.clone(),
         size: tab.export_size,
+        render_scale: tab.export_scale.unwrap_or(1),
         fps: tab.speed_fps,
     };
     let bytes = match export_bytes(tab, request).await {

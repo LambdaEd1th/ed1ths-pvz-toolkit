@@ -8,8 +8,8 @@ mod native;
 mod web;
 
 pub use gpu::{
-    GpuRenderer, RenderTarget, render_offscreen_frames, render_offscreen_frames_into_with_cancel,
-    render_offscreen_frames_with_cancel,
+    ExportTarget, GpuRenderer, RenderTarget, render_offscreen_frames,
+    render_offscreen_frames_into_with_cancel, render_offscreen_frames_with_cancel,
 };
 #[cfg(not(target_arch = "wasm32"))]
 pub use native::{NativeStageRenderer, NativeViewport};

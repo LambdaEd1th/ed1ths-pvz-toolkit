@@ -111,16 +111,14 @@ pub async fn input_files_from_web_drop(
     while let Some(entry) = entries.pop() {
         if entry.is_file() {
             let path = entry.full_path().trim_start_matches('/').to_string();
-            let file_entry = entry
-                .dyn_into::<web_sys::FileSystemFileEntry>()
-                .map_err(|_| "invalid dropped file entry".to_string())?;
+            // File and Directory Entries objects are interface-shaped and do not
+            // expose constructors consistently across Chromium-based browsers.
+            let file_entry = entry.unchecked_into::<web_sys::FileSystemFileEntry>();
             let file = file_from_entry(&file_entry).await?;
             let path = if path.is_empty() { file.name() } else { path };
             files.push((path, file));
         } else if entry.is_directory() {
-            let directory = entry
-                .dyn_into::<web_sys::FileSystemDirectoryEntry>()
-                .map_err(|_| "invalid dropped directory entry".to_string())?;
+            let directory = entry.unchecked_into::<web_sys::FileSystemDirectoryEntry>();
             let reader = directory.create_reader();
             loop {
                 let batch = directory_entries(&reader).await?;
