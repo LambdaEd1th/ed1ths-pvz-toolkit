@@ -1,0 +1,4 @@
+[submodule "crates/formats/serde_rton"]
+	path = crates/formats/serde_rton
+	url = https://github.com/LambdaEd1th/serde_rton.git
+	branch = master
