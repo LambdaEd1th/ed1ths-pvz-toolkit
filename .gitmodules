@@ -2,3 +2,7 @@
 	path = crates/formats/serde_rton
 	url = https://github.com/LambdaEd1th/serde_rton.git
 	branch = master
+[submodule "crates/formats/pam-codec"]
+	path = crates/formats/pam-codec
+	url = https://github.com/LambdaEd1th/pam-codec.git
+	branch = main
