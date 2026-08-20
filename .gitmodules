@@ -6,3 +6,7 @@
 	path = crates/formats/pam-codec
 	url = https://github.com/LambdaEd1th/pam-codec.git
 	branch = main
+[submodule "crates/formats/rsb-archive"]
+	path = crates/formats/rsb-archive
+	url = https://github.com/LambdaEd1th/rsb-archive.git
+	branch = main
