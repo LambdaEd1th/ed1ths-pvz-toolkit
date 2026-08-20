@@ -10,3 +10,7 @@
 	path = crates/formats/rsb-archive
 	url = https://github.com/LambdaEd1th/rsb-archive.git
 	branch = main
+[submodule "crates/formats/newton-manifest"]
+	path = crates/formats/newton-manifest
+	url = https://github.com/LambdaEd1th/newton-manifest.git
+	branch = main
