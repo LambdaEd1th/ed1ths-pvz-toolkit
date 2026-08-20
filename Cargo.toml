@@ -4,6 +4,7 @@ members = [
     "crates/ui/toolkit-ui",
     "crates/formats/pam-codec",
     "crates/formats/bnk-archive",
+    "crates/formats/dzip-archive",
     "crates/formats/newton-manifest",
     "crates/formats/pak-archive",
     "crates/formats/rsb-archive",
@@ -20,6 +21,7 @@ members = [
     "crates/wem/worker",
     "crates/tools/pam-tool",
     "crates/tools/bnk-tool",
+    "crates/tools/dzip-tool",
     "crates/tools/newton-tool",
     "crates/tools/pak-tool",
     "crates/tools/rsb-tool",
@@ -46,6 +48,8 @@ crc32fast = "1.5"
 dioxus = { version = "0.7.9", default-features = false }
 dioxus-free-icons = { version = "0.10", features = ["lucide"] }
 dioxus-html = "0.7.9"
+dzip = { path = "crates/formats/dzip-archive", version = "0.5.1" }
+dzip-tool = { path = "crates/tools/dzip-tool" }
 futures-channel = "0.3"
 futures-util = "0.3"
 flate2 = { version = "1.1", default-features = false, features = ["rust_backend"] }
@@ -83,3 +87,7 @@ zip = { version = "8", default-features = false, features = ["deflate-flate2-zli
 lto = "thin"
 opt-level = "s"
 strip = true
+
+[profile.release.package.dzip]
+codegen-units = 1
+opt-level = 3

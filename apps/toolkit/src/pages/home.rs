@@ -23,7 +23,7 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                         }
                         h1 { "让 PvZ 资源处理回到一个工作区。" }
                         p {
-                            "浏览 RSB、PAK 与实验性 BNK 归档、编辑 RTON 数据、查看 PAM 动画、转换 WEM 音频、维护 NEWTON 清单，并按需使用独立的 Rust 格式库。"
+                            "浏览 RSB、PAK、DZip 与实验性 BNK 归档、编辑 RTON 数据、查看 PAM 动画、转换 WEM 音频、维护 NEWTON 清单，并按需使用独立的 Rust 格式库。"
                             "工具保持专注，界面和工作流保持一致。"
                         }
                         div { class: "tk-welcome-actions",
@@ -38,6 +38,12 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                                 onclick: move |_| on_navigate.call(AppRoute::Pak),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "PAK" }
                                 "打开 PAK Archive"
+                            }
+                            button {
+                                class: "tk-button tk-button--secondary",
+                                onclick: move |_| on_navigate.call(AppRoute::Dzip),
+                                span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "DZ" }
+                                "打开 DZip Archive"
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
@@ -143,7 +149,7 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                                 span { class: "tk-kicker", "For developers" }
                                 h2 { "独立格式库" }
                             }
-                            span { class: "tk-panel-badge", "7 crates" }
+                            span { class: "tk-panel-badge", "8 crates" }
                         }
                         p { class: "tk-panel-intro",
                             "应用只组合所需的格式库；其他项目可以直接依赖单个 crate，无需引入 GUI 或聚合 SDK。"
@@ -158,6 +164,11 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                                 crate_name: "pak-archive",
                                 version: "0.1.0",
                                 description: "PopCap PAK archives, XOR variants, zlib and TV ZIP containers",
+                            }
+                            LibraryRow {
+                                crate_name: "dzip",
+                                version: "0.5.1",
+                                description: "DZip archives, split volumes and integrated DZ, Zlib, BZip and LZMA codecs",
                             }
                             LibraryRow {
                                 crate_name: "serde_rton",
@@ -193,7 +204,7 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                         ol { class: "tk-step-list",
                             li {
                                 span { "1" }
-                                div { strong { "选择工作区" } p { "RSB 与 PAK 用于资源归档，BNK（实验性）用于 SoundBank，RTON 用于数据，PAM 用于动画，WEM 用于音频，NEWTON 用于资源清单。" } }
+                                div { strong { "选择工作区" } p { "RSB、PAK 与 DZip 用于资源归档，BNK（实验性）用于 SoundBank，RTON 用于数据，PAM 用于动画，WEM 用于音频，NEWTON 用于资源清单。" } }
                             }
                             li {
                                 span { "2" }

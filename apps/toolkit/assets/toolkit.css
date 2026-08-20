@@ -773,6 +773,16 @@ button {
   font-size: 12px;
 }
 
+.tk-nav-glyph--pak {
+  color: #5f8fcf;
+  font-size: 12px;
+}
+
+.tk-nav-glyph--dzip {
+  color: #d8796b;
+  font-size: 12px;
+}
+
 .tk-nav-glyph--wem {
   color: #b286d9;
   font-size: 12px;
@@ -780,9 +790,12 @@ button {
 
 .tk-nav-glyph--bnk {
   color: #d49a3f;
-  font-family: monospace;
-  font-size: 8px;
-  letter-spacing: -0.04em;
+  font-size: 12px;
+}
+
+.tk-nav-glyph--newton {
+  color: #4a9cae;
+  font-size: 12px;
 }
 
 .tk-nav-experimental {

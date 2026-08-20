@@ -26,3 +26,7 @@
 	path = crates/formats/wem-audio
 	url = https://github.com/LambdaEd1th/wem-audio.git
 	branch = main
+[submodule "crates/formats/dzip-archive"]
+	path = crates/formats/dzip-archive
+	url = https://github.com/LambdaEd1th/dzip-archive.git
+	branch = main

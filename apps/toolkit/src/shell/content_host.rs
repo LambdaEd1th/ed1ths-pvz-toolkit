@@ -1,5 +1,6 @@
 use bnk_tool::{BnkTool, BnkWemOpenRequest};
 use dioxus::prelude::*;
+use dzip_tool::DzipTool;
 use newton_tool::{NewtonOpenRequest, NewtonTool};
 use pak_tool::{PakNewtonOpenRequest, PakRtonOpenRequest, PakTool, PakWemOpenRequest};
 use pam_tool::PamTool;
@@ -96,6 +97,11 @@ pub(crate) fn ContentHost(
                     navigate(route, sidebar_open, compact, AppRoute::Wem);
                 },
             }
+        }
+        div {
+            class: if active_route == AppRoute::Dzip { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
+            aria_hidden: active_route != AppRoute::Dzip,
+            DzipTool { active: active_route == AppRoute::Dzip }
         }
         div {
             class: if active_route == AppRoute::Rton { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },

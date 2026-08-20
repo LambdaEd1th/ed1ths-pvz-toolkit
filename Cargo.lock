@@ -1724,6 +1724,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
+name = "dzip"
+version = "0.5.1"
+dependencies = [
+ "byteorder",
+ "rayon",
+ "serde",
+ "sha2 0.11.0",
+]
+
+[[package]]
+name = "dzip-tool"
+version = "0.1.0"
+dependencies = [
+ "dioxus",
+ "dioxus-html",
+ "dzip",
+ "futures-channel",
+ "js-sys",
+ "rfd",
+ "toolkit-ui",
+ "wasm-bindgen",
+ "web-sys",
+ "zip",
+]
+
+[[package]]
 name = "either"
 version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5667,6 +5693,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "sha2"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "446ba717509524cb3f22f17ecc096f10f4822d76ab5c0b9822c5f9c284e825f4"
+dependencies = [
+ "cfg-if",
+ "cpufeatures 0.3.0",
+ "digest 0.11.3",
+]
+
+[[package]]
 name = "sharded-slab"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6459,6 +6496,7 @@ dependencies = [
  "base64 0.23.0",
  "bnk-tool",
  "dioxus",
+ "dzip-tool",
  "newton-tool",
  "pak-tool",
  "pam-tool",
@@ -7893,7 +7931,7 @@ dependencies = [
  "once_cell",
  "percent-encoding",
  "raw-window-handle 0.6.2",
- "sha2",
+ "sha2 0.10.9",
  "soup3",
  "tao-macros",
  "thiserror 2.0.19",

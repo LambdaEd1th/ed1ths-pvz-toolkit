@@ -7,6 +7,7 @@ pub(crate) enum AppRoute {
     About,
     Rsb,
     Pak,
+    Dzip,
     Rton,
     Pam,
     Wem,
@@ -21,6 +22,7 @@ impl AppRoute {
             Self::About => "About",
             Self::Rsb => "RSB Archive",
             Self::Pak => "PAK Archive",
+            Self::Dzip => "DZip Archive",
             Self::Rton => "RTON Editor",
             Self::Pam => "PAM Viewer",
             Self::Wem => "WEM Audio",
@@ -42,6 +44,7 @@ pub(crate) fn navigate(
             target,
             AppRoute::Rsb
                 | AppRoute::Pak
+                | AppRoute::Dzip
                 | AppRoute::Rton
                 | AppRoute::Pam
                 | AppRoute::Wem
