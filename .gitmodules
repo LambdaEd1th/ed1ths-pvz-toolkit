@@ -14,3 +14,15 @@
 	path = crates/formats/newton-manifest
 	url = https://github.com/LambdaEd1th/newton-manifest.git
 	branch = main
+[submodule "crates/formats/bnk-archive"]
+	path = crates/formats/bnk-archive
+	url = https://github.com/LambdaEd1th/bnk-archive.git
+	branch = main
+[submodule "crates/formats/pak-archive"]
+	path = crates/formats/pak-archive
+	url = https://github.com/LambdaEd1th/pak-archive.git
+	branch = main
+[submodule "crates/formats/wem-audio"]
+	path = crates/formats/wem-audio
+	url = https://github.com/LambdaEd1th/wem-audio.git
+	branch = main
