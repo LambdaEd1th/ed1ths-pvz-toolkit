@@ -11,6 +11,9 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_PROFILE_DEV_DEBUG: 0
+  CARGO_PROFILE_TEST_DEBUG: 0
   DX_VERSION: 0.7.9
   WASM_PACK_VERSION: 0.15.0
 
@@ -43,6 +46,8 @@ jobs:
 
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
+        with:
+          cache-targets: false
 
       - name: Format
         run: cargo +stable fmt --all --check
@@ -58,6 +63,10 @@ jobs:
 
       - name: Clippy
         run: cargo +stable clippy --workspace --all-targets -- -D warnings
+
+      - name: Free build artifacts
+        if: always()
+        run: cargo clean
 
   web-build:
     name: Web Build
@@ -75,6 +84,8 @@ jobs:
 
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
+        with:
+          cache-targets: false
 
       - name: Cache Dioxus CLI
         uses: actions/cache@v6
@@ -105,3 +116,7 @@ jobs:
 
       - name: Build web
         run: RUSTUP_TOOLCHAIN=stable dx build --platform web --package toolkit-app --release --debug-symbols=false
+
+      - name: Free build artifacts
+        if: always()
+        run: cargo clean

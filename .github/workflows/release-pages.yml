@@ -16,6 +16,9 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_PROFILE_DEV_DEBUG: 0
+  CARGO_PROFILE_TEST_DEBUG: 0
   DX_VERSION: 0.7.9
   WASM_PACK_VERSION: 0.15.0
   WEB_DIST: target/dx/pvz-toolkit/release/web/public
@@ -73,6 +76,8 @@ jobs:
 
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
+        with:
+          cache-targets: false
 
       - name: Build release binary
         run: cargo build --release --package toolkit-app --bin pvz-toolkit
@@ -137,6 +142,10 @@ jobs:
           name: ${{ matrix.artifact }}-deb
           path: ${{ matrix.artifact }}-${{ github.ref_name }}.deb
 
+      - name: Free build artifacts
+        if: always()
+        run: cargo clean
+
   build_wasm:
     name: Build WASM
     runs-on: ubuntu-latest
@@ -154,6 +163,8 @@ jobs:
 
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
+        with:
+          cache-targets: false
 
       - name: Cache Dioxus CLI
         uses: actions/cache@v6
@@ -212,6 +223,10 @@ jobs:
         uses: actions/upload-pages-artifact@v5
         with:
           path: ${{ env.WEB_DIST }}
+
+      - name: Free build artifacts
+        if: always()
+        run: cargo clean
 
   publish_release:
     name: Publish GitHub Release
