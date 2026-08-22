@@ -53,7 +53,9 @@ fn sunflower_frames_render_with_visible_and_changing_pixels() {
     .expect("render frames");
 
     let visible_pixels = rendered[0]
-        .chunks_exact(4)
+        .as_chunks::<4>()
+        .0
+        .iter()
         .filter(|pixel| pixel[3] != 0)
         .count();
     assert!(visible_pixels > 500, "only {visible_pixels} visible pixels");

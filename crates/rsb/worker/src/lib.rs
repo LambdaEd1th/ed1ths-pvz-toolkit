@@ -395,7 +395,7 @@ mod tests {
         let width = 2048_u32;
         let height = 3003_u32;
         let mut data = vec![0_u8; width as usize * height as usize * 4];
-        for (index, pixel) in data.chunks_exact_mut(4).enumerate() {
+        for (index, pixel) in data.as_chunks_mut::<4>().0.iter_mut().enumerate() {
             pixel[0] = (index % 251) as u8;
             pixel[1] = ((index / width as usize) % 239) as u8;
             pixel[2] = 127;
