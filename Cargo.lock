@@ -667,6 +667,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "compiled-text"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "md-5 0.11.0",
+ "simple-rijndael",
+ "smf-container",
+ "thiserror 2.0.19",
+]
+
+[[package]]
 name = "console_error_panic_hook"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -932,6 +943,29 @@ name = "crunchy"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
+
+[[package]]
+name = "crypt-data"
+version = "0.1.0"
+dependencies = [
+ "thiserror 2.0.19",
+]
+
+[[package]]
+name = "crypt-data-tool"
+version = "0.1.0"
+dependencies = [
+ "crypt-data",
+ "dioxus",
+ "dioxus-html",
+ "futures-channel",
+ "js-sys",
+ "rayon",
+ "rfd",
+ "toolkit-ui",
+ "wasm-bindgen",
+ "web-sys",
+]
 
 [[package]]
 name = "crypto-common"
@@ -3456,6 +3490,16 @@ dependencies = [
 
 [[package]]
 name = "md-5"
+version = "0.10.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d89e7ee0cfbedfc4da3340218492196241d89eefb6dab27de5df917a6d2e78cf"
+dependencies = [
+ "cfg-if",
+ "digest 0.10.7",
+]
+
+[[package]]
+name = "md-5"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "69b6441f590336821bb897fb28fc622898ccceb1d6cea3fde5ea86b090c4de98"
@@ -4252,6 +4296,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "particle-codec"
+version = "0.1.0"
+dependencies = [
+ "byteorder",
+ "flate2",
+ "quick-xml",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.19",
+]
+
+[[package]]
+name = "particle-tool"
+version = "0.1.0"
+dependencies = [
+ "dioxus",
+ "dioxus-html",
+ "js-sys",
+ "particle-codec",
+ "rfd",
+ "toolkit-ui",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "paste"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5035,6 +5105,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "reanim-codec"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "byteorder",
+ "flate2",
+ "quick-xml",
+ "serde",
+ "tempfile",
+ "thiserror 2.0.19",
+]
+
+[[package]]
+name = "reanim-tool"
+version = "0.1.0"
+dependencies = [
+ "dioxus",
+ "dioxus-html",
+ "js-sys",
+ "reanim-codec",
+ "rfd",
+ "serde_json",
+ "serde_yaml",
+ "toml 1.1.3+spec-1.1.0",
+ "toolkit-ui",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "reborrow"
 version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5228,6 +5328,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "rsb-patch"
+version = "0.1.0"
+dependencies = [
+ "byteorder",
+ "md-5 0.11.0",
+ "rsb-archive",
+ "thiserror 2.0.19",
+]
+
+[[package]]
+name = "rsb-patch-tool"
+version = "0.1.0"
+dependencies = [
+ "dioxus",
+ "dioxus-html",
+ "futures-channel",
+ "js-sys",
+ "rayon",
+ "rfd",
+ "rsb_patch_worker",
+ "serde",
+ "serde-wasm-bindgen",
+ "toolkit-ui",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
 name = "rsb-tool"
 version = "0.1.0"
 dependencies = [
@@ -5250,6 +5379,19 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "zip",
+]
+
+[[package]]
+name = "rsb_patch_worker"
+version = "0.1.0"
+dependencies = [
+ "console_error_panic_hook",
+ "rsb-patch",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_bytes",
+ "thiserror 2.0.19",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -5299,9 +5441,9 @@ dependencies = [
  "hex",
  "rayon",
  "serde",
+ "serde-rton",
  "serde_bytes",
  "serde_json",
- "serde_rton",
  "serde_yaml",
  "thiserror 2.0.19",
  "toml 1.1.3+spec-1.1.0",
@@ -5514,6 +5656,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde-rton"
+version = "0.4.0"
+dependencies = [
+ "byteorder",
+ "hex",
+ "integer-encoding",
+ "md-5 0.11.0",
+ "num_enum",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "simple-rijndael",
+ "thiserror 2.0.19",
+]
+
+[[package]]
 name = "serde-wasm-bindgen"
 version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5598,23 +5757,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.3",
-]
-
-[[package]]
-name = "serde_rton"
-version = "0.4.0"
-dependencies = [
- "byteorder",
- "hex",
- "integer-encoding",
- "md-5",
- "num_enum",
- "regex",
- "serde",
- "serde_json",
- "serde_yaml",
- "simple-rijndael",
- "thiserror 2.0.19",
 ]
 
 [[package]]
@@ -5837,6 +5979,48 @@ name = "smallvec"
 version = "1.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ed6a63f02c8539c91a8685a86f4099661ba3da017932f6ebbea6de3f0fa7c90"
+
+[[package]]
+name = "smf-container"
+version = "0.1.0"
+dependencies = [
+ "byteorder",
+ "flate2",
+ "md-5 0.10.6",
+ "thiserror 2.0.19",
+]
+
+[[package]]
+name = "smf-tool"
+version = "0.1.0"
+dependencies = [
+ "dioxus",
+ "dioxus-html",
+ "futures-channel",
+ "js-sys",
+ "rayon",
+ "rfd",
+ "serde",
+ "serde-wasm-bindgen",
+ "smf_worker",
+ "toolkit-ui",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "smf_worker"
+version = "0.1.0"
+dependencies = [
+ "console_error_panic_hook",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_bytes",
+ "smf-container",
+ "thiserror 2.0.19",
+ "wasm-bindgen",
+]
 
 [[package]]
 name = "socket2"
@@ -6495,15 +6679,20 @@ version = "0.1.0"
 dependencies = [
  "base64 0.23.0",
  "bnk-tool",
+ "crypt-data-tool",
  "dioxus",
  "dzip-tool",
  "newton-tool",
  "pak-tool",
  "pam-tool",
  "pam_viewer_native_window",
+ "particle-tool",
+ "reanim-tool",
+ "rsb-patch-tool",
  "rsb-tool",
  "rton-tool",
  "serde_json",
+ "smf-tool",
  "toolkit-ui",
  "wem-tool",
 ]

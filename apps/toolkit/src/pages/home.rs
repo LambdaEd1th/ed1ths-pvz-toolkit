@@ -23,7 +23,7 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                         }
                         h1 { "让 PvZ 资源处理回到一个工作区。" }
                         p {
-                            "浏览 RSB、PAK、DZip 与实验性 BNK 归档、编辑 RTON 数据、查看 PAM 动画、转换 WEM 音频、维护 NEWTON 清单，并按需使用独立的 Rust 格式库。"
+                            "浏览 RSB、PAK、DZip 与实验性 BNK 归档、创建或应用 RSBP 补丁、处理 SMF 与 Crypt-Data、编辑 RTON、Particle 与 REANIM、查看 PAM 动画、转换 WEM 音频、维护 NEWTON 清单，并按需使用独立的 Rust 格式库。"
                             "工具保持专注，界面和工作流保持一致。"
                         }
                         div { class: "tk-welcome-actions",
@@ -32,6 +32,12 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                                 onclick: move |_| on_navigate.call(AppRoute::Rsb),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "▤" }
                                 "打开 RSB Archive"
+                            }
+                            button {
+                                class: "tk-button tk-button--secondary",
+                                onclick: move |_| on_navigate.call(AppRoute::RsbPatch),
+                                span { class: "tk-button-icon", aria_hidden: "true", "⇄" }
+                                "打开 RSB Patch"
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
@@ -44,6 +50,12 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                                 onclick: move |_| on_navigate.call(AppRoute::Dzip),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "DZ" }
                                 "打开 DZip Archive"
+                            }
+                            button {
+                                class: "tk-button tk-button--secondary",
+                                onclick: move |_| on_navigate.call(AppRoute::Smf),
+                                span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "SMF" }
+                                "打开 SMF Container"
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
@@ -149,7 +161,7 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                                 span { class: "tk-kicker", "For developers" }
                                 h2 { "独立格式库" }
                             }
-                            span { class: "tk-panel-badge", "8 crates" }
+                            span { class: "tk-panel-badge", "14 crates" }
                         }
                         p { class: "tk-panel-intro",
                             "应用只组合所需的格式库；其他项目可以直接依赖单个 crate，无需引入 GUI 或聚合 SDK。"
@@ -161,17 +173,27 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                                 description: "RSB/RSG archive, zlib and PTX texture codecs",
                             }
                             LibraryRow {
+                                crate_name: "rsb-patch",
+                                version: "0.1.0",
+                                description: "RSBP container parsing and standard/interleaved VCDIFF patches",
+                            }
+                            LibraryRow {
                                 crate_name: "pak-archive",
                                 version: "0.1.0",
                                 description: "PopCap PAK archives, XOR variants, zlib and TV ZIP containers",
                             }
                             LibraryRow {
-                                crate_name: "dzip",
+                                crate_name: "dzip-archive",
                                 version: "0.5.1",
                                 description: "DZip archives, split volumes and integrated DZ, Zlib, BZip and LZMA codecs",
                             }
                             LibraryRow {
-                                crate_name: "serde_rton",
+                                crate_name: "smf-container",
+                                version: "0.1.0",
+                                description: "PopCap SMF auto-detection, zlib streaming and MD5 tag sidecars",
+                            }
+                            LibraryRow {
+                                crate_name: "serde-rton",
                                 version: "0.4.0",
                                 description: "Serde reader, writer, Value and crypto helpers",
                             }
@@ -179,6 +201,16 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                                 crate_name: "pam-codec",
                                 version: "0.1.2",
                                 description: "Typed PAM binary decoding and encoding",
+                            }
+                            LibraryRow {
+                                crate_name: "particle-codec",
+                                version: "0.1.0",
+                                description: "Particle and trail binary/XML decoding and encoding",
+                            }
+                            LibraryRow {
+                                crate_name: "reanim-codec",
+                                version: "0.1.0",
+                                description: "REANIM timeline, transform, compiled-layout and XFL codecs",
                             }
                             LibraryRow {
                                 crate_name: "wem-audio",
@@ -189,6 +221,16 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                                 crate_name: "bnk-archive",
                                 version: "0.1.0",
                                 description: "Wwise SoundBank chunks, HIRC objects and embedded WEM media",
+                            }
+                            LibraryRow {
+                                crate_name: "compiled-text",
+                                version: "0.1.0",
+                                description: "Base64 and Rijndael-192-CBC protected PopCap text containers",
+                            }
+                            LibraryRow {
+                                crate_name: "crypt-data",
+                                version: "0.1.0",
+                                description: "PopCap CRYPT_RES headers and configurable prefix XOR",
                             }
                             LibraryRow {
                                 crate_name: "newton-manifest",
@@ -204,7 +246,7 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                         ol { class: "tk-step-list",
                             li {
                                 span { "1" }
-                                div { strong { "选择工作区" } p { "RSB、PAK 与 DZip 用于资源归档，BNK（实验性）用于 SoundBank，RTON 用于数据，PAM 用于动画，WEM 用于音频，NEWTON 用于资源清单。" } }
+                                div { strong { "选择工作区" } p { "RSB、PAK 与 DZip 用于资源归档，SMF 用于 zlib 封装，Crypt-Data 用于资源加密，BNK（实验性）用于 SoundBank，RTON 用于数据，PAM 与 REANIM 用于动画，Particle 用于粒子与轨迹，WEM 用于音频，NEWTON 用于资源清单。" } }
                             }
                             li {
                                 span { "2" }

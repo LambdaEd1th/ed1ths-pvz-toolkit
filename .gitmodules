@@ -1,6 +1,6 @@
-[submodule "crates/formats/serde_rton"]
-	path = crates/formats/serde_rton
-	url = https://github.com/LambdaEd1th/serde_rton.git
+[submodule "crates/formats/serde-rton"]
+	path = crates/formats/serde-rton
+	url = https://github.com/LambdaEd1th/serde-rton.git
 	branch = master
 [submodule "crates/formats/pam-codec"]
 	path = crates/formats/pam-codec
@@ -29,4 +29,28 @@
 [submodule "crates/formats/dzip-archive"]
 	path = crates/formats/dzip-archive
 	url = https://github.com/LambdaEd1th/dzip-archive.git
+	branch = main
+[submodule "crates/formats/smf-container"]
+	path = crates/formats/smf-container
+	url = https://github.com/LambdaEd1th/smf-container.git
+	branch = main
+[submodule "crates/formats/rsb-patch"]
+	path = crates/formats/rsb-patch
+	url = https://github.com/LambdaEd1th/rsb-patch.git
+	branch = main
+[submodule "crates/formats/compiled-text"]
+	path = crates/formats/compiled-text
+	url = https://github.com/LambdaEd1th/compiled-text.git
+	branch = main
+[submodule "crates/formats/crypt-data"]
+	path = crates/formats/crypt-data
+	url = https://github.com/LambdaEd1th/crypt-data.git
+	branch = main
+[submodule "crates/formats/particle-codec"]
+	path = crates/formats/particle-codec
+	url = https://github.com/LambdaEd1th/particle-codec.git
+	branch = main
+[submodule "crates/formats/reanim-codec"]
+	path = crates/formats/reanim-codec
+	url = https://github.com/LambdaEd1th/reanim-codec.git
 	branch = main

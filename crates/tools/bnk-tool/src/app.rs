@@ -525,7 +525,7 @@ fn EmptyWorkspace(busy: bool, on_files: EventHandler<Vec<FileData>>) -> Element 
             div { class: "bnk-empty-mark", Glyph { name: "bank" } }
             span { class: "bnk-empty-kicker", "EXPERIMENTAL SOUNDBANK WORKSPACE" }
             h1 { "打开 Wwise BNK" }
-            p { "浏览并编辑 BKHD、Twinning 对齐的 HIRC 结构和内嵌 WEM，再重建为新的 SoundBank。" }
+            p { "浏览并编辑 BKHD、版本化 HIRC 结构和内嵌 WEM，再重建为新的 SoundBank。" }
             div { class: "bnk-empty-warning",
                 Glyph { name: "warning" }
                 span {
@@ -575,7 +575,7 @@ fn BankWorkspace(
                 span { class: "bnk-experimental-notice-icon", Glyph { name: "warning" } }
                 div {
                     strong { "BNK Archive 目前是实验性功能" }
-                    p { "编辑后会像 Twinning 一样重建 BNK，而不是原位修改。未知块会保留；保存前仍请备份并校验游戏内行为。" }
+                    p { "编辑后会完整重建 BNK，而不是原位修改。未知块会保留；保存前仍请备份并校验游戏内行为。" }
                 }
                 span { class: "bnk-parse-mode bnk-parse-mode--{parse_mode_class(document.parse_mode)}",
                     "{document.parse_mode.label()}"
@@ -960,7 +960,7 @@ fn Inspector(
                                     }
                                 }
                                 InspectorNotice {
-                                    "替换时仅重建该 DIDX/DATA 对，并采用 Twinning 的 16 字节 WEM 对齐；其他块和媒体顺序保持不变。"
+                                    "替换时仅重建该 DIDX/DATA 对，并采用 16 字节 WEM 对齐；其他块和媒体顺序保持不变。"
                                 }
                             }
                         } else {
@@ -1044,7 +1044,7 @@ fn HierarchyEditor(
     use_effect(use_reactive(&current_json, move |json| draft.set(json)));
     rsx! {
         section { class: "bnk-json-section bnk-hirc-editor",
-            span { "Twinning-aligned structure" }
+            span { "Version-aware structure" }
             textarea {
                 "data-text-selectable": "true",
                 aria_label: "HIRC JSON 编辑器",
@@ -1979,7 +1979,7 @@ fn validate_active_bank(
     ) {
         (Ok(()), Ok(())) => {
             status.set(AppStatus::new(
-                "BNK 已通过规范校验与 Twinning 兼容性校验。",
+                "BNK 已通过基础校验与严格兼容性校验。",
                 StatusTone::Success,
             ));
             push_application_log(
@@ -1991,11 +1991,15 @@ fn validate_active_bank(
         }
         (Ok(()), Err(error)) => {
             status.set(AppStatus::new(
-                format!("基础校验通过，但未满足 Twinning 严格顺序：{error}"),
+                format!(
+                    "基础校验通过，但未满足严格块顺序：{}",
+                    user_facing_validation_error(&error.to_string())
+                ),
                 StatusTone::Warning,
             ));
         }
         (Err(error), _) => {
+            let error = user_facing_validation_error(&error.to_string());
             status.set(AppStatus::new(
                 format!("BNK 校验失败：{error}"),
                 StatusTone::Error,
@@ -2008,6 +2012,15 @@ fn validate_active_bank(
             );
         }
     }
+}
+
+fn user_facing_validation_error(message: &str) -> String {
+    message
+        .replace("Twinning chunk sequence", "strict chunk sequence")
+        .replace("Twinning's model", "the strict format model")
+        .replace("Twinning requires", "the format specification requires")
+        .replace("Twinning's", "the format specification's")
+        .replace("Twinning", "the format specification")
 }
 
 fn export_active_bank(

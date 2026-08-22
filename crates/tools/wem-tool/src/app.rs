@@ -1215,7 +1215,7 @@ fn channel_label(channels: u16) -> String {
 }
 
 fn sample_rate_label(sample_rate: u32) -> String {
-    if sample_rate % 1_000 == 0 {
+    if sample_rate.is_multiple_of(1_000) {
         format!("{} kHz", sample_rate / 1_000)
     } else {
         format!("{:.1} kHz", sample_rate as f64 / 1_000.0)

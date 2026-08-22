@@ -762,6 +762,16 @@ button {
   font-size: 10px;
 }
 
+.tk-nav-glyph--particle {
+  color: #e39755;
+  font-size: 12px;
+}
+
+.tk-nav-glyph--reanim {
+  color: #8a77e8;
+  font-size: 12px;
+}
+
 .tk-nav-glyph--rton {
   color: #708eb3;
   font-family: monospace;
@@ -773,6 +783,11 @@ button {
   font-size: 12px;
 }
 
+.tk-nav-glyph--rsb-patch {
+  color: #62a9ca;
+  font-size: 12px;
+}
+
 .tk-nav-glyph--pak {
   color: #5f8fcf;
   font-size: 12px;
@@ -780,6 +795,16 @@ button {
 
 .tk-nav-glyph--dzip {
   color: #d8796b;
+  font-size: 12px;
+}
+
+.tk-nav-glyph--smf {
+  color: #ce769f;
+  font-size: 12px;
+}
+
+.tk-nav-glyph--crypt-data {
+  color: #5faac2;
   font-size: 12px;
 }
 
@@ -1306,6 +1331,36 @@ button {
   color: #298c78;
 }
 
+.tk-about-format--rsb-patch .tk-about-format-heading > span {
+  background: rgba(79, 159, 196, 0.13);
+  color: #4f9fc4;
+}
+
+.tk-about-format--dzip .tk-about-format-heading > span {
+  background: rgba(99, 125, 180, 0.13);
+  color: #637db4;
+}
+
+.tk-about-format--smf .tk-about-format-heading > span {
+  background: rgba(201, 111, 153, 0.13);
+  color: #c96f99;
+}
+
+.tk-about-format--crypt-data .tk-about-format-heading > span {
+  background: rgba(95, 170, 194, 0.13);
+  color: #4d9db5;
+}
+
+.tk-about-format--particle .tk-about-format-heading > span {
+  background: rgba(227, 151, 85, 0.13);
+  color: #d48543;
+}
+
+.tk-about-format--reanim .tk-about-format-heading > span {
+  background: rgba(138, 119, 232, 0.13);
+  color: #7965dc;
+}
+
 .tk-about-format--newton .tk-about-format-heading > span {
   background: rgba(70, 153, 171, 0.13);
   color: #34879a;
@@ -1795,6 +1850,18 @@ button {
   --tk-card-glow: rgba(95, 192, 110, 0.12);
 }
 
+.tk-workspace-card--particle {
+  --tk-card-accent: #df8c47;
+  --tk-card-soft: rgba(223, 140, 71, 0.13);
+  --tk-card-glow: rgba(235, 158, 91, 0.12);
+}
+
+.tk-workspace-card--reanim {
+  --tk-card-accent: #806cdd;
+  --tk-card-soft: rgba(128, 108, 221, 0.13);
+  --tk-card-glow: rgba(155, 133, 237, 0.12);
+}
+
 .tk-workspace-card--rton {
   --tk-card-accent: #6887ad;
   --tk-card-soft: rgba(104, 135, 173, 0.13);
@@ -1805,6 +1872,24 @@ button {
   --tk-card-accent: #329b86;
   --tk-card-soft: rgba(50, 155, 134, 0.13);
   --tk-card-glow: rgba(60, 184, 160, 0.12);
+}
+
+.tk-workspace-card--rsb-patch {
+  --tk-card-accent: #4f9fc4;
+  --tk-card-soft: rgba(79, 159, 196, 0.13);
+  --tk-card-glow: rgba(79, 159, 196, 0.12);
+}
+
+.tk-workspace-card--smf {
+  --tk-card-accent: #c96f99;
+  --tk-card-soft: rgba(201, 111, 153, 0.13);
+  --tk-card-glow: rgba(218, 126, 168, 0.12);
+}
+
+.tk-workspace-card--crypt-data {
+  --tk-card-accent: #529db6;
+  --tk-card-soft: rgba(82, 157, 182, 0.13);
+  --tk-card-glow: rgba(95, 170, 194, 0.12);
 }
 
 .tk-workspace-card--newton {

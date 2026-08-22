@@ -187,19 +187,14 @@ impl ArchiveDocument {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub enum BrowserLocation {
+    #[default]
     Archive,
     Packet {
         packet_index: usize,
         directory: Vec<String>,
     },
-}
-
-impl Default for BrowserLocation {
-    fn default() -> Self {
-        Self::Archive
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

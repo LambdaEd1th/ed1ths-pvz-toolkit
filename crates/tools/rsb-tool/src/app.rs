@@ -2599,8 +2599,7 @@ fn delete_selected(
         let removed_before = removed_texture_ids.partition_point(|id| *id < info.id);
         info.id = info
             .id
-            .checked_sub(u32::try_from(removed_before).unwrap_or(u32::MAX))
-            .unwrap_or_default();
+            .saturating_sub(u32::try_from(removed_before).unwrap_or(u32::MAX));
     }
     let begin = match usize::try_from(current.record.info.ptx_before_number) {
         Ok(value) => value,

@@ -1,0 +1,780 @@
+.particle-page-host,
+.particle-page,
+.particle-workspace-card {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.particle-page-host {
+  --particle-accent: #e39755;
+  --particle-accent-strong: #efa868;
+  --particle-accent-soft: rgba(227, 151, 85, 0.14);
+  position: relative;
+  color: var(--tk-ink);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.particle-page {
+  display: grid;
+  grid-template-rows: 34px minmax(0, 1fr);
+  gap: 10px;
+  box-sizing: border-box;
+  overflow: clip;
+  padding: 0 2px 2px;
+}
+
+.particle-page.is-empty {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.particle-glyph {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+.particle-file-input {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.particle-tab-strip,
+.particle-tab-list {
+  box-shadow: none;
+  background: transparent;
+}
+
+.particle-tab-strip {
+  display: flex;
+  min-width: 0;
+  height: 34px;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.particle-tab-list {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: flex-end;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.particle-tab {
+  position: relative;
+  display: flex;
+  width: clamp(140px, 20vw, 250px);
+  min-width: 0;
+  max-width: 250px;
+  height: 33px;
+  flex: 0 1 clamp(140px, 20vw, 250px);
+  align-items: center;
+  border-radius: 12px 12px 0 0;
+  color: var(--tk-muted);
+  background: color-mix(in srgb, var(--tk-surface-strong) 46%, transparent);
+}
+
+.particle-tab:hover,
+.particle-tab.is-active {
+  color: var(--tk-ink);
+  background: color-mix(in srgb, var(--tk-surface-strong) 76%, var(--particle-accent-soft));
+}
+
+.particle-tab::after {
+  position: absolute;
+  right: 10px;
+  bottom: 0;
+  left: 10px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--particle-accent);
+  content: "";
+  opacity: 0;
+}
+
+.particle-tab.is-active::after {
+  opacity: 1;
+}
+
+.particle-tab-select {
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px 0 13px;
+  border: 0;
+  outline: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.particle-tab-dot,
+.particle-tab-unsaved {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+.particle-tab-dot {
+  background: color-mix(in srgb, var(--tk-muted) 40%, transparent);
+}
+
+.particle-tab.is-active .particle-tab-dot {
+  background: var(--particle-accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--particle-accent) 48%, transparent);
+}
+
+.particle-tab-unsaved {
+  background: #f0bd55;
+}
+
+.particle-tab-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.particle-tab-close {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  margin-right: 3px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  color: var(--tk-faint);
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.particle-tab:hover .particle-tab-close,
+.particle-tab.is-active .particle-tab-close,
+.particle-tab-close:focus-visible {
+  opacity: 1;
+}
+
+.particle-tab-close:hover,
+.particle-tab-add:hover {
+  color: var(--tk-ink);
+  background: var(--particle-accent-soft);
+}
+
+.particle-tab-close .particle-glyph,
+.particle-tab-add .particle-glyph {
+  width: 14px;
+  height: 14px;
+}
+
+.particle-tab-add {
+  position: relative;
+  display: grid;
+  width: 34px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 10px 10px 0 0;
+  outline: 0;
+  color: var(--tk-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.particle-tab-add.is-disabled {
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+.particle-workspace-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--tk-radius-xl);
+  box-shadow: none;
+}
+
+.particle-empty {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 34px;
+  text-align: center;
+}
+
+.particle-empty-visual {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  margin-bottom: 22px;
+}
+
+.particle-empty-orbit {
+  position: absolute;
+  inset: 14px;
+  border: 1px solid color-mix(in srgb, var(--particle-accent) 36%, var(--tk-border));
+  border-radius: 50%;
+}
+
+.particle-empty-orbit.orbit-a {
+  transform: rotate(28deg) scaleY(0.5);
+}
+
+.particle-empty-orbit.orbit-b {
+  transform: rotate(-34deg) scaleY(0.52);
+}
+
+.particle-empty-core {
+  position: absolute;
+  top: 43px;
+  left: 43px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--particle-accent);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--particle-accent) 52%, transparent);
+}
+
+.particle-empty-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--particle-accent-strong);
+}
+
+.particle-empty-dot.dot-a { top: 23px; left: 28px; }
+.particle-empty-dot.dot-b { right: 18px; bottom: 35px; width: 6px; height: 6px; }
+.particle-empty-dot.dot-c { bottom: 15px; left: 37px; width: 5px; height: 5px; }
+
+.particle-eyebrow {
+  color: var(--particle-accent-strong);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+}
+
+.particle-empty h2 {
+  margin: 8px 0 8px;
+  font-size: clamp(20px, 3vw, 30px);
+  letter-spacing: -0.04em;
+}
+
+.particle-empty > p {
+  max-width: 580px;
+  margin: 0;
+  color: var(--tk-muted);
+  font-size: 11px;
+  line-height: 1.75;
+}
+
+.particle-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 22px 0 13px;
+}
+
+.particle-primary,
+.particle-secondary,
+.particle-action,
+.particle-apply {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  border: 1px solid var(--tk-border);
+  border-radius: 11px;
+  color: var(--tk-ink);
+  background: color-mix(in srgb, var(--tk-surface-strong) 84%, transparent);
+  font: inherit;
+  font-size: 9px;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.particle-primary,
+.particle-action.primary {
+  border-color: color-mix(in srgb, var(--particle-accent) 55%, transparent);
+  background: var(--particle-accent-soft);
+  color: var(--particle-accent-strong);
+}
+
+.particle-primary:hover,
+.particle-secondary:hover,
+.particle-action:hover,
+.particle-apply:hover {
+  border-color: color-mix(in srgb, var(--particle-accent) 48%, var(--tk-border));
+  background: var(--particle-accent-soft);
+}
+
+.particle-primary.is-disabled,
+.particle-primary:disabled,
+.particle-secondary:disabled,
+.particle-action:disabled,
+.particle-apply:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.particle-empty > small {
+  color: var(--tk-faint);
+  font-size: 9px;
+}
+
+.particle-document {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto auto minmax(190px, 0.9fr) minmax(240px, 1.15fr);
+  gap: 10px;
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 15px;
+  scrollbar-gutter: stable;
+}
+
+.particle-document-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 2px 2px 0;
+}
+
+.particle-document-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.particle-kind-badge {
+  display: grid;
+  min-width: 42px;
+  height: 42px;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 0 8px;
+  border: 1px solid color-mix(in srgb, var(--particle-accent) 35%, var(--tk-border));
+  border-radius: 14px;
+  color: var(--particle-accent-strong);
+  background: var(--particle-accent-soft);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+
+.particle-document-title h2,
+.particle-panel-heading h3,
+.particle-xml-heading h3 {
+  margin: 0;
+}
+
+.particle-document-title h2 {
+  max-width: min(45vw, 650px);
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.particle-document-title p,
+.particle-xml-heading p {
+  margin: 4px 0 0;
+  color: var(--tk-muted);
+  font-size: 9px;
+}
+
+.particle-header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 7px;
+}
+
+.particle-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.particle-summary-card,
+.particle-card {
+  border: 1px solid var(--tk-border);
+  background: color-mix(in srgb, var(--tk-surface-strong) 68%, transparent);
+}
+
+.particle-summary-card {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 13px;
+}
+
+.particle-summary-card > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--particle-accent-strong);
+  background: var(--particle-accent-soft);
+}
+
+.particle-summary-card > span .particle-glyph { width: 15px; height: 15px; }
+.particle-summary-card div { min-width: 0; }
+.particle-summary-card small { display: block; color: var(--tk-faint); font-size: 8px; }
+.particle-summary-card strong { display: block; margin-top: 3px; overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+
+.particle-main-grid {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: minmax(220px, 0.36fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.particle-main-grid.is-trail {
+  grid-template-columns: minmax(270px, 0.46fr) minmax(0, 1fr);
+}
+
+.particle-card {
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.particle-emitter-card,
+.particle-inspector-card,
+.particle-trail-overview {
+  display: flex;
+  flex-direction: column;
+  padding: 13px;
+}
+
+.particle-panel-heading,
+.particle-xml-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.particle-panel-heading h3,
+.particle-xml-heading h3 {
+  margin-top: 3px;
+  font-size: 12px;
+}
+
+.particle-panel-heading > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--particle-accent-strong);
+  background: var(--particle-accent-soft);
+}
+
+.particle-emitter-tools,
+.particle-track-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  color: var(--tk-faint);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.particle-emitter-tools > div { display: flex; gap: 4px; }
+.particle-emitter-tools button {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  color: var(--tk-muted);
+  background: transparent;
+  cursor: pointer;
+}
+.particle-emitter-tools button:hover { color: var(--particle-accent-strong); background: var(--particle-accent-soft); }
+.particle-emitter-tools button:disabled { opacity: 0.35; }
+.particle-emitter-tools .particle-glyph { width: 14px; height: 14px; }
+
+.particle-emitter-list,
+.particle-track-list {
+  min-height: 0;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+
+.particle-emitter-list {
+  flex: 1;
+  margin: 6px -5px 9px;
+  padding: 0 5px;
+}
+
+.particle-emitter-row {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: 25px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  box-sizing: border-box;
+  margin: 2px 0;
+  padding: 8px;
+  border: 0;
+  border-radius: 11px;
+  color: var(--tk-muted);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.particle-emitter-row:hover,
+.particle-emitter-row.is-active {
+  color: var(--tk-ink);
+  background: var(--particle-accent-soft);
+}
+
+.particle-emitter-index {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--particle-accent-strong);
+  background: color-mix(in srgb, var(--particle-accent-soft) 75%, transparent);
+  font-size: 8px;
+  font-weight: 850;
+}
+
+.particle-emitter-row div { min-width: 0; }
+.particle-emitter-row strong,
+.particle-emitter-row small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.particle-emitter-row strong { font-size: 9px; }
+.particle-emitter-row small { margin-top: 3px; color: var(--tk-faint); font-size: 8px; }
+.particle-emitter-row > span:last-child { color: var(--tk-faint); font-size: 8px; }
+
+.particle-version-field {
+  display: grid;
+  gap: 6px;
+  color: var(--tk-muted);
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.particle-version-field select {
+  width: 100%;
+  height: 33px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid var(--tk-border);
+  border-radius: 10px;
+  outline: 0;
+  color: var(--tk-ink);
+  background: var(--tk-surface-strong);
+  font: inherit;
+  font-size: 9px;
+}
+
+.particle-property-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 12px 0 0;
+}
+
+.particle-property-grid.trail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.particle-property-grid > div {
+  min-width: 0;
+  padding: 8px 9px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--tk-surface-strong) 78%, transparent);
+}
+.particle-property-grid dt { color: var(--tk-faint); font-size: 8px; }
+.particle-property-grid dd { margin: 4px 0 0; overflow: hidden; font-size: 9px; font-weight: 730; text-overflow: ellipsis; white-space: nowrap; }
+
+.particle-track-heading { margin: 13px 1px 6px; }
+.particle-track-heading b { color: var(--particle-accent-strong); }
+.particle-track-list { flex: 1; margin: 0 -4px; padding: 0 4px; }
+.particle-track-list.trail { margin-top: 12px; }
+.particle-track-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 9px;
+  border-bottom: 1px solid color-mix(in srgb, var(--tk-border) 65%, transparent);
+}
+.particle-track-row div { min-width: 0; }
+.particle-track-row strong,
+.particle-track-row small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.particle-track-row strong { font-size: 9px; }
+.particle-track-row small { max-width: 48vw; margin-top: 3px; color: var(--tk-faint); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 8px; }
+.particle-track-row > span { min-width: 24px; padding: 3px 6px; border-radius: 999px; color: var(--particle-accent-strong); background: var(--particle-accent-soft); font-size: 8px; font-weight: 800; text-align: center; }
+
+.particle-list-empty,
+.particle-inspector-empty {
+  color: var(--tk-faint);
+  font-size: 9px;
+  text-align: center;
+}
+.particle-list-empty { padding: 22px 8px; }
+.particle-inspector-empty { display: flex; flex: 1; align-items: center; justify-content: center; flex-direction: column; gap: 8px; }
+.particle-inspector-empty .particle-glyph { width: 28px; height: 28px; color: var(--particle-accent); }
+.particle-inspector-empty p { margin: 0; }
+.particle-card-note { margin: 14px 0 0; color: var(--tk-muted); font-size: 9px; line-height: 1.65; }
+
+.particle-xml-card {
+  display: grid;
+  min-height: 240px;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  padding: 13px;
+}
+
+.particle-xml-heading > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.particle-source-dirty {
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #e5ad46;
+  background: rgba(229, 173, 70, 0.12);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.particle-apply.is-dirty {
+  border-color: color-mix(in srgb, var(--particle-accent) 45%, var(--tk-border));
+  color: var(--particle-accent-strong);
+  background: var(--particle-accent-soft);
+}
+
+.particle-xml-editor {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  resize: none;
+  box-sizing: border-box;
+  padding: 13px 15px;
+  border: 1px solid var(--tk-border);
+  border-radius: 12px;
+  outline: 0;
+  color: var(--tk-ink);
+  background: color-mix(in srgb, var(--tk-page) 72%, var(--tk-surface-strong));
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  line-height: 1.65;
+  tab-size: 2;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.particle-xml-editor:focus {
+  border-color: color-mix(in srgb, var(--particle-accent) 56%, var(--tk-border));
+  box-shadow: 0 0 0 3px var(--particle-accent-soft);
+}
+
+.particle-status {
+  position: absolute;
+  right: 18px;
+  bottom: 17px;
+  width: auto;
+  max-width: min(420px, calc(100% - 36px));
+  z-index: 8;
+  pointer-events: none;
+}
+
+.particle-busy {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border-radius: inherit;
+  color: var(--tk-muted);
+  background: color-mix(in srgb, var(--tk-page) 70%, transparent);
+  backdrop-filter: blur(6px);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.particle-busy span {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--tk-border);
+  border-top-color: var(--particle-accent);
+  border-radius: 50%;
+  animation: particle-spin 700ms linear infinite;
+}
+
+@keyframes particle-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 900px) {
+  .particle-document { grid-template-rows: auto auto auto minmax(300px, 1fr); }
+  .particle-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .particle-main-grid,
+  .particle-main-grid.is-trail {
+    min-height: 550px;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(260px, auto) minmax(280px, auto);
+  }
+  .particle-emitter-card { min-height: 260px; }
+  .particle-inspector-card { min-height: 280px; }
+}
+
+@media (max-width: 620px) {
+  .particle-document { padding: 11px; }
+  .particle-document-header { align-items: flex-start; flex-direction: column; }
+  .particle-header-actions { width: 100%; }
+  .particle-header-actions .particle-action { flex: 1; }
+  .particle-summary-grid { grid-template-columns: 1fr 1fr; }
+  .particle-property-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .particle-xml-heading { align-items: flex-start; flex-direction: column; }
+  .particle-xml-heading > div:last-child { width: 100%; justify-content: flex-end; }
+}

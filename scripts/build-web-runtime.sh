@@ -24,11 +24,25 @@ wasm-pack build "$repo_root/crates/rsb/worker" \
   --out-name rsb_preview_worker \
   --locked
 
+wasm-pack build "$repo_root/crates/rsb-patch/worker" \
+  --target web \
+  --release \
+  --out-dir "$repo_root/crates/tools/rsb-patch-tool/assets/rsb-patch/worker/pkg" \
+  --out-name rsb_patch_worker \
+  --locked
+
 wasm-pack build "$repo_root/crates/rton/worker" \
   --target web \
   --release \
   --out-dir "$repo_root/crates/tools/rton-tool/assets/rton/worker/pkg" \
   --out-name rton_editor_worker \
+  --locked
+
+wasm-pack build "$repo_root/crates/smf/worker" \
+  --target web \
+  --release \
+  --out-dir "$repo_root/crates/tools/smf-tool/assets/smf/worker/pkg" \
+  --out-name smf_worker \
   --locked
 
 wasm-pack build "$repo_root/crates/wem/worker" \

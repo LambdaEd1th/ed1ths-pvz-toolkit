@@ -1,11 +1,16 @@
 use bnk_tool::{BnkTool, BnkWemOpenRequest};
+use crypt_data_tool::CryptDataTool;
 use dioxus::prelude::*;
 use dzip_tool::DzipTool;
 use newton_tool::{NewtonOpenRequest, NewtonTool};
 use pak_tool::{PakNewtonOpenRequest, PakRtonOpenRequest, PakTool, PakWemOpenRequest};
 use pam_tool::PamTool;
+use particle_tool::ParticleTool;
+use reanim_tool::ReanimTool;
+use rsb_patch_tool::RsbPatchTool;
 use rsb_tool::{RsbNewtonOpenRequest, RsbRtonOpenRequest, RsbTool, RsbWemOpenRequest};
 use rton_tool::{RtonOpenRequest, RtonTool};
+use smf_tool::SmfTool;
 use wem_tool::{WemOpenRequest, WemTool};
 
 use crate::navigation::{AppRoute, navigate};
@@ -74,6 +79,11 @@ pub(crate) fn ContentHost(
             }
         }
         div {
+            class: if active_route == AppRoute::RsbPatch { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
+            aria_hidden: active_route != AppRoute::RsbPatch,
+            RsbPatchTool {}
+        }
+        div {
             class: if active_route == AppRoute::Pak { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
             aria_hidden: active_route != AppRoute::Pak,
             PakTool {
@@ -104,6 +114,16 @@ pub(crate) fn ContentHost(
             DzipTool { active: active_route == AppRoute::Dzip }
         }
         div {
+            class: if active_route == AppRoute::Smf { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
+            aria_hidden: active_route != AppRoute::Smf,
+            SmfTool {}
+        }
+        div {
+            class: if active_route == AppRoute::CryptData { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
+            aria_hidden: active_route != AppRoute::CryptData,
+            CryptDataTool {}
+        }
+        div {
             class: if active_route == AppRoute::Rton { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
             aria_hidden: active_route != AppRoute::Rton,
             RtonTool {
@@ -115,6 +135,16 @@ pub(crate) fn ContentHost(
             class: if active_route == AppRoute::Pam { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
             aria_hidden: active_route != AppRoute::Pam,
             PamTool { active: active_route == AppRoute::Pam }
+        }
+        div {
+            class: if active_route == AppRoute::Particle { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
+            aria_hidden: active_route != AppRoute::Particle,
+            ParticleTool {}
+        }
+        div {
+            class: if active_route == AppRoute::Reanim { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
+            aria_hidden: active_route != AppRoute::Reanim,
+            ReanimTool {}
         }
         div {
             class: if active_route == AppRoute::Wem { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },

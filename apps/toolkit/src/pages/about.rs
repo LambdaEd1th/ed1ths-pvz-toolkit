@@ -20,7 +20,7 @@ pub(crate) fn AboutPage() -> Element {
                     h1 { "关于 Ed1th's PvZ Toolkit" }
                     p {
                         "面向 PopCap / PvZ 资源格式的开源工具工作区。"
-                        "RSB/PAK 归档浏览、RTON 数据编辑、PAM 动画查看、WEM 音频转换、NEWTON 清单维护与可复用格式库在这里共享一致的体验。"
+                        "归档浏览、RSBP 补丁、SMF 压缩、Crypt-Data 加解密、RTON 数据、Particle 与 REANIM 编辑、PAM 动画查看、WEM 音频转换、NEWTON 清单维护与可复用格式库在这里共享一致的体验。"
                     }
                 }
 
@@ -38,11 +38,21 @@ pub(crate) fn AboutPage() -> Element {
                             "Toolkit 将多个专业工具组合到一个应用外壳中，同时让 "
                             code { "rsb-archive" }
                             "、"
+                            code { "rsb-patch" }
+                            "、"
                             code { "pak-archive" }
+                            "、"
+                            code { "compiled-text" }
+                            "、"
+                            code { "crypt-data" }
                             " 与 "
-                            code { "serde_rton" }
+                            code { "serde-rton" }
                             "、"
                             code { "pam-codec" }
+                            "、"
+                            code { "particle-codec" }
+                            "、"
+                            code { "reanim-codec" }
                             "、"
                             code { "wem-audio" }
                             "、"
@@ -94,13 +104,6 @@ pub(crate) fn AboutPage() -> Element {
                                             "文件格式与兼容性研究对象"
                                         }
                                     }
-                                    li {
-                                        span { aria_hidden: "true" }
-                                        p {
-                                            strong { "Twinning" }
-                                            "格式行为与编解码实现的参考来源"
-                                        }
-                                    }
                                 }
                             }
                             section {
@@ -128,7 +131,7 @@ pub(crate) fn AboutPage() -> Element {
                                 span { class: "tk-about-card-label", "Workspaces & libraries" }
                                 h2 { "专业工具，共享设计语言" }
                             }
-                            span { class: "tk-about-count", "7 formats" }
+                            span { class: "tk-about-count", "13 tools" }
                         }
                         div { class: "tk-about-format-grid",
                             section { class: "tk-about-format tk-about-format--rsb",
@@ -141,6 +144,16 @@ pub(crate) fn AboutPage() -> Element {
                                 }
                                 p { "归档与 RSG 数据包浏览、zlib 验证、资源提取，以及 PTX 纹理编解码与预览。" }
                             }
+                            section { class: "tk-about-format tk-about-format--rsb-patch",
+                                div { class: "tk-about-format-heading",
+                                    span { aria_hidden: "true", "⇄" }
+                                    div {
+                                        h3 { "RSB Patch" }
+                                        code { "rsb-patch" }
+                                    }
+                                }
+                                p { "规范化 RSBP 容器与 VCDIFF 差分，支持检查、创建和应用补丁。" }
+                            }
                             section { class: "tk-about-format tk-about-format--pak",
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "PAK" }
@@ -151,12 +164,42 @@ pub(crate) fn AboutPage() -> Element {
                                 }
                                 p { "PC XOR、Plain、Xbox 360 与 TV ZIP 容器的浏览、编辑、提取和规范化回写。" }
                             }
+                            section { class: "tk-about-format tk-about-format--dzip",
+                                div { class: "tk-about-format-heading",
+                                    span { aria_hidden: "true", "◇" }
+                                    div {
+                                        h3 { "DZip Archive" }
+                                        code { "dzip-archive" }
+                                    }
+                                }
+                                p { "DZip 归档与分卷浏览、编辑、提取，以及 DZ、zlib、BZip2 和 LZMA 编解码。" }
+                            }
+                            section { class: "tk-about-format tk-about-format--smf",
+                                div { class: "tk-about-format-heading",
+                                    span { aria_hidden: "true", "◇" }
+                                    div {
+                                        h3 { "SMF Container" }
+                                        code { "smf-container" }
+                                    }
+                                }
+                                p { "PopCap SMF 自动识别、流式解压与可配置 zlib 封装。" }
+                            }
+                            section { class: "tk-about-format tk-about-format--crypt-data",
+                                div { class: "tk-about-format-heading",
+                                    span { aria_hidden: "true", "◈" }
+                                    div {
+                                        h3 { "Crypt-Data" }
+                                        code { "crypt-data" }
+                                    }
+                                }
+                                p { "CRYPT_RES 自动识别、可配置前缀 XOR、原始长度校验与本地加解密转换。" }
+                            }
                             section { class: "tk-about-format tk-about-format--rton",
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "RTON" }
                                     div {
                                         h3 { "RTON Editor" }
-                                        code { "serde_rton" }
+                                        code { "serde-rton" }
                                     }
                                 }
                                 p { "树、文本与十六进制编辑，标准/紧凑 RTON 转换及可选加密支持。" }
@@ -170,6 +213,26 @@ pub(crate) fn AboutPage() -> Element {
                                     }
                                 }
                                 p { "动画预览、资源检查、时间轴控制，以及开放格式与 FLA/XFL 导出。" }
+                            }
+                            section { class: "tk-about-format tk-about-format--particle",
+                                div { class: "tk-about-format-heading",
+                                    span { aria_hidden: "true", "✦" }
+                                    div {
+                                        h3 { "Particle Editor" }
+                                        code { "particle-codec" }
+                                    }
+                                }
+                                p { "Particle 与 Trail 的发射器、字段和轨道检查，以及 XML 与多平台 compiled 双向转换。" }
+                            }
+                            section { class: "tk-about-format tk-about-format--reanim",
+                                div { class: "tk-about-format-heading",
+                                    span { aria_hidden: "true", "◫" }
+                                    div {
+                                        h3 { "REANIM Editor" }
+                                        code { "reanim-codec" }
+                                    }
+                                }
+                                p { "REANIM 轨道与逐帧变换编辑，以及结构化文本、XFL 与多平台 compiled 转换。" }
                             }
                             section { class: "tk-about-format tk-about-format--wem",
                                 div { class: "tk-about-format-heading",

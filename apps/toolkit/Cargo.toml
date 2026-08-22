@@ -11,16 +11,41 @@ description = "The unified desktop and Web app for Ed1th's PvZ Toolkit"
 name = "pvz-toolkit"
 path = "src/main.rs"
 
+[package.metadata.bundle]
+name = "Ed1th's PvZ Toolkit"
+identifier = "io.github.lambdaed1th.pvz-toolkit"
+category = "public.app-category.developer-tools"
+short_description = "PvZ resource archive, data, animation, audio, and compression tools"
+long_description = """
+A cross-platform toolkit for inspecting, editing, converting, and previewing
+Plants vs. Zombies resource formats.
+"""
+
+[package.metadata.bundle.bin.pvz-toolkit]
+name = "Ed1th's PvZ Toolkit"
+identifier = "io.github.lambdaed1th.pvz-toolkit"
+category = "public.app-category.developer-tools"
+short_description = "PvZ resource archive, data, animation, audio, and compression tools"
+long_description = """
+A cross-platform toolkit for inspecting, editing, converting, and previewing
+Plants vs. Zombies resource formats.
+"""
+
 [dependencies]
 base64.workspace = true
 bnk-tool.workspace = true
+crypt-data-tool.workspace = true
 dzip-tool.workspace = true
 newton-tool.workspace = true
 pak-tool.workspace = true
 pam-tool = { path = "../../crates/tools/pam-tool" }
+particle-tool.workspace = true
+reanim-tool.workspace = true
 rsb-tool = { path = "../../crates/tools/rsb-tool" }
+rsb-patch-tool.workspace = true
 rton-tool = { path = "../../crates/tools/rton-tool" }
 serde_json.workspace = true
+smf-tool.workspace = true
 toolkit-ui.workspace = true
 wem-tool = { path = "../../crates/tools/wem-tool" }
 
