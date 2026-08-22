@@ -19,25 +19,25 @@ web-host = []
 [dependencies]
 bytemuck.workspace = true
 futures-channel.workspace = true
-pam_viewer_core = { path = "../core" }
+pam_viewer_core.workspace = true
 parking_lot.workspace = true
 serde.workspace = true
 thiserror.workspace = true
 wgpu.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-pollster = "1"
+pollster.workspace = true
 rayon.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-futures-util = "0.3"
-gloo-timers = { version = "0.4", features = ["futures"] }
-js-sys = "0.3"
-console_error_panic_hook = "0.1"
-serde-wasm-bindgen = "0.6"
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = [
+console_error_panic_hook.workspace = true
+futures-util.workspace = true
+gloo-timers.workspace = true
+js-sys.workspace = true
+serde-wasm-bindgen.workspace = true
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+web-sys = { workspace = true, features = [
     "Document",
     "Element",
     "HtmlCanvasElement",
@@ -46,5 +46,5 @@ web-sys = { version = "0.3", features = [
 ] }
 
 [dev-dependencies]
-pam_viewer_formats = { path = "../formats" }
-pollster = "1"
+pam_viewer_formats.workspace = true
+pollster.workspace = true

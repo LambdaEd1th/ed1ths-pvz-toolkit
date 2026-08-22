@@ -20,13 +20,13 @@ toolkit-ui.workspace = true
 dioxus = { workspace = true, features = ["desktop"] }
 futures-channel.workspace = true
 rayon.workspace = true
-rfd = "0.17"
+rfd.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 dioxus = { workspace = true, features = ["web"] }
-js-sys = "0.3"
-wasm-bindgen = "0.2"
-web-sys = { version = "0.3", features = [
+js-sys.workspace = true
+wasm-bindgen.workspace = true
+web-sys = { workspace = true, features = [
     "Blob",
     "Document",
     "HtmlAnchorElement",

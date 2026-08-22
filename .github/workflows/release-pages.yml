@@ -19,7 +19,7 @@ env:
   CARGO_INCREMENTAL: 0
   CARGO_PROFILE_DEV_DEBUG: 0
   CARGO_PROFILE_TEST_DEBUG: 0
-  DX_VERSION: 0.7.9
+  DX_VERSION: 0.7.10
   WASM_PACK_VERSION: 0.15.0
   WEB_DIST: target/dx/pvz-toolkit/release/web/public
 

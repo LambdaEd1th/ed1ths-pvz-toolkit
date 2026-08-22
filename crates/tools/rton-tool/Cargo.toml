@@ -12,31 +12,31 @@ description = "Internal RTON workspace for Ed1th's PvZ Toolkit"
 path = "src/lib.rs"
 
 [dependencies]
-dioxus-html = "0.7.9"
-dioxus-free-icons = { version = "0.10", features = ["lucide"] }
-fluent-bundle = "0.16"
-log = { version = "0.4", features = ["std"] }
-rton_editor_core = { path = "../../rton/core" }
-ropey = "1.6.1"
-serde = "1"
-serde_json = "1"
-unic-langid = "0.9"
+dioxus-free-icons.workspace = true
+dioxus-html.workspace = true
+fluent-bundle.workspace = true
+log.workspace = true
+ropey.workspace = true
+rton_editor_core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 toolkit-ui.workspace = true
+unic-langid.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-dioxus = { version = "0.7.9", features = ["desktop"] }
-futures-timer = "3"
-memmap2 = "0.9"
-rayon = "1"
-rfd = "0.17"
+dioxus = { workspace = true, features = ["desktop"] }
+futures-timer.workspace = true
+memmap2.workspace = true
+rayon.workspace = true
+rfd.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-dioxus = { version = "0.7.9", features = ["web"] }
-js-sys = "0.3"
-serde-wasm-bindgen = "0.6"
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = [
+dioxus = { workspace = true, features = ["web"] }
+js-sys.workspace = true
+serde-wasm-bindgen.workspace = true
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+web-sys = { workspace = true, features = [
     "Blob",
     "ClipboardEvent",
     "console",

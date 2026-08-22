@@ -9,7 +9,7 @@ publish.workspace = true
 [dependencies]
 crc32fast.workspace = true
 image.workspace = true
-pam_viewer_core = { path = "../core" }
+pam_viewer_core.workspace = true
 png.workspace = true
 quick-xml.workspace = true
 regex.workspace = true

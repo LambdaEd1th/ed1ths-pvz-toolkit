@@ -38,22 +38,22 @@ crypt-data-tool.workspace = true
 dzip-tool.workspace = true
 newton-tool.workspace = true
 pak-tool.workspace = true
-pam-tool = { path = "../../crates/tools/pam-tool" }
+pam-tool.workspace = true
 particle-tool.workspace = true
 reanim-tool.workspace = true
-rsb-tool = { path = "../../crates/tools/rsb-tool" }
+rsb-tool.workspace = true
 rsb-patch-tool.workspace = true
-rton-tool = { path = "../../crates/tools/rton-tool" }
+rton-tool.workspace = true
 serde_json.workspace = true
 smf-tool.workspace = true
 toolkit-ui.workspace = true
-wem-tool = { path = "../../crates/tools/wem-tool" }
+wem-tool.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 dioxus = { workspace = true, features = ["desktop"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-pam_viewer_native_window = { path = "../../crates/pam/native-window" }
+pam_viewer_native_window.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 dioxus = { workspace = true, features = ["web"] }
