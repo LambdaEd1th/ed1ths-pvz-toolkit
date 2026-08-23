@@ -1,5 +1,5 @@
 (() => {
-    const VERSION = 2;
+    const VERSION = 3;
     const BAR_COUNT = 56;
     const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 2];
     const existing = window.wemPlayer;
@@ -18,6 +18,9 @@
     let graph = null;
     let frequencyData = null;
     let resizeObserver = null;
+    let themeObserver = null;
+    let themeMediaQuery = null;
+    let themeFrame = 0;
     let seekInput = null;
     let currentTimeOutput = null;
     let durationOutput = null;
@@ -418,9 +421,55 @@
 
     const onResize = () => drawWaveform();
 
+    const onThemeChange = () => {
+        if (themeFrame) cancelAnimationFrame(themeFrame);
+        themeFrame = requestAnimationFrame(() => {
+            themeFrame = 0;
+            drawWaveform();
+        });
+    };
+
+    const observeTheme = () => {
+        if (typeof MutationObserver === "function") {
+            themeObserver = new MutationObserver(onThemeChange);
+            const shell = canvas?.closest?.(".tk-shell");
+            themeObserver.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ["class", "style"],
+            });
+            if (shell && shell !== document.documentElement) {
+                themeObserver.observe(shell, {
+                    attributes: true,
+                    attributeFilter: ["class", "style"],
+                });
+            }
+        }
+
+        themeMediaQuery = window.matchMedia?.("(prefers-color-scheme: dark)") ?? null;
+        if (typeof themeMediaQuery?.addEventListener === "function") {
+            themeMediaQuery.addEventListener("change", onThemeChange);
+        } else {
+            themeMediaQuery?.addListener?.(onThemeChange);
+        }
+    };
+
+    const stopObservingTheme = () => {
+        themeObserver?.disconnect();
+        themeObserver = null;
+        if (typeof themeMediaQuery?.removeEventListener === "function") {
+            themeMediaQuery.removeEventListener("change", onThemeChange);
+        } else {
+            themeMediaQuery?.removeListener?.(onThemeChange);
+        }
+        themeMediaQuery = null;
+        if (themeFrame) cancelAnimationFrame(themeFrame);
+        themeFrame = 0;
+    };
+
     const unbind = () => {
         if (frame) cancelAnimationFrame(frame);
         frame = 0;
+        stopObservingTheme();
         if (audio) {
             audio.removeEventListener("play", onPlay);
             audio.removeEventListener("pause", onPause);
@@ -513,6 +562,7 @@
         } else {
             window.addEventListener("resize", onResize);
         }
+        observeTheme();
         onLoaded();
         if (!audio.paused) onPlay();
     };

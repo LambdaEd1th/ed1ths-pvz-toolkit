@@ -409,7 +409,7 @@ dependencies = [
 
 [[package]]
 name = "bnk-tool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bnk-archive",
  "dioxus",
@@ -953,7 +953,7 @@ dependencies = [
 
 [[package]]
 name = "crypt-data-tool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "crypt-data",
  "dioxus",
@@ -1769,7 +1769,7 @@ dependencies = [
 
 [[package]]
 name = "dzip-tool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "dioxus",
  "dioxus-html",
@@ -3730,7 +3730,7 @@ dependencies = [
 
 [[package]]
 name = "newton-tool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "dioxus",
  "dioxus-html",
@@ -4108,7 +4108,7 @@ dependencies = [
 
 [[package]]
 name = "pak-tool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "dioxus",
  "dioxus-html",
@@ -4135,7 +4135,7 @@ dependencies = [
 
 [[package]]
 name = "pam-tool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base64 0.23.0",
  "dioxus",
@@ -4166,7 +4166,7 @@ dependencies = [
 
 [[package]]
 name = "pam_viewer_core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "pam-codec",
  "rayon",
@@ -4179,7 +4179,7 @@ dependencies = [
 
 [[package]]
 name = "pam_viewer_formats"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "crc32fast",
  "image",
@@ -4199,7 +4199,7 @@ dependencies = [
 
 [[package]]
 name = "pam_viewer_native_window"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "objc2",
  "objc2-app-kit",
@@ -4208,7 +4208,7 @@ dependencies = [
 
 [[package]]
 name = "pam_viewer_renderer"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bytemuck",
  "console_error_panic_hook",
@@ -4232,7 +4232,7 @@ dependencies = [
 
 [[package]]
 name = "pam_viewer_worker"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "console_error_panic_hook",
  "pam_viewer_core",
@@ -4309,7 +4309,7 @@ dependencies = [
 
 [[package]]
 name = "particle-tool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "dioxus",
  "dioxus-html",
@@ -5119,7 +5119,7 @@ dependencies = [
 
 [[package]]
 name = "reanim-tool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "dioxus",
  "dioxus-html",
@@ -5339,7 +5339,7 @@ dependencies = [
 
 [[package]]
 name = "rsb-patch-tool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "dioxus",
  "dioxus-html",
@@ -5358,7 +5358,7 @@ dependencies = [
 
 [[package]]
 name = "rsb-tool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "arboard",
  "base64 0.23.0",
@@ -5383,7 +5383,7 @@ dependencies = [
 
 [[package]]
 name = "rsb_patch_worker"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "console_error_panic_hook",
  "rsb-patch",
@@ -5396,7 +5396,7 @@ dependencies = [
 
 [[package]]
 name = "rsb_preview_worker"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "console_error_panic_hook",
  "image",
@@ -5410,7 +5410,7 @@ dependencies = [
 
 [[package]]
 name = "rton-tool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "dioxus",
  "dioxus-free-icons",
@@ -5436,7 +5436,7 @@ dependencies = [
 
 [[package]]
 name = "rton_editor_core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "hex",
  "rayon",
@@ -5451,7 +5451,7 @@ dependencies = [
 
 [[package]]
 name = "rton_editor_worker"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "console_error_panic_hook",
  "rton_editor_core",
@@ -5992,7 +5992,7 @@ dependencies = [
 
 [[package]]
 name = "smf-tool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "dioxus",
  "dioxus-html",
@@ -6011,7 +6011,7 @@ dependencies = [
 
 [[package]]
 name = "smf_worker"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "console_error_panic_hook",
  "serde",
@@ -6675,13 +6675,17 @@ checksum = "7d56353a2a665ad0f41a421187180aab746c8c325620617ad883a99a1cbe66d2"
 
 [[package]]
 name = "toolkit-app"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base64 0.23.0",
  "bnk-tool",
  "crypt-data-tool",
  "dioxus",
+ "directories",
  "dzip-tool",
+ "fluent-bundle",
+ "futures-timer",
+ "js-sys",
  "newton-tool",
  "pak-tool",
  "pam-tool",
@@ -6694,12 +6698,16 @@ dependencies = [
  "serde_json",
  "smf-tool",
  "toolkit-ui",
+ "unic-langid",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
  "wem-tool",
 ]
 
 [[package]]
 name = "toolkit-ui"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "dioxus",
  "js-sys",
@@ -7365,7 +7373,7 @@ dependencies = [
 
 [[package]]
 name = "wem-tool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base64 0.23.0",
  "dioxus",
@@ -7385,7 +7393,7 @@ dependencies = [
 
 [[package]]
 name = "wem_audio_worker"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "console_error_panic_hook",
  "hound",

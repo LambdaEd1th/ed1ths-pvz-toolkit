@@ -1,9 +1,12 @@
 use dioxus::prelude::*;
 
+use crate::i18n::I18n;
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub(crate) enum AppRoute {
     #[default]
     Home,
+    Libraries,
     About,
     Rsb,
     RsbPatch,
@@ -21,23 +24,24 @@ pub(crate) enum AppRoute {
 }
 
 impl AppRoute {
-    pub(crate) const fn label(self) -> &'static str {
+    pub(crate) fn label(self, i18n: I18n) -> String {
         match self {
-            Self::Home => "Home",
-            Self::About => "About",
-            Self::Rsb => "RSB Archive",
-            Self::RsbPatch => "RSB Patch",
-            Self::Pak => "PAK Archive",
-            Self::Dzip => "DZip Archive",
-            Self::Smf => "SMF Container",
-            Self::CryptData => "Crypt-Data",
-            Self::Rton => "RTON Editor",
-            Self::Pam => "PAM Viewer",
-            Self::Particle => "Particle Editor",
-            Self::Reanim => "REANIM Editor",
-            Self::Wem => "WEM Audio",
-            Self::Bnk => "BNK Archive",
-            Self::Newton => "NEWTON Manifest",
+            Self::Home => i18n.t("nav-home"),
+            Self::Libraries => i18n.t("nav-libraries"),
+            Self::About => i18n.t("nav-about"),
+            Self::Rsb => "RSB Archive".to_string(),
+            Self::RsbPatch => "RSB Patch".to_string(),
+            Self::Pak => "PAK Archive".to_string(),
+            Self::Dzip => "DZip Archive".to_string(),
+            Self::Smf => "SMF Container".to_string(),
+            Self::CryptData => "Crypt-Data".to_string(),
+            Self::Rton => "RTON Editor".to_string(),
+            Self::Pam => "PAM Viewer".to_string(),
+            Self::Particle => "Particle Editor".to_string(),
+            Self::Reanim => "REANIM Editor".to_string(),
+            Self::Wem => "WEM Audio".to_string(),
+            Self::Bnk => "BNK Archive".to_string(),
+            Self::Newton => "NEWTON Manifest".to_string(),
         }
     }
 }

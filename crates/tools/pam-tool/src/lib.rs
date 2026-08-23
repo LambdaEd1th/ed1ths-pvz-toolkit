@@ -8,7 +8,7 @@ use dioxus::prelude::*;
 use toolkit_ui::{Appearance, ToolSurface, use_appearance};
 
 use crate::components::PamPage;
-use crate::state::{AppContext, Theme};
+use crate::state::{AppContext, Locale, Theme};
 
 fn pam_theme(appearance: Appearance) -> Theme {
     match appearance {
@@ -20,7 +20,10 @@ fn pam_theme(appearance: Appearance) -> Theme {
 
 /// Mount the PAM viewer/exporter inside the Toolkit shell.
 #[component]
-pub fn PamTool(#[props(default = true)] active: bool) -> Element {
+pub fn PamTool(
+    #[props(default = true)] active: bool,
+    #[props(default)] locale_code: Option<String>,
+) -> Element {
     let appearance = use_appearance().preference();
     let theme = pam_theme(appearance);
     let mut context = use_hook(move || AppContext::new(theme));
@@ -40,6 +43,16 @@ pub fn PamTool(#[props(default = true)] active: bool) -> Element {
         if context.preferences.peek().theme != theme {
             context.preferences.write().theme = theme;
             context.sync_stage();
+        }
+    }));
+    use_effect(use_reactive(&locale_code, move |locale_code| {
+        let locale = locale_code
+            .as_deref()
+            .filter(|code| code.eq_ignore_ascii_case("zh-CN") || code.starts_with("zh"))
+            .map(|_| Locale::ZhCn)
+            .unwrap_or(Locale::En);
+        if context.preferences.peek().locale != locale {
+            context.preferences.write().locale = locale;
         }
     }));
     #[cfg(not(target_arch = "wasm32"))]

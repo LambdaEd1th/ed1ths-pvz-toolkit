@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 use toolkit_ui::IconButton;
 
+use crate::i18n::use_i18n;
 use crate::navigation::AppRoute;
 
 use super::brand::BrandLabel;
@@ -11,6 +12,7 @@ pub(crate) fn TopBar(
     sidebar_open: Signal<bool>,
     settings_open: Signal<bool>,
 ) -> Element {
+    let i18n = use_i18n();
     let active_route = route();
     let mut menu_sidebar = sidebar_open;
     let mut open_settings = settings_open;
@@ -20,8 +22,8 @@ pub(crate) fn TopBar(
             div { class: "tk-appbar-start",
                 IconButton {
                     class: "tk-icon-button".to_string(),
-                    label: "切换导航".to_string(),
-                    title: Some("切换导航".to_string()),
+                    label: i18n.t("topbar-toggle-navigation"),
+                    title: Some(i18n.t("topbar-toggle-navigation")),
                     onclick: move |_| menu_sidebar.set(!menu_sidebar()),
                     span { class: "tk-menu-icon", aria_hidden: "true",
                         i {}
@@ -34,15 +36,15 @@ pub(crate) fn TopBar(
                 div { class: "tk-breadcrumb",
                     span { "Toolkit" }
                     b { "/" }
-                    strong { "{active_route.label()}" }
+                    strong { "{active_route.label(i18n)}" }
                 }
             }
 
             div { class: "tk-appbar-actions",
                 IconButton {
                     class: "tk-settings-button".to_string(),
-                    label: "打开设置".to_string(),
-                    title: Some("设置".to_string()),
+                    label: i18n.t("topbar-open-settings"),
+                    title: Some(i18n.t("settings-title")),
                     pressed: Some(settings_open()),
                     onclick: move |_| open_settings.set(!open_settings()),
                     SettingsIcon {}

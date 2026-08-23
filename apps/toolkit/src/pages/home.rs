@@ -3,6 +3,8 @@ use std::sync::OnceLock;
 use base64::Engine;
 use dioxus::prelude::*;
 
+use crate::i18n::{I18n, use_i18n};
+use crate::library_registry::{LIBRARIES, LibraryDescriptor};
 use crate::navigation::AppRoute;
 use crate::shell::BrandLabel;
 use crate::tool_registry::{TOOLS, ToolDescriptor};
@@ -12,6 +14,9 @@ static HOME_SUNFLOWER_DATA_URL: OnceLock<String> = OnceLock::new();
 
 #[component]
 pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
+    let i18n = use_i18n();
+    let library_count = LIBRARIES.len();
+
     rsx! {
         div { class: "tk-home-scroll",
             div { class: "tk-dashboard",
@@ -19,73 +24,70 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                     div { class: "tk-welcome-copy",
                         div { class: "tk-eyebrow",
                             span { class: "tk-eyebrow-dot" }
-                            "Resource workspace"
+                            {i18n.t("home-eyebrow")}
                         }
-                        h1 { "让 PvZ 资源处理回到一个工作区。" }
-                        p {
-                            "浏览 RSB、PAK、DZip 与实验性 BNK 归档、创建或应用 RSBP 补丁、处理 SMF 与 Crypt-Data、编辑 RTON、Particle 与 REANIM、查看 PAM 动画、转换 WEM 音频、维护 NEWTON 清单，并按需使用独立的 Rust 格式库。"
-                            "工具保持专注，界面和工作流保持一致。"
-                        }
+                        h1 { {i18n.t("home-title")} }
+                        p { {i18n.t("home-description")} }
                         div { class: "tk-welcome-actions",
                             button {
                                 class: "tk-button tk-button--primary",
                                 onclick: move |_| on_navigate.call(AppRoute::Rsb),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "▤" }
-                                "打开 RSB Archive"
+                                {open_tool_label(i18n, "RSB Archive")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::RsbPatch),
                                 span { class: "tk-button-icon", aria_hidden: "true", "⇄" }
-                                "打开 RSB Patch"
+                                {open_tool_label(i18n, "RSB Patch")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Pak),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "PAK" }
-                                "打开 PAK Archive"
+                                {open_tool_label(i18n, "PAK Archive")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Dzip),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "DZ" }
-                                "打开 DZip Archive"
+                                {open_tool_label(i18n, "DZip Archive")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Smf),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "SMF" }
-                                "打开 SMF Container"
+                                {open_tool_label(i18n, "SMF Container")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Rton),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "{{ }}" }
-                                "打开 RTON Editor"
+                                {open_tool_label(i18n, "RTON Editor")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Pam),
                                 span { class: "tk-button-icon", aria_hidden: "true", "▶" }
-                                "打开 PAM Viewer"
+                                {open_tool_label(i18n, "PAM Viewer")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Wem),
                                 span { class: "tk-button-icon", aria_hidden: "true", "♫" }
-                                "打开 WEM Audio"
+                                {open_tool_label(i18n, "WEM Audio")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Bnk),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "BNK" }
-                                "打开 BNK Archive（实验性）"
+                                {i18n.t_args("home-open-experimental-tool", &[("tool", "BNK Archive".to_string())])}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Newton),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "N" }
-                                "打开 NEWTON Manifest"
+                                {open_tool_label(i18n, "NEWTON Manifest")}
                             }
                         }
                     }
@@ -138,10 +140,10 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                 section { class: "tk-dashboard-section", id: "tools",
                     div { class: "tk-section-heading",
                         div {
-                            span { class: "tk-kicker", "Quick access" }
-                            h2 { "工作区" }
+                            span { class: "tk-kicker", {i18n.t("home-quick-access")} }
+                            h2 { {i18n.t("home-workspaces-title")} }
                         }
-                        p { "每个工具保留自己的专业工作流，并共享统一的导航与视觉语言。" }
+                        p { {i18n.t("home-workspaces-intro")} }
                     }
 
                     div { class: "tk-workspace-grid",
@@ -158,115 +160,51 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                     section { class: "tk-dashboard-section tk-library-panel tk-glass-card", id: "libraries",
                         div { class: "tk-panel-heading",
                             div {
-                                span { class: "tk-kicker", "For developers" }
-                                h2 { "独立格式库" }
+                                span { class: "tk-kicker", {i18n.t("home-for-developers")} }
+                                h2 { {i18n.t("home-libraries-title")} }
                             }
-                            span { class: "tk-panel-badge", "14 crates" }
+                            button {
+                                class: "tk-panel-link",
+                                onclick: move |_| on_navigate.call(AppRoute::Libraries),
+                                span { "{library_count} crates" }
+                                b { aria_hidden: "true", "→" }
+                            }
                         }
-                        p { class: "tk-panel-intro",
-                            "应用只组合所需的格式库；其他项目可以直接依赖单个 crate，无需引入 GUI 或聚合 SDK。"
-                        }
+                        p { class: "tk-panel-intro", {i18n.t("home-libraries-intro")} }
                         div { class: "tk-library-list",
-                            LibraryRow {
-                                crate_name: "rsb-archive",
-                                version: "0.1.0",
-                                description: "RSB/RSG archive, zlib and PTX texture codecs",
-                            }
-                            LibraryRow {
-                                crate_name: "rsb-patch",
-                                version: "0.1.0",
-                                description: "RSBP container parsing and standard/interleaved VCDIFF patches",
-                            }
-                            LibraryRow {
-                                crate_name: "pak-archive",
-                                version: "0.1.0",
-                                description: "PopCap PAK archives, XOR variants, zlib and TV ZIP containers",
-                            }
-                            LibraryRow {
-                                crate_name: "dzip-archive",
-                                version: "0.5.1",
-                                description: "DZip archives, split volumes and integrated DZ, Zlib, BZip and LZMA codecs",
-                            }
-                            LibraryRow {
-                                crate_name: "smf-container",
-                                version: "0.1.0",
-                                description: "PopCap SMF auto-detection, zlib streaming and MD5 tag sidecars",
-                            }
-                            LibraryRow {
-                                crate_name: "serde-rton",
-                                version: "0.4.0",
-                                description: "Serde reader, writer, Value and crypto helpers",
-                            }
-                            LibraryRow {
-                                crate_name: "pam-codec",
-                                version: "0.1.2",
-                                description: "Typed PAM binary decoding and encoding",
-                            }
-                            LibraryRow {
-                                crate_name: "particle-codec",
-                                version: "0.1.0",
-                                description: "Particle and trail binary/XML decoding and encoding",
-                            }
-                            LibraryRow {
-                                crate_name: "reanim-codec",
-                                version: "0.1.0",
-                                description: "REANIM timeline, transform, compiled-layout and XFL codecs",
-                            }
-                            LibraryRow {
-                                crate_name: "wem-audio",
-                                version: "0.1.0",
-                                description: "Wwise WEM inspection, playback decoding and audio encoding",
-                            }
-                            LibraryRow {
-                                crate_name: "bnk-archive",
-                                version: "0.1.0",
-                                description: "Wwise SoundBank chunks, HIRC objects and embedded WEM media",
-                            }
-                            LibraryRow {
-                                crate_name: "compiled-text",
-                                version: "0.1.0",
-                                description: "Base64 and Rijndael-192-CBC protected PopCap text containers",
-                            }
-                            LibraryRow {
-                                crate_name: "crypt-data",
-                                version: "0.1.0",
-                                description: "PopCap CRYPT_RES headers and configurable prefix XOR",
-                            }
-                            LibraryRow {
-                                crate_name: "newton-manifest",
-                                version: "0.1.0",
-                                description: "PvZ2 resource manifest groups, slots and atlas metadata",
+                            for library in LIBRARIES {
+                                LibraryRow { library }
                             }
                         }
                     }
 
                     section { class: "tk-dashboard-section tk-start-panel tk-glass-card", id: "getting-started",
-                        span { class: "tk-kicker", "Getting started" }
-                        h2 { "从文件开始" }
+                        span { class: "tk-kicker", {i18n.t("home-getting-started")} }
+                        h2 { {i18n.t("home-start-title")} }
                         ol { class: "tk-step-list",
                             li {
                                 span { "1" }
-                                div { strong { "选择工作区" } p { "RSB、PAK 与 DZip 用于资源归档，SMF 用于 zlib 封装，Crypt-Data 用于资源加密，BNK（实验性）用于 SoundBank，RTON 用于数据，PAM 与 REANIM 用于动画，Particle 用于粒子与轨迹，WEM 用于音频，NEWTON 用于资源清单。" } }
+                                div { strong { {i18n.t("home-step-one-title")} } p { {i18n.t("home-step-one-body")} } }
                             }
                             li {
                                 span { "2" }
-                                div { strong { "打开或拖入文件" } p { "工具会在本地读取资源，不需要 CLI。" } }
+                                div { strong { {i18n.t("home-step-two-title")} } p { {i18n.t("home-step-two-body")} } }
                             }
                             li {
                                 span { "3" }
-                                div { strong { "检查、编辑并导出" } p { "保留原始格式，也可转换为开放格式。" } }
+                                div { strong { {i18n.t("home-step-three-title")} } p { {i18n.t("home-step-three-body")} } }
                             }
                         }
                         div { class: "tk-growth-note",
                             span { aria_hidden: "true", "+" }
-                            p { strong { "为更多格式预留" } "后续工具会沿用相同外壳，并继续保持库的独立发布。" }
+                            p { strong { {i18n.t("home-growth-title")} } {i18n.t("home-growth-body")} }
                         }
                     }
                 }
 
                 footer { class: "tk-footer",
                     BrandLabel { compact: true }
-                    p { "One app shell · Focused format libraries" }
+                    p { {i18n.t("home-footer")} }
                     span { "Ed1th · 2026" }
                 }
             }
@@ -299,18 +237,21 @@ fn home_sunflower_data_url() -> &'static str {
 
 #[component]
 fn WorkspaceCard(tool: ToolDescriptor, onclick: EventHandler<MouseEvent>) -> Element {
+    let i18n = use_i18n();
+    let description = i18n.t(&format!("tool-{}-description", tool.slug));
+    let action = i18n.t(&format!("tool-{}-action", tool.slug));
     rsx! {
         article { class: "tk-workspace-card tk-glass-card tk-workspace-card--{tool.slug}",
             div { class: "tk-workspace-top",
                 span { class: "tk-workspace-icon", aria_hidden: "true", "{tool.glyph}" }
                 if tool.experimental {
-                    span { class: "tk-experimental-chip", "Experimental" }
+                    span { class: "tk-experimental-chip", {i18n.t("experimental")} }
                 } else {
                     span { class: "tk-status-chip" }
                 }
             }
             h3 { "{tool.label}" }
-            p { "{tool.description}" }
+            p { "{description}" }
             div { class: "tk-tag-list",
                 for tag in tool.tags {
                     span { "{tag}" }
@@ -319,7 +260,7 @@ fn WorkspaceCard(tool: ToolDescriptor, onclick: EventHandler<MouseEvent>) -> Ele
             button {
                 class: "tk-launch-button",
                 onclick: move |event| onclick.call(event),
-                span { "{tool.action}" }
+                span { "{action}" }
                 b { aria_hidden: "true", "→" }
             }
         }
@@ -327,22 +268,29 @@ fn WorkspaceCard(tool: ToolDescriptor, onclick: EventHandler<MouseEvent>) -> Ele
 }
 
 #[component]
-fn LibraryRow(
-    crate_name: &'static str,
-    version: &'static str,
-    description: &'static str,
-) -> Element {
+fn LibraryRow(library: LibraryDescriptor) -> Element {
+    let i18n = use_i18n();
+    let summary = i18n.t(&format!("library-{}-summary", library.name));
     rsx! {
-        article { class: "tk-library-row",
+        a {
+            class: "tk-library-row",
+            href: library.repository,
+            target: "_blank",
+            rel: "noopener noreferrer",
+            aria_label: i18n.t_args("github-open-library", &[("name", library.name.to_string())]),
             div { class: "tk-crate-mark", aria_hidden: "true", "◇" }
             div { class: "tk-crate-copy",
                 div { class: "tk-crate-title",
-                    code { "{crate_name}" }
-                    span { "v{version}" }
+                    code { "{library.name}" }
+                    span { "v{library.version}" }
                 }
-                p { "{description}" }
+                p { "{summary}" }
             }
-            span { class: "tk-crate-kind", "Public crate" }
+            span { class: "tk-crate-kind", {i18n.t("github-link")} " ↗" }
         }
     }
+}
+
+fn open_tool_label(i18n: I18n, tool: &str) -> String {
+    i18n.t_args("home-open-tool", &[("tool", tool.to_string())])
 }

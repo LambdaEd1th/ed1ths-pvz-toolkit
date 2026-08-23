@@ -13,8 +13,9 @@ use rton_tool::{RtonOpenRequest, RtonTool};
 use smf_tool::SmfTool;
 use wem_tool::{WemOpenRequest, WemTool};
 
+use crate::i18n::use_locale;
 use crate::navigation::{AppRoute, navigate};
-use crate::pages::{AboutPage, HomeDashboard};
+use crate::pages::{AboutPage, HomeDashboard, LibrariesPage};
 
 #[component]
 pub(crate) fn ContentHost(
@@ -22,6 +23,7 @@ pub(crate) fn ContentHost(
     sidebar_open: Signal<bool>,
     compact: bool,
 ) -> Element {
+    let locale_code = use_locale().locale().code().to_string();
     let mut next_newton_open_request_id = use_signal(|| 1_u64);
     let mut newton_open_request = use_signal(|| None::<NewtonOpenRequest>);
     let mut next_rton_open_request_id = use_signal(|| 1_u64);
@@ -36,6 +38,11 @@ pub(crate) fn ContentHost(
             HomeDashboard {
                 on_navigate: move |target| navigate(route, sidebar_open, compact, target)
             }
+        }
+        div {
+            class: if active_route == AppRoute::Libraries { "tk-page-slot tk-page-slot--active" } else { "tk-page-slot" },
+            aria_hidden: active_route != AppRoute::Libraries,
+            LibrariesPage {}
         }
         div {
             class: if active_route == AppRoute::About { "tk-page-slot tk-page-slot--active" } else { "tk-page-slot" },
@@ -128,13 +135,17 @@ pub(crate) fn ContentHost(
             aria_hidden: active_route != AppRoute::Rton,
             RtonTool {
                 active: active_route == AppRoute::Rton,
+                locale_code: Some(locale_code.clone()),
                 open_request: rton_open_request(),
             }
         }
         div {
             class: if active_route == AppRoute::Pam { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
             aria_hidden: active_route != AppRoute::Pam,
-            PamTool { active: active_route == AppRoute::Pam }
+            PamTool {
+                active: active_route == AppRoute::Pam,
+                locale_code: Some(locale_code.clone()),
+            }
         }
         div {
             class: if active_route == AppRoute::Particle { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },

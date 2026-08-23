@@ -176,22 +176,29 @@ pub(super) fn use_web_i18n_loader(
     mut i18n_loaded: Signal<bool>,
     i18n_revision: Signal<u64>,
     initial_locale_snapshot: Locale,
+    locale_code: Option<String>,
 ) {
-    use_future(move || async move {
-        let loaded = load_i18n_sources_async().await;
-        i18n_loaded.set(true);
-        if loaded == 0 {
-            return;
-        }
+    use_future(move || {
+        let locale_code = locale_code.clone();
+        async move {
+            let loaded = load_i18n_sources_async().await;
+            i18n_loaded.set(true);
+            if loaded == 0 {
+                return;
+            }
 
-        bump_i18n_revision(i18n_revision);
-        if *locale.peek() == initial_locale_snapshot {
-            let next_locale = initial_locale();
-            locale.set(next_locale);
-            status.set(Status {
-                message: I18n::new(next_locale).t("status-ready"),
-                tone: Tone::Ok,
-            });
+            bump_i18n_revision(i18n_revision);
+            if *locale.peek() == initial_locale_snapshot {
+                let next_locale = locale_code
+                    .as_deref()
+                    .and_then(Locale::supported_from_code)
+                    .unwrap_or_else(initial_locale);
+                locale.set(next_locale);
+                status.set(Status {
+                    message: I18n::new(next_locale).t("status-ready"),
+                    tone: Tone::Ok,
+                });
+            }
         }
     });
 }

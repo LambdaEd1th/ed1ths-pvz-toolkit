@@ -1,5 +1,7 @@
 use dioxus::prelude::*;
-use toolkit_ui::{Appearance, IconButton, SegmentedControl, SegmentedOption, use_appearance};
+use toolkit_ui::{Appearance, IconButton, use_appearance};
+
+use crate::i18n::{language_options, use_i18n, use_locale};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 enum SettingsView {
@@ -7,21 +9,6 @@ enum SettingsView {
     General,
     Logs,
 }
-
-const APPEARANCE_OPTIONS: [SegmentedOption; 3] = [
-    SegmentedOption {
-        value: "system",
-        label: "自适应",
-    },
-    SegmentedOption {
-        value: "light",
-        label: "浅色",
-    },
-    SegmentedOption {
-        value: "dark",
-        label: "深色",
-    },
-];
 
 fn copy_to_clipboard(text: &str) {
     let Ok(text_json) = serde_json::to_string(text) else {
@@ -60,10 +47,14 @@ fn copy_to_clipboard(text: &str) {
 
 #[component]
 pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
+    let i18n = use_i18n();
+    let app_version = env!("CARGO_PKG_VERSION");
+    let locale_context = use_locale();
     let appearance = use_appearance();
     let mut active_view = use_signal(SettingsView::default);
     let mut log_revision = use_signal(|| 0_u64);
     let mut copied = use_signal(|| false);
+    let mut language_open = use_signal(|| false);
 
     if !open() {
         return rsx! {};
@@ -81,12 +72,24 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
     let log_text = log_lines.join("\n");
     let log_count = log_lines.len();
     let has_logs = log_count > 0;
+    let languages = language_options(i18n);
+    let active_locale = locale_context.locale();
+    let active_language = languages
+        .iter()
+        .find(|option| option.locale == active_locale)
+        .map(|option| option.label.clone())
+        .unwrap_or_else(|| active_locale.code().to_string());
+    let appearance_options = [
+        (Appearance::System, i18n.t("appearance-system")),
+        (Appearance::Light, i18n.t("appearance-light")),
+        (Appearance::Dark, i18n.t("appearance-dark")),
+    ];
 
     rsx! {
         div { class: "tk-settings-overlay",
             button {
                 class: "tk-settings-backdrop",
-                aria_label: "关闭设置",
+                aria_label: i18n.t("settings-close"),
                 onclick: move |_| close_backdrop.set(false),
             }
             section {
@@ -97,11 +100,11 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                 div { class: "tk-settings-header",
                     h2 { id: "tk-settings-title",
                         SettingsGlyph {}
-                        "设置"
+                        {i18n.t("settings-title")}
                     }
                     IconButton {
                         class: "tk-settings-close".to_string(),
-                        label: "关闭设置".to_string(),
+                        label: i18n.t("settings-close"),
                         onclick: move |_| close_button.set(false),
                         CloseGlyph {}
                     }
@@ -109,7 +112,7 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                 div {
                     class: "tk-settings-nav",
                     role: "tablist",
-                    aria_label: "设置页面",
+                    aria_label: i18n.t("settings-pages"),
                     button {
                         r#type: "button",
                         class: if active_view_snapshot == SettingsView::General { "is-active" } else { "" },
@@ -119,7 +122,7 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                             active_view.set(SettingsView::General);
                             copied.set(false);
                         },
-                        "常规"
+                        {i18n.t("settings-general")}
                     }
                     button {
                         r#type: "button",
@@ -130,34 +133,66 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                             active_view.set(SettingsView::Logs);
                             copied.set(false);
                         },
-                        "日志"
+                        {i18n.t("settings-logs")}
                     }
                 }
                 div { class: "tk-settings-content",
                     if active_view_snapshot == SettingsView::General {
+                        div { class: "tk-settings-section tk-settings-section--language",
+                            span { class: "tk-settings-label", {i18n.t("settings-language")} }
+                            div { class: if language_open() { "tk-settings-language is-open" } else { "tk-settings-language" },
+                                button {
+                                    r#type: "button",
+                                    class: "tk-settings-language-control",
+                                    aria_label: i18n.t("settings-language"),
+                                    aria_expanded: language_open(),
+                                    onclick: move |_| language_open.set(!language_open()),
+                                    span { "{active_language}" }
+                                    span { class: "tk-settings-language-caret", aria_hidden: "true", "⌄" }
+                                }
+                                div { class: "tk-settings-language-menu", role: "menu",
+                                    for option in languages {
+                                        button {
+                                            r#type: "button",
+                                            class: if option.locale == active_locale { "is-active" } else { "" },
+                                            role: "menuitemradio",
+                                            aria_checked: option.locale == active_locale,
+                                            onclick: move |_| {
+                                                locale_context.set(option.locale);
+                                                language_open.set(false);
+                                            },
+                                            span { "{option.label}" }
+                                            if option.locale == active_locale {
+                                                b { aria_hidden: "true", "✓" }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         div { class: "tk-settings-section tk-settings-section--appearance",
-                            span { class: "tk-settings-label", "外观" }
-                            SegmentedControl {
-                                value: appearance.preference().code().to_string(),
-                                options: APPEARANCE_OPTIONS.to_vec(),
-                                aria_label: "外观模式".to_string(),
-                                onchange: move |value: String| appearance.set(Appearance::from_code(&value)),
+                            span { class: "tk-settings-label", {i18n.t("settings-appearance")} }
+                            div { class: "ui-segmented", role: "group", aria_label: i18n.t("appearance-mode"),
+                                for (option, label) in appearance_options {
+                                    button {
+                                        class: if appearance.preference() == option { "ui-segmented-item is-active" } else { "ui-segmented-item" },
+                                        aria_pressed: appearance.preference() == option,
+                                        onclick: move |_| appearance.set(option),
+                                        "{label}"
+                                    }
+                                }
                             }
                         }
                         div { class: "tk-settings-section tk-settings-section--info",
-                            span { class: "tk-settings-label", "应用信息" }
+                            span { class: "tk-settings-label", {i18n.t("settings-app-info")} }
                             div { class: "tk-settings-info",
                                 div {
-                                    span { "版本" }
-                                    strong { "0.1.0 Preview" }
+                                    span { {i18n.t("settings-version")} }
+                                    strong { "{app_version}" }
                                 }
                                 div {
-                                    span { "许可证" }
+                                    span { {i18n.t("settings-license")} }
                                     strong { "AGPL-3.0-or-later" }
-                                }
-                                div {
-                                    span { "工作区" }
-                                    strong { "RSB + PAK + RTON + PAM + WEM + BNK + NEWTON" }
                                 }
                             }
                         }
@@ -166,8 +201,8 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                             class: "tk-settings-logs",
                             aria_live: "polite",
                             div { class: "tk-settings-log-summary",
-                                strong { "应用日志" }
-                                span { "RSB、PAK、RTON、PAM、WEM、BNK 与 NEWTON · {log_count} 条" }
+                                strong { {i18n.t("logs-title")} }
+                                span { {i18n.t_args("logs-summary", &[("count", log_count.to_string())])} }
                             }
                             textarea {
                                 class: "tk-settings-log-viewer",
@@ -175,8 +210,8 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                                 value: "{log_text}",
                                 spellcheck: "false",
                                 wrap: "soft",
-                                aria_label: "应用日志",
-                                placeholder: "暂无日志",
+                                aria_label: i18n.t("logs-title"),
+                                placeholder: i18n.t("logs-empty"),
                                 onfocus: move |_| {
                                     copied.set(false);
                                     log_revision.set(log_revision().wrapping_add(1));
@@ -189,7 +224,7 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                                         copied.set(false);
                                         log_revision.set(log_revision().wrapping_add(1));
                                     },
-                                    "刷新"
+                                    {i18n.t("logs-refresh")}
                                 }
                                 button {
                                     r#type: "button",
@@ -198,7 +233,7 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                                         copy_to_clipboard(&log_text);
                                         copied.set(true);
                                     },
-                                    if copied() { "已复制" } else { "复制" }
+                                    if copied() { {i18n.t("logs-copied")} } else { {i18n.t("logs-copy")} }
                                 }
                                 button {
                                     r#type: "button",
@@ -209,7 +244,7 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                                         copied.set(false);
                                         log_revision.set(log_revision().wrapping_add(1));
                                     },
-                                    "清空"
+                                    {i18n.t("logs-clear")}
                                 }
                             }
                         }

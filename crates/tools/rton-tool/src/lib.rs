@@ -59,6 +59,7 @@ fn rton_theme(appearance: Appearance) -> ThemePreference {
 pub fn RtonTool(
     open_request: Option<RtonOpenRequest>,
     #[props(default = true)] active: bool,
+    #[props(default)] locale_code: Option<String>,
 ) -> Element {
     use_hook(|| {
         LOG_INIT.call_once(|| {
@@ -74,6 +75,7 @@ pub fn RtonTool(
         ToolSurface { namespace: "rton",
             app_view::App {
                 theme: rton_theme(appearance),
+                locale_code,
                 open_request,
                 active,
             }

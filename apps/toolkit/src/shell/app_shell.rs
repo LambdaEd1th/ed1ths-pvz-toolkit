@@ -33,6 +33,10 @@ pub(crate) fn AppShell() -> Element {
     let sidebar_open = use_signal(|| true);
     let compact_shell = use_signal(|| false);
     let settings_open = use_signal(|| false);
+    #[cfg(not(target_arch = "wasm32"))]
+    let last_saved_window_size = use_signal(|| Some(crate::preferences::read_window_size()));
+    #[cfg(not(target_arch = "wasm32"))]
+    let window_size_save_generation = use_signal(|| 0_u64);
     let appearance = use_appearance().preference();
 
     let shell_class = format!("tk-shell tk-portal {}", appearance.class());
@@ -56,7 +60,22 @@ pub(crate) fn AppShell() -> Element {
 
     rsx! {
         document::Stylesheet { href: TOOLKIT_CSS }
-        div { class: "{shell_class}", onmounted: start_responsive_host,
+        div {
+            class: "{shell_class}",
+            onmounted: start_responsive_host,
+            onresize: move |event| {
+                #[cfg(not(target_arch = "wasm32"))]
+                if let Ok(size) = event.get_content_box_size() {
+                    schedule_window_size_save(
+                        size.width,
+                        size.height,
+                        last_saved_window_size,
+                        window_size_save_generation,
+                    );
+                }
+                #[cfg(target_arch = "wasm32")]
+                let _ = event;
+            },
             div { class: "tk-backdrop", aria_hidden: "true" }
             div { class: "tk-ambient tk-ambient--one", aria_hidden: "true" }
             div { class: "tk-ambient tk-ambient--two", aria_hidden: "true" }
@@ -82,4 +101,31 @@ pub(crate) fn AppShell() -> Element {
             }
         }
     }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn schedule_window_size_save(
+    width: f64,
+    height: f64,
+    mut last_saved: Signal<Option<crate::preferences::WindowSize>>,
+    mut generation: Signal<u64>,
+) {
+    let Some(size) = crate::preferences::window_size_from_viewport(width, height) else {
+        return;
+    };
+    let next_generation = generation.peek().wrapping_add(1);
+    generation.set(next_generation);
+    if *last_saved.peek() == Some(size) {
+        return;
+    }
+
+    spawn(async move {
+        futures_timer::Delay::new(std::time::Duration::from_millis(350)).await;
+        if *generation.peek() != next_generation || *last_saved.peek() == Some(size) {
+            return;
+        }
+        if crate::preferences::save_window_size(size).is_ok() {
+            last_saved.set(Some(size));
+        }
+    });
 }

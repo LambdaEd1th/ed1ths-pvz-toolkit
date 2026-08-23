@@ -13,8 +13,9 @@ aggregate SDK.
 
 ```text
 apps/toolkit/             The only desktop/Web application
+  assets/i18n/            External Fluent localization resources
   src/shell/              Persistent top bar, sidebar, settings, and content host
-  src/pages/              App-level pages such as Home
+  src/pages/              App-level pages such as Home, Libraries, and About
 crates/formats/
   bnk-archive/            Public Wwise BNK reader/writer and embedded media API
   newton-manifest/        Public NEWTON resource-manifest reader/writer
@@ -96,6 +97,19 @@ them after changing a renderer or worker crate:
 ```bash
 ./scripts/build-web-runtime.sh
 ```
+
+## Localization
+
+The Toolkit shell uses external Fluent `.ftl` resources under
+`apps/toolkit/assets/i18n/`. English, Simplified Chinese, French, Russian, and
+Spanish are included. The app detects the system language on first launch,
+falls back to English for missing messages, and persists the language selected
+in Settings.
+
+Desktop builds also discover additional locale files from a colocated
+`assets/i18n/` directory. Web builds load the generated locale manifest and can
+discover additional `.ftl` files when the server exposes an asset directory
+listing. Each locale provides its native menu label through `language-self`.
 
 ## License
 

@@ -1,5 +1,5 @@
 use crate::RtonOpenRequest;
-use crate::i18n::I18n;
+use crate::i18n::{I18n, Locale};
 use dioxus::prelude::*;
 use rton_editor_core::{BinaryEncoding, EncodeOptions, TextFormat};
 use std::cell::RefCell;
@@ -44,18 +44,31 @@ const PAGE_CSS: Asset = asset!("/assets/rton/page.css");
 #[component]
 pub(crate) fn App(
     theme: ThemePreference,
+    locale_code: Option<String>,
     open_request: Option<RtonOpenRequest>,
     active: bool,
 ) -> Element {
     #[cfg(not(target_arch = "wasm32"))]
     let _loaded_i18n_count = use_hook(load_i18n_sources);
-    let initial_locale_snapshot = initial_locale();
+    let initial_locale_snapshot = locale_code
+        .as_deref()
+        .and_then(Locale::supported_from_code)
+        .unwrap_or_else(initial_locale);
     let signals = use_app_signals(initial_locale_snapshot, theme);
     use_context_provider(|| signals);
     let mut theme_preference = signals.preferences.theme_preference;
     use_effect(use_reactive(&theme, move |theme| {
         if *theme_preference.peek() != theme {
             theme_preference.set(theme);
+        }
+    }));
+    let mut active_locale = signals.preferences.locale;
+    use_effect(use_reactive(&locale_code, move |locale_code| {
+        let Some(locale) = locale_code.as_deref().and_then(Locale::supported_from_code) else {
+            return;
+        };
+        if *active_locale.peek() != locale {
+            active_locale.set(locale);
         }
     }));
 
@@ -66,6 +79,7 @@ pub(crate) fn App(
         signals.preferences.i18n_loaded,
         signals.preferences.i18n_revision,
         initial_locale_snapshot,
+        locale_code,
     );
     #[cfg(target_arch = "wasm32")]
     use_web_visual_viewport_effect();
