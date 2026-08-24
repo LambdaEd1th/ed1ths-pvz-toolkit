@@ -12,8 +12,8 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly decode_preview: (a: number, b: number) => void;
-    readonly unpack_packet_preview: (a: number, b: number) => void;
     readonly encode_texture_preview: (a: number, b: number) => void;
+    readonly unpack_packet_preview: (a: number, b: number) => void;
     readonly __wbindgen_export: (a: number, b: number) => number;
     readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_export3: (a: number, b: number, c: number) => void;

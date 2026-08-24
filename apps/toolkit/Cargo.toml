@@ -35,6 +35,7 @@ Plants vs. Zombies resource formats.
 [dependencies]
 base64.workspace = true
 bnk-tool.workspace = true
+compiled-text-tool.workspace = true
 crypt-data-tool.workspace = true
 dzip-tool.workspace = true
 fluent-bundle.workspace = true

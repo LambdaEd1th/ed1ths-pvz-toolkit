@@ -3,8 +3,8 @@
 A single cross-platform app for inspecting and editing Plants vs. Zombies
 resources, backed by reusable, format-focused Rust libraries.
 
-The app combines the editable RSB archive workspace, RTON editor, PAM
-viewer/exporter, WEM audio converter/player, experimental BNK SoundBank
+The app combines archive workspaces, the RTON editor, PAM viewer/exporter,
+Compiled Text editor, WEM audio converter/player, experimental BNK SoundBank
 browser, and NEWTON manifest editor behind one MoeSekai-inspired home page.
 More format tools can be added without turning the public libraries into an
 aggregate SDK.
@@ -28,6 +28,7 @@ crates/ui/
   toolkit-ui/             Internal design system and appearance runtime
 crates/tools/
   bnk-tool/               Experimental BNK/HIRC/media editor and rebuilder
+  compiled-text-tool/     Compiled Text editor, encoder, and decoder
   newton-tool/            NEWTON manifest editor feature
   pam-tool/               PAM application feature
   rsb-tool/               RSB archive editor, extractor, and PTX preview feature
@@ -42,6 +43,7 @@ The dependency direction is intentionally one-way:
 
 ```text
 bnk-archive --------------------> bnk-tool ──┐
+compiled-text -> worker -> compiled-text-tool ┤
 newton-manifest -------------> newton-tool ─┤
 pak-archive ----------------------> library  ─┤
 pam-codec  -> PAM core/workers  -> pam-tool ─┤
@@ -70,6 +72,7 @@ Public libraries are intentionally independent:
 ```toml
 [dependencies]
 bnk-archive = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "bnk-archive" }
+compiled-text = { git = "https://github.com/LambdaEd1th/compiled-text" }
 newton-manifest = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "newton-manifest" }
 pak-archive = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "pak-archive" }
 pam-codec = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "pam-codec" }

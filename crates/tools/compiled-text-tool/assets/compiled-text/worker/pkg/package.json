@@ -1,0 +1,21 @@
+{
+  "name": "compiled_text_worker",
+  "type": "module",
+  "description": "Private Compiled Text processing worker for Ed1th's PvZ Toolkit",
+  "version": "0.1.2",
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit"
+  },
+  "files": [
+    "compiled_text_worker_bg.wasm",
+    "compiled_text_worker.js",
+    "compiled_text_worker.d.ts"
+  ],
+  "main": "compiled_text_worker.js",
+  "types": "compiled_text_worker.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

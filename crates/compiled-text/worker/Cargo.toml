@@ -1,0 +1,25 @@
+[package]
+name = "compiled_text_worker"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+description = "Private Compiled Text processing worker for Ed1th's PvZ Toolkit"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
+[dependencies]
+compiled-text.workspace = true
+serde.workspace = true
+serde_bytes.workspace = true
+thiserror.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook.workspace = true
+serde-wasm-bindgen.workspace = true
+wasm-bindgen.workspace = true

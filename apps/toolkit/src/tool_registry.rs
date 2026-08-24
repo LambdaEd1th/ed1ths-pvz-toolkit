@@ -11,7 +11,7 @@ pub(crate) struct ToolDescriptor {
     pub experimental: bool,
 }
 
-pub(crate) const TOOLS: [ToolDescriptor; 13] = [
+pub(crate) const TOOLS: [ToolDescriptor; 14] = [
     ToolDescriptor {
         route: AppRoute::Rsb,
         slug: "rsb",
@@ -55,6 +55,15 @@ pub(crate) const TOOLS: [ToolDescriptor; 13] = [
         glyph: "SMF",
         nav_glyph: "◇",
         tags: ["zlib", "32/64-bit", "MD5 Tag"],
+        experimental: false,
+    },
+    ToolDescriptor {
+        route: AppRoute::CompiledText,
+        slug: "compiled-text",
+        label: "Compiled Text",
+        glyph: "≋",
+        nav_glyph: "≋",
+        tags: ["Rijndael", "Base64", "SMF"],
         experimental: false,
     },
     ToolDescriptor {
@@ -146,6 +155,7 @@ mod tests {
                 AppRoute::Pak,
                 AppRoute::Dzip,
                 AppRoute::Smf,
+                AppRoute::CompiledText,
                 AppRoute::CryptData,
                 AppRoute::Rton,
                 AppRoute::Pam,

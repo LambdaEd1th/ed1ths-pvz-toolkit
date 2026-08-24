@@ -61,6 +61,12 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
+                                onclick: move |_| on_navigate.call(AppRoute::CompiledText),
+                                span { class: "tk-button-icon", aria_hidden: "true", "≋" }
+                                {open_tool_label(i18n, "Compiled Text")}
+                            }
+                            button {
+                                class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Rton),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "{{ }}" }
                                 {open_tool_label(i18n, "RTON Editor")}

@@ -137,7 +137,7 @@ pub(crate) fn AboutPage() -> Element {
                                 span { class: "tk-about-card-label", {i18n.t("about-workspaces-label")} }
                                 h2 { {i18n.t("about-workspaces-title")} }
                             }
-                            span { class: "tk-about-count", {i18n.t_args("about-tools-count", &[("count", "13".to_string())])} }
+                            span { class: "tk-about-count", {i18n.t_args("about-tools-count", &[("count", "14".to_string())])} }
                         }
                         div { class: "tk-about-format-grid",
                             section { class: "tk-about-format tk-about-format--rsb",
@@ -189,6 +189,16 @@ pub(crate) fn AboutPage() -> Element {
                                     }
                                 }
                                 p { {i18n.t("tool-smf-description")} }
+                            }
+                            section { class: "tk-about-format tk-about-format--compiled-text",
+                                div { class: "tk-about-format-heading",
+                                    span { aria_hidden: "true", "≋" }
+                                    div {
+                                        h3 { "Compiled Text" }
+                                        code { "compiled-text" }
+                                    }
+                                }
+                                p { {i18n.t("tool-compiled-text-description")} }
                             }
                             section { class: "tk-about-format tk-about-format--crypt-data",
                                 div { class: "tk-about-format-heading",

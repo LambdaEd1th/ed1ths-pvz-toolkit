@@ -1490,6 +1490,11 @@ button {
   color: #c96f99;
 }
 
+.tk-about-format--compiled-text .tk-about-format-heading > span {
+  background: rgba(166, 130, 216, 0.13);
+  color: #936ec7;
+}
+
 .tk-about-format--crypt-data .tk-about-format-heading > span {
   background: rgba(95, 170, 194, 0.13);
   color: #4d9db5;
@@ -2028,6 +2033,12 @@ button {
   --tk-card-accent: #c96f99;
   --tk-card-soft: rgba(201, 111, 153, 0.13);
   --tk-card-glow: rgba(218, 126, 168, 0.12);
+}
+
+.tk-workspace-card--compiled-text {
+  --tk-card-accent: #936ec7;
+  --tk-card-soft: rgba(166, 130, 216, 0.13);
+  --tk-card-glow: rgba(166, 130, 216, 0.12);
 }
 
 .tk-workspace-card--crypt-data {

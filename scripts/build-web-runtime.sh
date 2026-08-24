@@ -45,6 +45,13 @@ wasm-pack build "$repo_root/crates/smf/worker" \
   --out-name smf_worker \
   --locked
 
+wasm-pack build "$repo_root/crates/compiled-text/worker" \
+  --target web \
+  --release \
+  --out-dir "$repo_root/crates/tools/compiled-text-tool/assets/compiled-text/worker/pkg" \
+  --out-name compiled_text_worker \
+  --locked
+
 wasm-pack build "$repo_root/crates/wem/worker" \
   --target web \
   --release \

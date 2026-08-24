@@ -13,6 +13,7 @@ pub(crate) enum AppRoute {
     Pak,
     Dzip,
     Smf,
+    CompiledText,
     CryptData,
     Rton,
     Pam,
@@ -34,6 +35,7 @@ impl AppRoute {
             Self::Pak => "PAK Archive".to_string(),
             Self::Dzip => "DZip Archive".to_string(),
             Self::Smf => "SMF Container".to_string(),
+            Self::CompiledText => "Compiled Text".to_string(),
             Self::CryptData => "Crypt-Data".to_string(),
             Self::Rton => "RTON Editor".to_string(),
             Self::Pam => "PAM Viewer".to_string(),
@@ -61,6 +63,7 @@ pub(crate) fn navigate(
                 | AppRoute::Pak
                 | AppRoute::Dzip
                 | AppRoute::Smf
+                | AppRoute::CompiledText
                 | AppRoute::CryptData
                 | AppRoute::Rton
                 | AppRoute::Pam

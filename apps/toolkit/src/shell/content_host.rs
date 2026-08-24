@@ -1,4 +1,5 @@
 use bnk_tool::{BnkTool, BnkWemOpenRequest};
+use compiled_text_tool::CompiledTextTool;
 use crypt_data_tool::CryptDataTool;
 use dioxus::prelude::*;
 use dzip_tool::DzipTool;
@@ -124,6 +125,11 @@ pub(crate) fn ContentHost(
             class: if active_route == AppRoute::Smf { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
             aria_hidden: active_route != AppRoute::Smf,
             SmfTool {}
+        }
+        div {
+            class: if active_route == AppRoute::CompiledText { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },
+            aria_hidden: active_route != AppRoute::CompiledText,
+            CompiledTextTool {}
         }
         div {
             class: if active_route == AppRoute::CryptData { "tk-tool-slot tk-tool-slot--active" } else { "tk-tool-slot" },

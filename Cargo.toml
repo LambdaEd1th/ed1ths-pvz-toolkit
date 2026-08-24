@@ -16,6 +16,7 @@ members = [
     "crates/formats/serde-rton",
     "crates/formats/smf-container",
     "crates/formats/wem-audio",
+    "crates/compiled-text/worker",
     "crates/pam/core",
     "crates/pam/formats",
     "crates/pam/native-window",
@@ -29,6 +30,7 @@ members = [
     "crates/wem/worker",
     "crates/tools/pam-tool",
     "crates/tools/crypt-data-tool",
+    "crates/tools/compiled-text-tool",
     "crates/tools/particle-tool",
     "crates/tools/reanim-tool",
     "crates/tools/bnk-tool",
@@ -44,7 +46,7 @@ members = [
 resolver = "3"
 
 [workspace.package]
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit"
@@ -58,6 +60,8 @@ bnk-tool = { path = "crates/tools/bnk-tool" }
 bytemuck = { version = "1.24", features = ["derive"] }
 byteorder = "1.5"
 compiled-text = { path = "crates/formats/compiled-text", version = "0.1.0" }
+compiled-text-tool = { path = "crates/tools/compiled-text-tool" }
+compiled_text_worker = { path = "crates/compiled-text/worker" }
 console_error_panic_hook = "0.1"
 crc32fast = "1.5"
 crypt-data = { path = "crates/formats/crypt-data", version = "0.1.0" }
