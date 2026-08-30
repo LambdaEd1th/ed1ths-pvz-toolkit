@@ -280,7 +280,7 @@ fn Toolbar(
     on_export: EventHandler<MouseEvent>,
 ) -> Element {
     rsx! {
-        div { class: "rsp-toolbar-actions",
+        div { class: "ui-island ui-tool-page-actions rsp-toolbar-actions",
             label {
                 class: if busy { "rsp-icon-button is-disabled" } else { "rsp-icon-button" },
                 title: "打开 RSBP",

@@ -297,7 +297,7 @@ pub fn NewtonManifestPage(
                 ToolPageToolbar {
                     class: "newton-page-toolbar",
                     actions: rsx! {
-                        div { class: "newton-toolbar-actions",
+                        div { class: "ui-tool-page-actions newton-toolbar-actions",
                             label {
                                 class: "newton-icon-button primary",
                                 title: "打开 NEWTON / JSON / YAML / TOML",

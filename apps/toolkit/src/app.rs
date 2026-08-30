@@ -41,8 +41,12 @@ pub(crate) fn launch() {
             .with_on_window(move |_window, _| {
                 #[cfg(target_os = "macos")]
                 {
+                    use dioxus::desktop::tao::platform::macos::WindowExtMacOS;
+
                     pam_viewer_native_window::install_safe_reopen_handler();
-                    pam_viewer_native_window::make_opaque(&_window);
+                    // SAFETY: Dioxus/Tao owns this NSWindow for the duration of
+                    // the callback and returns its live native pointer here.
+                    unsafe { pam_viewer_native_window::make_opaque(_window.ns_window()) };
                 }
             });
         dioxus::LaunchBuilder::desktop()

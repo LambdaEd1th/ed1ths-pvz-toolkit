@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
@@ -83,6 +84,8 @@ struct ChunkSummary {
     title: String,
     detail: String,
     search: String,
+    type_label: &'static str,
+    size: u64,
 }
 
 #[derive(Clone, Debug)]
@@ -94,6 +97,7 @@ struct HierarchySummary {
     title: String,
     detail: String,
     search: String,
+    size: u64,
 }
 
 #[derive(Clone, Debug)]
@@ -104,6 +108,7 @@ struct MediaSummary {
     offset: u32,
     size: u32,
     data_chunk: Option<usize>,
+    title: String,
     search: String,
 }
 
@@ -137,8 +142,9 @@ impl BankDocument {
         parse_mode: ParseMode,
         strict_error: Option<String>,
     ) -> Self {
-        let chunks = summarize_chunks(&bank);
-        let hierarchy = summarize_hierarchy(&bank);
+        let serialized_sizes = SerializedSizeIndex::from_source(&source_bytes, &bank);
+        let chunks = summarize_chunks(&bank, &serialized_sizes);
+        let hierarchy = summarize_hierarchy(&bank, &serialized_sizes);
         let media = summarize_media(&bank);
         Self {
             name,
@@ -173,6 +179,109 @@ impl BankDocument {
     }
 }
 
+#[derive(Clone, Debug, Default)]
+struct SerializedSizeIndex {
+    chunk_sizes: Vec<u64>,
+    hierarchy_sizes: BTreeMap<(usize, usize), u64>,
+}
+
+impl SerializedSizeIndex {
+    fn from_source(source: &[u8], bank: &SoundBank) -> Self {
+        let payloads = top_level_chunk_payloads(source);
+        let mut chunk_sizes = Vec::with_capacity(bank.chunks.len());
+        let mut hierarchy_sizes = BTreeMap::new();
+
+        for (chunk_index, chunk) in bank.chunks.iter().enumerate() {
+            let payload = payloads.get(chunk_index).copied();
+            chunk_sizes.push(
+                payload
+                    .map(|bytes| bytes.len() as u64)
+                    .unwrap_or_else(|| chunk_size_hint(chunk)),
+            );
+            if matches!(chunk, BankChunk::Hierarchy(_))
+                && let Some(payload) = payload
+            {
+                for (object_index, size) in hierarchy_payload_sizes(payload).into_iter().enumerate()
+                {
+                    hierarchy_sizes.insert((chunk_index, object_index), size);
+                }
+            }
+        }
+
+        Self {
+            chunk_sizes,
+            hierarchy_sizes,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+enum BrowserSortKey {
+    #[default]
+    Name,
+    Type,
+    Size,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+enum BrowserSortDirection {
+    #[default]
+    Ascending,
+    Descending,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct BrowserSort {
+    key: BrowserSortKey,
+    direction: BrowserSortDirection,
+}
+
+impl BrowserSort {
+    fn toggled(self, key: BrowserSortKey) -> Self {
+        if self.key == key {
+            Self {
+                key,
+                direction: match self.direction {
+                    BrowserSortDirection::Ascending => BrowserSortDirection::Descending,
+                    BrowserSortDirection::Descending => BrowserSortDirection::Ascending,
+                },
+            }
+        } else {
+            Self {
+                key,
+                direction: BrowserSortDirection::Ascending,
+            }
+        }
+    }
+
+    fn aria_value(self, key: BrowserSortKey) -> &'static str {
+        if self.key != key {
+            return "none";
+        }
+        match self.direction {
+            BrowserSortDirection::Ascending => "ascending",
+            BrowserSortDirection::Descending => "descending",
+        }
+    }
+
+    fn indicator(self, key: BrowserSortKey) -> &'static str {
+        if self.key != key {
+            return "↕";
+        }
+        match self.direction {
+            BrowserSortDirection::Ascending => "↑",
+            BrowserSortDirection::Descending => "↓",
+        }
+    }
+
+    fn apply(self, ordering: Ordering) -> Ordering {
+        match self.direction {
+            BrowserSortDirection::Ascending => ordering,
+            BrowserSortDirection::Descending => ordering.reverse(),
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 struct BankTab {
     id: u64,
@@ -180,6 +289,7 @@ struct BankTab {
     section: BrowserSection,
     selection: BankSelection,
     query: String,
+    sort: BrowserSort,
     page: usize,
     dirty: bool,
 }
@@ -191,6 +301,7 @@ impl PartialEq for BankTab {
             && self.section == other.section
             && self.selection == other.selection
             && self.query == other.query
+            && self.sort == other.sort
             && self.page == other.page
             && self.dirty == other.dirty
     }
@@ -204,6 +315,7 @@ impl BankTab {
             section: BrowserSection::Overview,
             selection: BankSelection::Overview,
             query: String::new(),
+            sort: BrowserSort::default(),
             page: 0,
             dirty: false,
         }
@@ -252,6 +364,7 @@ struct RowModel {
     glyph: &'static str,
     title: String,
     detail: String,
+    type_label: String,
     meta: String,
 }
 
@@ -307,7 +420,7 @@ pub fn BnkArchivePage(on_open_wem: Option<EventHandler<BnkWemOpenRequest>>) -> E
                 ToolPageToolbar {
                     class: "bnk-page-toolbar",
                     actions: rsx! {
-                        div { class: "bnk-toolbar-actions",
+                        div { class: "ui-tool-page-actions bnk-toolbar-actions",
                             label {
                                 class: "bnk-icon-button primary",
                                 title: "打开 BNK",
@@ -686,15 +799,46 @@ fn BrowserList(tab: BankTab, tabs: Signal<Vec<BankTab>>) -> Element {
                     h2 { "{tab.section.label()}" }
                 }
                 if has_search {
-                    label { class: "bnk-search-field",
-                        Glyph { name: "search" }
-                        input {
-                            r#type: "search",
-                            value: "{tab.query}",
-                            placeholder: "搜索 ID、类型或块…",
-                            oninput: {
-                                let tab_id = tab.id;
-                                move |event| set_query(tabs, tab_id, event.value())
+                    div { class: "bnk-list-controls",
+                        label { class: "bnk-search-field",
+                            Glyph { name: "search" }
+                            input {
+                                r#type: "search",
+                                value: "{tab.query}",
+                                placeholder: "搜索 ID、类型或块…",
+                                oninput: {
+                                    let tab_id = tab.id;
+                                    move |event| set_query(tabs, tab_id, event.value())
+                                }
+                            }
+                        }
+                        div { class: "bnk-sort-controls", role: "group", aria_label: "列表排序",
+                            SortableBrowserControl {
+                                label: "名称",
+                                sort_key: BrowserSortKey::Name,
+                                sort: tab.sort,
+                                on_sort: {
+                                    let tab_id = tab.id;
+                                    move |key| toggle_sort(tabs, tab_id, key)
+                                },
+                            }
+                            SortableBrowserControl {
+                                label: "类型",
+                                sort_key: BrowserSortKey::Type,
+                                sort: tab.sort,
+                                on_sort: {
+                                    let tab_id = tab.id;
+                                    move |key| toggle_sort(tabs, tab_id, key)
+                                },
+                            }
+                            SortableBrowserControl {
+                                label: "大小",
+                                sort_key: BrowserSortKey::Size,
+                                sort: tab.sort,
+                                on_sort: {
+                                    let tab_id = tab.id;
+                                    move |key| toggle_sort(tabs, tab_id, key)
+                                },
                             }
                         }
                     }
@@ -723,7 +867,7 @@ fn BrowserList(tab: BankTab, tabs: Signal<Vec<BankTab>>) -> Element {
                             span { class: "bnk-row-icon", Glyph { name: row.glyph } }
                             span { class: "bnk-row-copy",
                                 strong { title: "{row.title}", "{row.title}" }
-                                small { title: "{row.detail}", "{row.detail}" }
+                                small { title: "{row.type_label} · {row.detail}", "{row.type_label} · {row.detail}" }
                             }
                             span { class: "bnk-row-meta", "{row.meta}" }
                         }
@@ -754,6 +898,36 @@ fn BrowserList(tab: BankTab, tabs: Signal<Vec<BankTab>>) -> Element {
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+#[component]
+fn SortableBrowserControl(
+    label: &'static str,
+    sort_key: BrowserSortKey,
+    sort: BrowserSort,
+    on_sort: EventHandler<BrowserSortKey>,
+) -> Element {
+    let active = sort.key == sort_key;
+    let direction_label = if active && sort.aria_value(sort_key) == "ascending" {
+        "倒序"
+    } else {
+        "正序"
+    };
+    rsx! {
+        button {
+            r#type: "button",
+            class: if active { "bnk-sort-control is-active" } else { "bnk-sort-control" },
+            aria_pressed: active,
+            title: "按{label}{direction_label}排列",
+            onclick: move |_| on_sort.call(sort_key),
+            span { "{label}" }
+            span {
+                class: if active { "bnk-sort-indicator is-active" } else { "bnk-sort-indicator" },
+                aria_hidden: "true",
+                {sort.indicator(sort_key)}
             }
         }
     }
@@ -1259,7 +1433,90 @@ fn Glyph(name: &'static str) -> Element {
     }
 }
 
-fn summarize_chunks(bank: &SoundBank) -> Vec<ChunkSummary> {
+fn top_level_chunk_payloads(source: &[u8]) -> Vec<&[u8]> {
+    let mut payloads = Vec::new();
+    let mut offset = 0_usize;
+    let mut saw_header = false;
+    while offset.saturating_add(8) <= source.len() {
+        let id = &source[offset..offset + 4];
+        let size = u32::from_le_bytes([
+            source[offset + 4],
+            source[offset + 5],
+            source[offset + 6],
+            source[offset + 7],
+        ]) as usize;
+        let payload_start = offset + 8;
+        let Some(payload_end) = payload_start.checked_add(size) else {
+            break;
+        };
+        if payload_end > source.len() {
+            break;
+        }
+        if !saw_header && id == b"BKHD" {
+            saw_header = true;
+        } else if saw_header {
+            payloads.push(&source[payload_start..payload_end]);
+        }
+        offset = payload_end;
+    }
+    payloads
+}
+
+fn hierarchy_payload_sizes(payload: &[u8]) -> Vec<u64> {
+    if payload.len() < 4 {
+        return Vec::new();
+    }
+    let count = u32::from_le_bytes([payload[0], payload[1], payload[2], payload[3]]) as usize;
+    let mut sizes = Vec::with_capacity(count.min(ROW_PAGE_SIZE));
+    let mut offset = 4_usize;
+    for _ in 0..count {
+        if offset.saturating_add(5) > payload.len() {
+            break;
+        }
+        let size = u32::from_le_bytes([
+            payload[offset + 1],
+            payload[offset + 2],
+            payload[offset + 3],
+            payload[offset + 4],
+        ]) as usize;
+        let Some(end) = offset
+            .checked_add(5)
+            .and_then(|value| value.checked_add(size))
+        else {
+            break;
+        };
+        if end > payload.len() {
+            break;
+        }
+        sizes.push(size as u64);
+        offset = end;
+    }
+    sizes
+}
+
+fn chunk_size_hint(chunk: &BankChunk) -> u64 {
+    match chunk {
+        BankChunk::MediaIndex(entries) => entries.len().saturating_mul(12) as u64,
+        BankChunk::MediaData(data) => data.len() as u64,
+        BankChunk::Hierarchy(objects) => 4_u64.saturating_add(
+            objects
+                .iter()
+                .map(|object| 5_u64.saturating_add(hierarchy_object_size_hint(object)))
+                .sum::<u64>(),
+        ),
+        BankChunk::Unknown(raw) => raw.data.len() as u64,
+        _ => 0,
+    }
+}
+
+fn hierarchy_object_size_hint(object: &HierarchyObject) -> u64 {
+    match &object.body {
+        HierarchyBody::Raw(bytes) => 4_u64.saturating_add(bytes.len() as u64),
+        _ => 4,
+    }
+}
+
+fn summarize_chunks(bank: &SoundBank, sizes: &SerializedSizeIndex) -> Vec<ChunkSummary> {
     bank.chunks
         .iter()
         .enumerate()
@@ -1271,12 +1528,18 @@ fn summarize_chunks(bank: &SoundBank) -> Vec<ChunkSummary> {
                 search: format!("{} {}", title.to_lowercase(), detail.to_lowercase()),
                 title,
                 detail,
+                type_label: chunk_kind_label(chunk),
+                size: sizes
+                    .chunk_sizes
+                    .get(index)
+                    .copied()
+                    .unwrap_or_else(|| chunk_size_hint(chunk)),
             }
         })
         .collect()
 }
 
-fn summarize_hierarchy(bank: &SoundBank) -> Vec<HierarchySummary> {
+fn summarize_hierarchy(bank: &SoundBank, sizes: &SerializedSizeIndex) -> Vec<HierarchySummary> {
     let mut summaries = Vec::new();
     for (chunk_index, chunk) in bank.chunks.iter().enumerate() {
         let BankChunk::Hierarchy(objects) = chunk else {
@@ -1300,6 +1563,11 @@ fn summarize_hierarchy(bank: &SoundBank) -> Vec<HierarchySummary> {
                 ),
                 title,
                 detail,
+                size: sizes
+                    .hierarchy_sizes
+                    .get(&(chunk_index, object_index))
+                    .copied()
+                    .unwrap_or_else(|| hierarchy_object_size_hint(object)),
             });
         }
     }
@@ -1318,6 +1586,7 @@ fn summarize_media(bank: &SoundBank) -> Vec<MediaSummary> {
         )
         .then_some(index_chunk + 1);
         for (entry_index, entry) in entries.iter().enumerate() {
+            let title = format!("{}.wem", entry.id);
             summaries.push(MediaSummary {
                 index_chunk,
                 entry_index,
@@ -1325,6 +1594,7 @@ fn summarize_media(bank: &SoundBank) -> Vec<MediaSummary> {
                 offset: entry.offset,
                 size: entry.size,
                 data_chunk,
+                title,
                 search: format!("{} wem {:08x}", entry.id, entry.id),
             });
         }
@@ -1350,6 +1620,20 @@ fn chunk_detail(chunk: &BankChunk) -> String {
         BankChunk::Environments(_) => "环境曲线设置".to_string(),
         BankChunk::Platform(platform) => format!("平台 {}", platform.name),
         BankChunk::Unknown(raw) => format!("{} 未知数据", format_bytes(raw.data.len())),
+    }
+}
+
+fn chunk_kind_label(chunk: &BankChunk) -> &'static str {
+    match chunk {
+        BankChunk::MediaIndex(_) => "媒体索引",
+        BankChunk::MediaData(_) => "媒体数据",
+        BankChunk::Plugins(_) => "插件引用",
+        BankChunk::GameSynchronization(_) => "游戏同步",
+        BankChunk::Hierarchy(_) => "层级对象",
+        BankChunk::References(_) => "Bank 引用",
+        BankChunk::Environments(_) => "环境设置",
+        BankChunk::Platform(_) => "平台设置",
+        BankChunk::Unknown(_) => "未知数据块",
     }
 }
 
@@ -1431,77 +1715,130 @@ fn hierarchy_object_detail(object: &HierarchyObject, version: bnk_archive::BankV
     }
 }
 
-fn visible_rows(tab: &BankTab) -> (Vec<RowModel>, usize) {
-    let query = tab.query.trim().to_lowercase();
-    let start = tab.page.saturating_mul(ROW_PAGE_SIZE);
-    let end = start.saturating_add(ROW_PAGE_SIZE);
-    let mut total = 0;
-    let mut rows = Vec::new();
+#[derive(Clone, Copy)]
+enum RowCandidate<'a> {
+    Chunk(&'a ChunkSummary),
+    Hierarchy(&'a HierarchySummary),
+    Media(&'a MediaSummary),
+}
 
-    match tab.section {
-        BrowserSection::Overview => {}
-        BrowserSection::Chunks => {
-            for summary in &tab.document.chunks {
-                if !query.is_empty() && !summary.search.contains(&query) {
-                    continue;
-                }
-                if (start..end).contains(&total) {
-                    rows.push(RowModel {
-                        key: format!("chunk-{}", summary.index),
-                        selection: BankSelection::Chunk(summary.index),
-                        glyph: "chunks",
-                        title: summary.title.clone(),
-                        detail: summary.detail.clone(),
-                        meta: format!("#{}", summary.index + 1),
-                    });
-                }
-                total += 1;
-            }
-        }
-        BrowserSection::Hierarchy => {
-            for summary in &tab.document.hierarchy {
-                if !query.is_empty() && !summary.search.contains(&query) {
-                    continue;
-                }
-                if (start..end).contains(&total) {
-                    rows.push(RowModel {
-                        key: format!("hirc-{}-{}", summary.chunk_index, summary.object_index),
-                        selection: BankSelection::Hierarchy {
-                            chunk_index: summary.chunk_index,
-                            object_index: summary.object_index,
-                        },
-                        glyph: "hierarchy",
-                        title: summary.title.clone(),
-                        detail: summary.detail.clone(),
-                        meta: format!("0x{:02X}", summary.type_code),
-                    });
-                }
-                total += 1;
-            }
-        }
-        BrowserSection::Media => {
-            for summary in &tab.document.media {
-                if !query.is_empty() && !summary.search.contains(&query) {
-                    continue;
-                }
-                if (start..end).contains(&total) {
-                    rows.push(RowModel {
-                        key: format!("media-{}-{}", summary.index_chunk, summary.entry_index),
-                        selection: BankSelection::Media {
-                            index_chunk: summary.index_chunk,
-                            entry_index: summary.entry_index,
-                        },
-                        glyph: "audio",
-                        title: format!("{}.wem", summary.id),
-                        detail: format!("DATA + {}", summary.offset),
-                        meta: format_bytes(summary.size as usize),
-                    });
-                }
-                total += 1;
-            }
+impl RowCandidate<'_> {
+    fn name(&self) -> &str {
+        match self {
+            Self::Chunk(summary) => &summary.title,
+            Self::Hierarchy(summary) => &summary.title,
+            Self::Media(summary) => &summary.title,
         }
     }
+
+    fn type_label(&self) -> &str {
+        match self {
+            Self::Chunk(summary) => summary.type_label,
+            Self::Hierarchy(summary) => hierarchy_kind_label(summary.kind),
+            Self::Media(_) => "WEM 音频",
+        }
+    }
+
+    fn size(self) -> u64 {
+        match self {
+            Self::Chunk(summary) => summary.size,
+            Self::Hierarchy(summary) => summary.size,
+            Self::Media(summary) => u64::from(summary.size),
+        }
+    }
+
+    fn into_model(self) -> RowModel {
+        match self {
+            Self::Chunk(summary) => RowModel {
+                key: format!("chunk-{}", summary.index),
+                selection: BankSelection::Chunk(summary.index),
+                glyph: "chunks",
+                title: summary.title.clone(),
+                detail: format!("#{} · {}", summary.index + 1, summary.detail),
+                type_label: summary.type_label.to_string(),
+                meta: format_bytes(summary.size as usize),
+            },
+            Self::Hierarchy(summary) => RowModel {
+                key: format!("hirc-{}-{}", summary.chunk_index, summary.object_index),
+                selection: BankSelection::Hierarchy {
+                    chunk_index: summary.chunk_index,
+                    object_index: summary.object_index,
+                },
+                glyph: "hierarchy",
+                title: summary.title.clone(),
+                detail: format!("0x{:02X} · {}", summary.type_code, summary.detail),
+                type_label: hierarchy_kind_label(summary.kind).to_string(),
+                meta: format_bytes(summary.size as usize),
+            },
+            Self::Media(summary) => RowModel {
+                key: format!("media-{}-{}", summary.index_chunk, summary.entry_index),
+                selection: BankSelection::Media {
+                    index_chunk: summary.index_chunk,
+                    entry_index: summary.entry_index,
+                },
+                glyph: "audio",
+                title: summary.title.clone(),
+                detail: format!("DATA + {}", summary.offset),
+                type_label: "WEM 音频".to_string(),
+                meta: format_bytes(summary.size as usize),
+            },
+        }
+    }
+}
+
+fn visible_rows(tab: &BankTab) -> (Vec<RowModel>, usize) {
+    let query = tab.query.trim().to_lowercase();
+    let mut candidates = match tab.section {
+        BrowserSection::Overview => Vec::new(),
+        BrowserSection::Chunks => tab
+            .document
+            .chunks
+            .iter()
+            .filter(|summary| query.is_empty() || summary.search.contains(&query))
+            .map(RowCandidate::Chunk)
+            .collect::<Vec<_>>(),
+        BrowserSection::Hierarchy => tab
+            .document
+            .hierarchy
+            .iter()
+            .filter(|summary| query.is_empty() || summary.search.contains(&query))
+            .map(RowCandidate::Hierarchy)
+            .collect::<Vec<_>>(),
+        BrowserSection::Media => tab
+            .document
+            .media
+            .iter()
+            .filter(|summary| query.is_empty() || summary.search.contains(&query))
+            .map(RowCandidate::Media)
+            .collect::<Vec<_>>(),
+    };
+    candidates.sort_by(|left, right| {
+        let primary = match tab.sort.key {
+            BrowserSortKey::Name => compare_text(left.name(), right.name()),
+            BrowserSortKey::Type => compare_text(left.type_label(), right.type_label()),
+            BrowserSortKey::Size => left.size().cmp(&right.size()),
+        };
+        tab.sort
+            .apply(primary)
+            .then_with(|| compare_text(left.name(), right.name()))
+    });
+
+    let total = candidates.len();
+    let start = tab.page.saturating_mul(ROW_PAGE_SIZE);
+    let rows = candidates
+        .into_iter()
+        .skip(start)
+        .take(ROW_PAGE_SIZE)
+        .map(RowCandidate::into_model)
+        .collect();
     (rows, total)
+}
+
+fn compare_text(left: &str, right: &str) -> Ordering {
+    left.bytes()
+        .map(|byte| byte.to_ascii_lowercase())
+        .cmp(right.bytes().map(|byte| byte.to_ascii_lowercase()))
+        .then_with(|| left.cmp(right))
 }
 
 fn hierarchy_object(
@@ -1813,6 +2150,13 @@ fn set_selection(mut tabs: Signal<Vec<BankTab>>, tab_id: u64, selection: BankSel
 fn set_query(mut tabs: Signal<Vec<BankTab>>, tab_id: u64, query: String) {
     if let Some(tab) = tabs.write().iter_mut().find(|tab| tab.id == tab_id) {
         tab.query = query;
+        tab.page = 0;
+    }
+}
+
+fn toggle_sort(mut tabs: Signal<Vec<BankTab>>, tab_id: u64, key: BrowserSortKey) {
+    if let Some(tab) = tabs.write().iter_mut().find(|tab| tab.id == tab_id) {
+        tab.sort = tab.sort.toggled(key);
         tab.page = 0;
     }
 }
@@ -2301,6 +2645,63 @@ mod tests {
         assert_eq!(visible_rows(&tab).1, 1);
         tab.query = "missing".to_string();
         assert_eq!(visible_rows(&tab).1, 0);
+    }
+
+    #[test]
+    fn browser_sort_uses_serialized_byte_sizes() {
+        let bank = SoundBank {
+            header: BankHeader {
+                version: BankVersion::V140,
+                id: 8,
+                language: 0,
+                header_expand: Vec::new(),
+            },
+            chunks: vec![
+                BankChunk::MediaIndex(vec![
+                    MediaIndexEntry {
+                        id: 10,
+                        offset: 0,
+                        size: 2,
+                    },
+                    MediaIndexEntry {
+                        id: 20,
+                        offset: 2,
+                        size: 20,
+                    },
+                ]),
+                BankChunk::MediaData(vec![0; 22]),
+            ],
+        };
+        let bytes = bnk_archive::to_bytes(&bank).unwrap();
+        let document = BankDocument::new(
+            "sortable.bnk".to_string(),
+            Arc::from(bytes),
+            bank,
+            ParseMode::Strict,
+            None,
+        );
+        assert_eq!(document.chunks[0].size, 24);
+        assert_eq!(document.chunks[1].size, 22);
+
+        let mut tab = BankTab::opened(1, document);
+        tab.section = BrowserSection::Media;
+        tab.sort = BrowserSort {
+            key: BrowserSortKey::Size,
+            direction: BrowserSortDirection::Descending,
+        };
+        let (rows, total) = visible_rows(&tab);
+        assert_eq!(total, 2);
+        assert_eq!(rows[0].title, "20.wem");
+        assert_eq!(rows[1].title, "10.wem");
+    }
+
+    #[test]
+    fn browser_sort_toggles_active_key_direction() {
+        let sort = BrowserSort::default().toggled(BrowserSortKey::Name);
+        assert_eq!(sort.direction, BrowserSortDirection::Descending);
+        let sort = sort.toggled(BrowserSortKey::Type);
+        assert_eq!(sort.key, BrowserSortKey::Type);
+        assert_eq!(sort.direction, BrowserSortDirection::Ascending);
     }
 
     #[test]

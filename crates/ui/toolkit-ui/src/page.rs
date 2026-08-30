@@ -16,10 +16,117 @@ pub fn ToolPage(
 }
 
 #[component]
-pub fn ToolPageToolbar(actions: Element, #[props(default)] class: String) -> Element {
+pub fn ToolPageToolbar(
+    actions: Element,
+    #[props(default)] class: String,
+    #[props(default = "工具栏".to_string())] label: String,
+    #[props(default = "展开工具栏".to_string())] open_label: String,
+    #[props(default = "收起工具栏".to_string())] close_label: String,
+) -> Element {
+    let mut open = use_signal(|| false);
+    let is_open = open();
+    let root_class = if is_open {
+        format!("ui-tool-page-toolbar is-open {class}")
+    } else {
+        format!("ui-tool-page-toolbar {class}")
+    };
+    let toggle_label = if is_open {
+        close_label.clone()
+    } else {
+        open_label
+    };
+    let panel_label = label.clone();
+    let header_label = label.clone();
+    let handle_label = label;
+    let close_button_title = close_label.clone();
+    let close_button_label = close_label;
+
     rsx! {
-        section { class: "ui-tool-page-toolbar {class}",
-            {actions}
+        section {
+            class: root_class,
+            onkeydown: move |event| {
+                if event.key() == Key::Escape && open() {
+                    event.stop_propagation();
+                    open.set(false);
+                }
+            },
+            if is_open {
+                div {
+                    class: "ui-tool-drawer-backdrop",
+                    aria_hidden: "true",
+                    onclick: move |_| open.set(false),
+                }
+            }
+            aside {
+                class: "ui-tool-drawer-panel",
+                aria_hidden: !is_open,
+                aria_label: panel_label,
+                div { class: "ui-tool-drawer-header",
+                    strong { {header_label} }
+                    button {
+                        r#type: "button",
+                        class: "ui-tool-drawer-close",
+                        title: close_button_title,
+                        aria_label: close_button_label,
+                        onclick: move |event| {
+                            event.stop_propagation();
+                            open.set(false);
+                        },
+                        svg {
+                            view_box: "0 0 24 24",
+                            fill: "none",
+                            stroke: "currentColor",
+                            stroke_width: "2",
+                            stroke_linecap: "round",
+                            path { d: "M6 6l12 12" }
+                            path { d: "M18 6 6 18" }
+                        }
+                    }
+                }
+                div { class: "ui-tool-drawer-body",
+                    {actions}
+                }
+            }
+            button {
+                r#type: "button",
+                class: "ui-tool-drawer-handle",
+                title: toggle_label.clone(),
+                aria_label: toggle_label,
+                aria_expanded: is_open,
+                onclick: move |event| {
+                    event.stop_propagation();
+                    open.toggle();
+                },
+                svg {
+                    class: "ui-tool-drawer-toolbar-icon",
+                    view_box: "0 0 24 24",
+                    fill: "none",
+                    stroke: "currentColor",
+                    stroke_width: "2",
+                    stroke_linecap: "round",
+                    stroke_linejoin: "round",
+                    path { d: "M4 6h10" }
+                    path { d: "M18 6h2" }
+                    path { d: "M4 12h2" }
+                    path { d: "M10 12h10" }
+                    path { d: "M4 18h7" }
+                    path { d: "M15 18h5" }
+                    circle { cx: "16", cy: "6", r: "2" }
+                    circle { cx: "8", cy: "12", r: "2" }
+                    circle { cx: "13", cy: "18", r: "2" }
+                }
+                span { class: "ui-tool-drawer-handle-label", {handle_label} }
+                svg {
+                    class: "ui-tool-drawer-chevron",
+                    view_box: "0 0 24 24",
+                    fill: "none",
+                    stroke: "currentColor",
+                    stroke_width: "2",
+                    stroke_linecap: "round",
+                    stroke_linejoin: "round",
+                    path { d: "m9 5 7 7-7 7" }
+                }
+            }
         }
     }
 }

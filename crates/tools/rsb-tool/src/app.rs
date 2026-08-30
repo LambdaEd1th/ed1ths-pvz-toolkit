@@ -9,7 +9,8 @@ use crate::preview::{
     prepare_preview,
 };
 use crate::view_model::{
-    ArchiveRowFilter, ArchiveRowSource, ArchiveTableRow, PacketItemSource, PacketTreeSource,
+    ArchiveRowFilter, ArchiveRowSource, ArchiveTableRow, BrowserSort, BrowserSortKey,
+    PacketItemSource, PacketTreeSource,
 };
 use crate::virtual_scroll::{
     TABLE_DEFAULT_VIEWPORT_HEIGHT, measured_table_viewport_height, table_row_top,
@@ -5267,6 +5268,8 @@ fn ArchiveTable(
     let mut mounted = use_signal(|| None::<MountedEvent>);
     let mut scroll_top = use_signal(|| 0_f64);
     let mut viewport_height = use_signal(|| TABLE_DEFAULT_VIEWPORT_HEIGHT);
+    let mut sort = use_signal(BrowserSort::default);
+    let sort_snapshot = sort();
     let blank_context_directory = match &location {
         BrowserLocation::Packet { directory, .. } => Some(directory.clone()),
         BrowserLocation::Archive => None,
@@ -5281,6 +5284,7 @@ fn ArchiveTable(
         &ArchiveRowFilter {
             rows: archive_rows.clone(),
             query: query.clone(),
+            sort: sort_snapshot,
         },
         |filter| filter.indices(),
     ));
@@ -5295,9 +5299,11 @@ fn ArchiveTable(
             index: packet
                 .as_ref()
                 .map(|document| document.directory_index.clone()),
+            files: packet.as_ref().map(|document| document.files.clone()),
             directory,
             virtual_directories,
             query,
+            sort: sort_snapshot,
         },
         |source| source.items(),
     ));
@@ -5309,6 +5315,20 @@ fn ArchiveTable(
     let scroll_top_snapshot = *scroll_top.read();
     let virtual_window =
         table_virtual_window(row_count, scroll_top_snapshot, *viewport_height.read());
+
+    let on_sort: EventHandler<BrowserSortKey> = EventHandler::new(move |key| {
+        sort.set(sort().toggled(key));
+        scroll_top.set(0.0);
+        on_scroll.call(0.0);
+        let Some(event) = mounted.peek().clone() else {
+            return;
+        };
+        spawn(async move {
+            let _ = event
+                .scroll(PixelsVector2D::new(0.0, 0.0), ScrollBehavior::Instant)
+                .await;
+        });
+    });
 
     use_effect(use_reactive(&restore_scroll, move |restore| {
         if restore.revision == 0 {
@@ -5331,9 +5351,27 @@ fn ArchiveTable(
         main {
             class: "rsb-table-pane",
             div { class: "rsb-table-head",
-                span { class: "rsb-col-name", "名称" }
-                span { class: "rsb-col-type", "类型" }
-                span { class: "rsb-col-size", "原始大小" }
+                SortableTableHeader {
+                    class: "rsb-col-name",
+                    label: "名称",
+                    sort_key: BrowserSortKey::Name,
+                    sort: sort_snapshot,
+                    on_sort,
+                }
+                SortableTableHeader {
+                    class: "rsb-col-type",
+                    label: "类型",
+                    sort_key: BrowserSortKey::Type,
+                    sort: sort_snapshot,
+                    on_sort,
+                }
+                SortableTableHeader {
+                    class: "rsb-col-size",
+                    label: "原始大小",
+                    sort_key: BrowserSortKey::Size,
+                    sort: sort_snapshot,
+                    on_sort,
+                }
                 span { class: "rsb-col-packed", "压缩后" }
                 span { class: "rsb-col-ratio", "压缩率" }
             }
@@ -5492,6 +5530,43 @@ fn ArchiveTable(
                         },
                     }
                 }
+            }
+        }
+    }
+}
+
+#[component]
+fn SortableTableHeader(
+    class: &'static str,
+    label: &'static str,
+    sort_key: BrowserSortKey,
+    sort: BrowserSort,
+    on_sort: EventHandler<BrowserSortKey>,
+) -> Element {
+    let active = sort.key == sort_key;
+    let class = if active {
+        format!("rsb-sort-header {class} is-active")
+    } else {
+        format!("rsb-sort-header {class}")
+    };
+    let direction_label = if active && sort.aria_value(sort_key) == "ascending" {
+        "倒序"
+    } else {
+        "正序"
+    };
+    rsx! {
+        button {
+            r#type: "button",
+            class,
+            role: "columnheader",
+            aria_sort: sort.aria_value(sort_key),
+            title: "按{label}{direction_label}排列",
+            onclick: move |_| on_sort.call(sort_key),
+            span { "{label}" }
+            span {
+                class: if active { "rsb-sort-indicator is-active" } else { "rsb-sort-indicator" },
+                aria_hidden: "true",
+                {sort.indicator(sort_key)}
             }
         }
     }

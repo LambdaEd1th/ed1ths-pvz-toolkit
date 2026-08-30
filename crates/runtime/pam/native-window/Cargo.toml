@@ -9,4 +9,3 @@ publish.workspace = true
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2.workspace = true
 objc2-app-kit.workspace = true
-tao.workspace = true

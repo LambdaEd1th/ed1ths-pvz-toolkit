@@ -1,44 +1,53 @@
 [workspace]
 members = [
+    # Application shell.
     "apps/toolkit",
-    "crates/ui/toolkit-ui",
-    "crates/formats/pam-codec",
-    "crates/formats/particle-codec",
-    "crates/formats/reanim-codec",
+
+    # Public format libraries maintained in independent repositories.
     "crates/formats/bnk-archive",
     "crates/formats/compiled-text",
     "crates/formats/crypt-data",
     "crates/formats/dzip-archive",
     "crates/formats/newton-manifest",
     "crates/formats/pak-archive",
+    "crates/formats/pam-codec",
+    "crates/formats/particle-codec",
+    "crates/formats/reanim-codec",
     "crates/formats/rsb-archive",
     "crates/formats/rsb-patch",
     "crates/formats/serde-rton",
     "crates/formats/smf-container",
     "crates/formats/wem-audio",
-    "crates/compiled-text/worker",
-    "crates/pam/core",
-    "crates/pam/formats",
-    "crates/pam/native-window",
-    "crates/pam/renderer",
-    "crates/pam/worker",
-    "crates/rsb/worker",
-    "crates/rsb-patch/worker",
-    "crates/rton/core",
-    "crates/rton/worker",
-    "crates/smf/worker",
-    "crates/wem/worker",
-    "crates/tools/pam-tool",
-    "crates/tools/crypt-data-tool",
-    "crates/tools/compiled-text-tool",
-    "crates/tools/particle-tool",
-    "crates/tools/reanim-tool",
+
+    # Private application runtime crates and background workers.
+    "crates/runtime/compiled-text/worker",
+    "crates/runtime/pam/core",
+    "crates/runtime/pam/formats",
+    "crates/runtime/pam/native-window",
+    "crates/runtime/pam/renderer",
+    "crates/runtime/pam/worker",
+    "crates/runtime/rsb/worker",
+    "crates/runtime/rsb-patch/worker",
+    "crates/runtime/rton/core",
+    "crates/runtime/rton/worker",
+    "crates/runtime/smf/worker",
+    "crates/runtime/wem/worker",
+
+    # Shared UI infrastructure.
+    "crates/ui/toolkit-ui",
+
+    # Toolkit tool crates.
     "crates/tools/bnk-tool",
+    "crates/tools/compiled-text-tool",
+    "crates/tools/crypt-data-tool",
     "crates/tools/dzip-tool",
     "crates/tools/newton-tool",
     "crates/tools/pak-tool",
-    "crates/tools/rsb-tool",
+    "crates/tools/pam-tool",
+    "crates/tools/particle-tool",
+    "crates/tools/reanim-tool",
     "crates/tools/rsb-patch-tool",
+    "crates/tools/rsb-tool",
     "crates/tools/rton-tool",
     "crates/tools/smf-tool",
     "crates/tools/wem-tool",
@@ -53,95 +62,120 @@ repository = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit"
 publish = false
 
 [workspace.dependencies]
-arboard = "3.6"
-base64 = "0.23"
+# Public format libraries maintained in independent repositories.
 bnk-archive = { path = "crates/formats/bnk-archive", version = "0.1.0" }
-bnk-tool = { path = "crates/tools/bnk-tool" }
-bytemuck = { version = "1.24", features = ["derive"] }
-byteorder = "1.5"
 compiled-text = { path = "crates/formats/compiled-text", version = "0.1.0" }
-compiled-text-tool = { path = "crates/tools/compiled-text-tool" }
-compiled_text_worker = { path = "crates/compiled-text/worker" }
-console_error_panic_hook = "0.1"
-crc32fast = "1.5"
 crypt-data = { path = "crates/formats/crypt-data", version = "0.1.0" }
-crypt-data-tool = { path = "crates/tools/crypt-data-tool" }
-dioxus = { version = "0.7.10", default-features = false }
-dioxus-free-icons = { version = "0.10", features = ["lucide"] }
-dioxus-html = "0.7.10"
-directories = "6"
 dzip = { path = "crates/formats/dzip-archive", version = "0.5.1" }
-dzip-tool = { path = "crates/tools/dzip-tool" }
-flate2 = { version = "1.1", default-features = false, features = ["rust_backend"] }
-fluent-bundle = "0.16"
-futures-channel = "0.3"
-futures-timer = "3"
-futures-util = "0.3"
-gloo-timers = { version = "0.4", features = ["futures"] }
-hex = "0.4"
-hound = "3.5"
-image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
-js-sys = "0.3"
-log = { version = "0.4", features = ["std"] }
-memmap2 = "0.9"
 newton-manifest = { path = "crates/formats/newton-manifest", version = "0.1.0" }
-newton-tool = { path = "crates/tools/newton-tool" }
-objc2 = "0.6.4"
-objc2-app-kit = { version = "0.3.2", default-features = false, features = ["std", "NSApplication", "NSColorSpace", "NSWindow"] }
-ogg = "0.9.2"
 pak-archive = { path = "crates/formats/pak-archive", version = "0.1.0" }
-pak-tool = { path = "crates/tools/pak-tool" }
 pam-codec = { path = "crates/formats/pam-codec", version = "0.1.2" }
-pam-tool = { path = "crates/tools/pam-tool" }
-pam_viewer_core = { path = "crates/pam/core" }
-pam_viewer_formats = { path = "crates/pam/formats" }
-pam_viewer_native_window = { path = "crates/pam/native-window" }
-pam_viewer_renderer = { path = "crates/pam/renderer", default-features = false }
-pam_viewer_worker = { path = "crates/pam/worker" }
-parking_lot = "0.12"
 particle-codec = { path = "crates/formats/particle-codec", version = "0.1.0" }
-particle-tool = { path = "crates/tools/particle-tool" }
-png = "0.18"
-pollster = "1"
-quick-xml = "0.41"
-rayon = "1"
 reanim-codec = { path = "crates/formats/reanim-codec", version = "0.1.0" }
-reanim-tool = { path = "crates/tools/reanim-tool" }
-regex = "1.13"
-rfd = "0.17"
-ropey = "1.6.1"
-roxmltree = "0.21"
 rsb-archive = { path = "crates/formats/rsb-archive", version = "0.1.0" }
 rsb-patch = { path = "crates/formats/rsb-patch", version = "0.1.0" }
+serde-rton = { path = "crates/formats/serde-rton", version = "0.4.0", default-features = false }
+smf-container = { path = "crates/formats/smf-container", version = "0.1.0" }
+wem-audio = { path = "crates/formats/wem-audio", version = "0.1.0" }
+
+# Toolkit tool crates.
+bnk-tool = { path = "crates/tools/bnk-tool" }
+compiled-text-tool = { path = "crates/tools/compiled-text-tool" }
+crypt-data-tool = { path = "crates/tools/crypt-data-tool" }
+dzip-tool = { path = "crates/tools/dzip-tool" }
+newton-tool = { path = "crates/tools/newton-tool" }
+pak-tool = { path = "crates/tools/pak-tool" }
+pam-tool = { path = "crates/tools/pam-tool" }
+particle-tool = { path = "crates/tools/particle-tool" }
+reanim-tool = { path = "crates/tools/reanim-tool" }
 rsb-patch-tool = { path = "crates/tools/rsb-patch-tool" }
 rsb-tool = { path = "crates/tools/rsb-tool" }
-rsb_patch_worker = { path = "crates/rsb-patch/worker" }
-rsb_preview_worker = { path = "crates/rsb/worker" }
 rton-tool = { path = "crates/tools/rton-tool" }
-rton_editor_core = { path = "crates/rton/core" }
-serde = { version = "1", features = ["derive"] }
-serde-rton = { path = "crates/formats/serde-rton", version = "0.4.0", default-features = false }
-serde-wasm-bindgen = "0.6"
-serde_bytes = "0.11"
-serde_json = { version = "1", features = ["float_roundtrip"] }
-serde_yaml = "0.9.33"
-smf-container = { path = "crates/formats/smf-container", version = "0.1.0" }
 smf-tool = { path = "crates/tools/smf-tool" }
-smf_worker = { path = "crates/smf/worker" }
-symphonia = { version = "0.6", default-features = false, features = ["aac", "isomp4", "ogg", "vorbis"] }
-tao = "0.34.8"
-thiserror = "2"
-toml = "1.1"
-toolkit-ui = { path = "crates/ui/toolkit-ui" }
-unic-langid = "0.9"
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-web-sys = "0.3"
-wem-audio = { path = "crates/formats/wem-audio", version = "0.1.0" }
 wem-tool = { path = "crates/tools/wem-tool" }
-wem_audio_worker = { path = "crates/wem/worker" }
-wgpu = { version = "30", features = ["webgl"] }
-zip = { version = "8", default-features = false, features = ["deflate-flate2-zlib-rs", "unreserved"] }
+
+# Private application runtime crates and shared UI.
+compiled_text_worker = { path = "crates/runtime/compiled-text/worker" }
+pam_viewer_core = { path = "crates/runtime/pam/core" }
+pam_viewer_formats = { path = "crates/runtime/pam/formats" }
+pam_viewer_native_window = { path = "crates/runtime/pam/native-window" }
+pam_viewer_renderer = { path = "crates/runtime/pam/renderer", default-features = false }
+pam_viewer_worker = { path = "crates/runtime/pam/worker" }
+rsb_patch_worker = { path = "crates/runtime/rsb-patch/worker" }
+rsb_preview_worker = { path = "crates/runtime/rsb/worker" }
+rton_editor_core = { path = "crates/runtime/rton/core" }
+smf_worker = { path = "crates/runtime/smf/worker" }
+toolkit-ui = { path = "crates/ui/toolkit-ui" }
+wem_audio_worker = { path = "crates/runtime/wem/worker" }
+
+# Third-party dependencies.
+arboard = "3.6.1"
+base64 = "0.23.1"
+bytemuck = { version = "1.25.2", features = ["derive"] }
+byteorder = "1.5.0"
+console_error_panic_hook = "0.1.7"
+crc32fast = "1.5.1"
+dioxus = { version = "0.7.10", default-features = false }
+dioxus-free-icons = { version = "0.10.0", features = ["lucide"] }
+dioxus-html = "0.7.10"
+directories = "6.0.0"
+flate2 = { version = "1.1.10", default-features = false, features = [
+    "rust_backend",
+] }
+fluent-bundle = "0.16.0"
+futures-channel = "0.3.34"
+futures-timer = "3.0.4"
+futures-util = "0.3.34"
+gloo-timers = { version = "0.4.0", features = ["futures"] }
+hex = "0.4.3"
+hound = "3.5.1"
+image = { version = "0.25.10", default-features = false, features = [
+    "jpeg",
+    "png",
+    "webp",
+] }
+js-sys = "0.3.104"
+log = { version = "0.4.34", features = ["std"] }
+memmap2 = "0.9.11"
+objc2 = "0.6.4"
+objc2-app-kit = { version = "0.3.2", default-features = false, features = [
+    "std",
+    "NSApplication",
+    "NSColorSpace",
+    "NSWindow",
+] }
+ogg = "0.9.2"
+parking_lot = "0.12.5"
+png = "0.18.1"
+pollster = "1.0.1"
+quick-xml = "0.42.0"
+rayon = "1.12.0"
+regex = "1.13.1"
+rfd = "0.17.2"
+ropey = "1.6.1"
+roxmltree = "0.21.1"
+serde = { version = "1.0.229", features = ["derive"] }
+serde-wasm-bindgen = "0.6.5"
+serde_bytes = "0.11.19"
+serde_json = { version = "1.0.151", features = ["float_roundtrip"] }
+serde_yaml = "0.9.34"
+symphonia = { version = "0.6.1", default-features = false, features = [
+    "aac",
+    "isomp4",
+    "ogg",
+    "vorbis",
+] }
+thiserror = "2.0.20"
+toml = "1.1.4"
+unic-langid = "0.9.6"
+wasm-bindgen = "0.2.127"
+wasm-bindgen-futures = "0.4.77"
+web-sys = "0.3.104"
+wgpu = { version = "30.0.1", features = ["webgl"] }
+zip = { version = "8.6.0", default-features = false, features = [
+    "deflate-flate2-zlib-rs",
+    "unreserved",
+] }
 
 [patch."https://github.com/LambdaEd1th/rsb-archive.git"]
 rsb-archive = { path = "crates/formats/rsb-archive" }

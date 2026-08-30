@@ -55,11 +55,16 @@ pub fn install_safe_reopen_handler() {
 }
 
 #[cfg(target_os = "macos")]
-pub fn make_opaque(window: &tao::window::Window) {
+/// Makes the Tao-owned AppKit window opaque.
+///
+/// # Safety
+///
+/// `ns_window` must be either null or a valid `NSWindow` pointer that remains
+/// alive for the duration of this call.
+pub unsafe fn make_opaque(ns_window: *mut std::ffi::c_void) {
     use objc2_app_kit::{NSColorSpace, NSWindow};
-    use tao::platform::macos::WindowExtMacOS;
 
-    let ns_window = window.ns_window().cast::<NSWindow>();
+    let ns_window = ns_window.cast::<NSWindow>();
     if ns_window.is_null() {
         return;
     }

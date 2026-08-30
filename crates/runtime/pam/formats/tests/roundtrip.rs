@@ -3,11 +3,19 @@ use std::{collections::BTreeSet, io::Read};
 
 use pam_viewer_formats::InputFile;
 
+fn workspace_root() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .find(|path| {
+            std::fs::read_to_string(path.join("Cargo.toml"))
+                .is_ok_and(|manifest| manifest.contains("[workspace]"))
+        })
+        .expect("workspace root")
+        .to_path_buf()
+}
+
 fn sample_files(name: &str) -> Vec<InputFile> {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../..")
-        .join("sample")
-        .join(name);
+    let root = workspace_root().join("sample").join(name);
     let mut paths = std::fs::read_dir(root)
         .expect("sample directory")
         .map(|entry| entry.expect("sample entry").path())
@@ -88,9 +96,7 @@ fn fla_roundtrip_preserves_rendered_timeline_and_images() {
         pam_viewer_formats::load_pam_document(&sample_files("sunflower")).expect("load sunflower");
     let original = loaded.document;
     let fla = pam_viewer_formats::export_fla(&original, 1200).expect("export FLA");
-    let artifact_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .join("target/test-artifacts");
+    let artifact_dir = workspace_root().join("target/test-artifacts");
     std::fs::create_dir_all(&artifact_dir).expect("create artifact directory");
     std::fs::write(artifact_dir.join("sunflower.fla"), &fla).expect("write FLA artifact");
     let imported = pam_viewer_formats::load_pam_document(&[InputFile::new(

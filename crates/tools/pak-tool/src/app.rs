@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
@@ -60,6 +61,73 @@ enum BrowserSelection {
     Entry(usize),
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+enum BrowserSortKey {
+    #[default]
+    Name,
+    Type,
+    Size,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+enum BrowserSortDirection {
+    #[default]
+    Ascending,
+    Descending,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct BrowserSort {
+    key: BrowserSortKey,
+    direction: BrowserSortDirection,
+}
+
+impl BrowserSort {
+    fn toggled(self, key: BrowserSortKey) -> Self {
+        if self.key == key {
+            Self {
+                key,
+                direction: match self.direction {
+                    BrowserSortDirection::Ascending => BrowserSortDirection::Descending,
+                    BrowserSortDirection::Descending => BrowserSortDirection::Ascending,
+                },
+            }
+        } else {
+            Self {
+                key,
+                direction: BrowserSortDirection::Ascending,
+            }
+        }
+    }
+
+    fn aria_value(self, key: BrowserSortKey) -> &'static str {
+        if self.key != key {
+            return "none";
+        }
+        match self.direction {
+            BrowserSortDirection::Ascending => "ascending",
+            BrowserSortDirection::Descending => "descending",
+        }
+    }
+
+    fn indicator(self, key: BrowserSortKey) -> &'static str {
+        if self.key != key {
+            return "↕";
+        }
+        match self.direction {
+            BrowserSortDirection::Ascending => "↑",
+            BrowserSortDirection::Descending => "↓",
+        }
+    }
+
+    fn apply(self, ordering: Ordering) -> Ordering {
+        match self.direction {
+            BrowserSortDirection::Ascending => ordering,
+            BrowserSortDirection::Descending => ordering.reverse(),
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 struct ArchiveTab {
     id: u64,
@@ -68,6 +136,7 @@ struct ArchiveTab {
     directory: ArchivePath,
     selection: Option<BrowserSelection>,
     query: String,
+    sort: BrowserSort,
     row_limit: usize,
     dirty: bool,
 }
@@ -80,6 +149,7 @@ impl PartialEq for ArchiveTab {
             && self.directory == other.directory
             && self.selection == other.selection
             && self.query == other.query
+            && self.sort == other.sort
             && self.row_limit == other.row_limit
             && self.dirty == other.dirty
     }
@@ -94,6 +164,7 @@ impl ArchiveTab {
             directory: Vec::new(),
             selection: None,
             query: String::new(),
+            sort: BrowserSort::default(),
             row_limit: ROW_PAGE_SIZE,
             dirty: false,
         }
@@ -514,9 +585,31 @@ fn ArchiveWorkspace(
                         }
                     }
                     div { class: "pak-table-head",
-                        span { "名称" }
-                        span { "类型" }
-                        span { "大小" }
+                        SortableTableHeader {
+                            label: "名称",
+                            sort_key: BrowserSortKey::Name,
+                            sort: tab.sort,
+                            on_sort: move |key| update_active_tab(signals.tabs, signals.active_tab_id, |tab| {
+                                tab.sort = tab.sort.toggled(key);
+                            }),
+                        }
+                        SortableTableHeader {
+                            label: "类型",
+                            sort_key: BrowserSortKey::Type,
+                            sort: tab.sort,
+                            on_sort: move |key| update_active_tab(signals.tabs, signals.active_tab_id, |tab| {
+                                tab.sort = tab.sort.toggled(key);
+                            }),
+                        }
+                        SortableTableHeader {
+                            label: "大小",
+                            class: "pak-sort-header--numeric",
+                            sort_key: BrowserSortKey::Size,
+                            sort: tab.sort,
+                            on_sort: move |key| update_active_tab(signals.tabs, signals.active_tab_id, |tab| {
+                                tab.sort = tab.sort.toggled(key);
+                            }),
+                        }
                         span { "属性" }
                     }
                     div { class: "pak-table-body",
@@ -578,6 +671,43 @@ fn ArchiveWorkspace(
 #[component]
 fn SummaryCard(label: &'static str, value: String, glyph: &'static str) -> Element {
     rsx! { article { class: "pak-summary-card", span { class: "pak-summary-icon", Glyph { name: glyph } } div { small { "{label}" } strong { "{value}" } } } }
+}
+
+#[component]
+fn SortableTableHeader(
+    label: &'static str,
+    #[props(default)] class: &'static str,
+    sort_key: BrowserSortKey,
+    sort: BrowserSort,
+    on_sort: EventHandler<BrowserSortKey>,
+) -> Element {
+    let active = sort.key == sort_key;
+    let class = if active {
+        format!("pak-sort-header {class} is-active")
+    } else {
+        format!("pak-sort-header {class}")
+    };
+    let direction_label = if active && sort.aria_value(sort_key) == "ascending" {
+        "倒序"
+    } else {
+        "正序"
+    };
+    rsx! {
+        button {
+            r#type: "button",
+            class,
+            role: "columnheader",
+            aria_sort: sort.aria_value(sort_key),
+            title: "按{label}{direction_label}排列",
+            onclick: move |_| on_sort.call(sort_key),
+            span { "{label}" }
+            span {
+                class: if active { "pak-sort-indicator is-active" } else { "pak-sort-indicator" },
+                aria_hidden: "true",
+                {sort.indicator(sort_key)}
+            }
+        }
+    }
 }
 
 #[component]
@@ -1381,7 +1511,7 @@ fn edit_active_archive(
 fn browser_rows(tab: &ArchiveTab) -> Vec<BrowserRow> {
     let query = tab.query.trim().to_ascii_lowercase();
     if !query.is_empty() {
-        return tab
+        let mut rows = tab
             .archive
             .entries()
             .iter()
@@ -1393,7 +1523,9 @@ fn browser_rows(tab: &ArchiveTab) -> Vec<BrowserRow> {
                     .contains(&query)
                     .then(|| entry_row(index, entry, full_path))
             })
-            .collect();
+            .collect::<Vec<_>>();
+        sort_browser_rows(&mut rows, tab.sort);
+        return rows;
     }
     #[derive(Default)]
     struct DirectoryAggregate {
@@ -1440,13 +1572,37 @@ fn browser_rows(tab: &ArchiveTab) -> Vec<BrowserRow> {
             }
         })
         .collect::<Vec<_>>();
-    files.sort_by(|left, right| {
-        left.name
-            .to_ascii_lowercase()
-            .cmp(&right.name.to_ascii_lowercase())
-    });
     rows.extend(files);
+    sort_browser_rows(&mut rows, tab.sort);
     rows
+}
+
+fn sort_browser_rows(rows: &mut [BrowserRow], sort: BrowserSort) {
+    rows.sort_by(|left, right| {
+        let left_directory = left.kind == PakEntryKind::Directory;
+        let right_directory = right.kind == PakEntryKind::Directory;
+        match (left_directory, right_directory) {
+            (true, false) => return Ordering::Less,
+            (false, true) => return Ordering::Greater,
+            _ => {}
+        }
+
+        let primary = match sort.key {
+            BrowserSortKey::Name => compare_text(&left.name, &right.name),
+            BrowserSortKey::Type => compare_text(kind_label(left.kind), kind_label(right.kind)),
+            BrowserSortKey::Size => left.size.cmp(&right.size),
+        };
+        sort.apply(primary)
+            .then_with(|| compare_text(&left.name, &right.name))
+            .then_with(|| left.key.cmp(&right.key))
+    });
+}
+
+fn compare_text(left: &str, right: &str) -> Ordering {
+    left.bytes()
+        .map(|byte| byte.to_ascii_lowercase())
+        .cmp(right.bytes().map(|byte| byte.to_ascii_lowercase()))
+        .then_with(|| left.cmp(right))
 }
 
 fn entry_row(index: usize, entry: &PakEntry, full_path: String) -> BrowserRow {
@@ -1954,6 +2110,38 @@ mod tests {
         let rows = browser_rows(&tab);
         assert_eq!(rows.len(), 2);
         assert!(matches!(rows[0].selection, BrowserSelection::Directory(_)));
+    }
+
+    #[test]
+    fn browser_sort_keeps_directories_first_and_uses_raw_sizes() {
+        let archive = PakArchive::new(
+            EncodeOptions::default(),
+            vec![
+                PakEntry::new("z-small.bin", vec![0]),
+                PakEntry::new("a-large.bin", vec![0; 2_048]),
+                PakEntry::new("folder/item.bin", vec![0; 16]),
+            ],
+        )
+        .unwrap();
+        let mut tab = ArchiveTab::opened(1, "test.pak".to_string(), archive);
+        tab.sort = BrowserSort {
+            key: BrowserSortKey::Size,
+            direction: BrowserSortDirection::Descending,
+        };
+
+        let rows = browser_rows(&tab);
+        assert!(matches!(rows[0].selection, BrowserSelection::Directory(_)));
+        assert_eq!(rows[1].name, "a-large.bin");
+        assert_eq!(rows[2].name, "z-small.bin");
+    }
+
+    #[test]
+    fn browser_sort_toggles_active_key_direction() {
+        let sort = BrowserSort::default().toggled(BrowserSortKey::Name);
+        assert_eq!(sort.direction, BrowserSortDirection::Descending);
+        let sort = sort.toggled(BrowserSortKey::Type);
+        assert_eq!(sort.key, BrowserSortKey::Type);
+        assert_eq!(sort.direction, BrowserSortDirection::Ascending);
     }
 
     #[test]

@@ -80,6 +80,7 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
+          components: llvm-tools
           targets: wasm32-unknown-unknown
 
       - name: Cache Rust

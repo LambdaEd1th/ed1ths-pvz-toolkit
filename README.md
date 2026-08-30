@@ -18,39 +18,52 @@ apps/toolkit/             The only desktop/Web application
   src/pages/              App-level pages such as Home, Libraries, and About
 crates/formats/
   bnk-archive/            Public Wwise BNK reader/writer and embedded media API
+  compiled-text/          Public Compiled Text reader/writer
+  crypt-data/             Public PopCap CryptData codec
+  dzip-archive/           Public DZip archive and compression codecs
   newton-manifest/        Public NEWTON resource-manifest reader/writer
   pak-archive/            Public PopCap PAK reader/writer and zlib support
   pam-codec/              Public PAM reader/writer
+  particle-codec/         Public particle-effect reader/writer
+  reanim-codec/           Public Reanim reader/writer
   rsb-archive/            Public RSB/RSG archive, zlib, and PTX codecs
-  serde_rton/             Public Serde RTON reader/writer
+  rsb-patch/              Public RSB patch reader/writer and applier
+  serde-rton/             Public Serde RTON reader/writer
+  smf-container/          Public SMF container reader/writer
   wem-audio/              Public Wwise WEM reader, writer, and transcoders
+crates/runtime/           Private application runtime crates
+  compiled-text/worker/   Compiled Text Web worker
+  pam/                    PAM core, formats, renderer, native window, and worker
+  rsb/worker/             RSB/PTX preview worker
+  rsb-patch/worker/       RSB patch worker
+  rton/                   RTON editor core and worker
+  smf/worker/             SMF processing worker
+  wem/worker/             WEM conversion worker
 crates/ui/
   toolkit-ui/             Internal design system and appearance runtime
 crates/tools/
   bnk-tool/               Experimental BNK/HIRC/media editor and rebuilder
   compiled-text-tool/     Compiled Text editor, encoder, and decoder
+  crypt-data-tool/        CryptData encoder and decoder
+  dzip-tool/              DZip archive workspace
   newton-tool/            NEWTON manifest editor feature
+  pak-tool/               PAK archive workspace
   pam-tool/               PAM application feature
+  particle-tool/          Particle editor feature
+  reanim-tool/            Reanim editor feature
+  rsb-patch-tool/         RSB patch workspace
   rsb-tool/               RSB archive editor, extractor, and PTX preview feature
   rton-tool/              RTON application feature
+  smf-tool/               SMF container workspace
   wem-tool/               WEM conversion and audio playback feature
-crates/pam/               Internal PAM workflow/renderer crates
-crates/rton/              Internal RTON workflow/worker crates
-crates/wem/               Internal Web conversion worker
 ```
 
 The dependency direction is intentionally one-way:
 
 ```text
-bnk-archive --------------------> bnk-tool ──┐
-compiled-text -> worker -> compiled-text-tool ┤
-newton-manifest -------------> newton-tool ─┤
-pak-archive ----------------------> library  ─┤
-pam-codec  -> PAM core/workers  -> pam-tool ─┤
-serde_rton -> RTON core/worker  -> rton-tool ├-> toolkit-app
-rsb-archive --------------------> rsb-tool  ─┤
-wem-audio -> WEM worker --------> wem-tool  ─┤
-toolkit-ui ---------------------> tools -----┘
+public format crates -> private runtime crates -> tool crates ─┐
+public format crates --------------------------> tool crates ──┼-> toolkit-app
+toolkit-ui ------------------------------------> tool crates ──┘
 ```
 
 `toolkit-ui` is private and contains no format APIs. The app registers tools at
@@ -71,17 +84,23 @@ Public libraries are intentionally independent:
 
 ```toml
 [dependencies]
-bnk-archive = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "bnk-archive" }
-compiled-text = { git = "https://github.com/LambdaEd1th/compiled-text" }
-newton-manifest = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "newton-manifest" }
-pak-archive = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "pak-archive" }
-pam-codec = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "pam-codec" }
-rsb-archive = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "rsb-archive" }
-serde_rton = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "serde_rton" }
-wem-audio = { git = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit", package = "wem-audio" }
+bnk-archive = { git = "https://github.com/LambdaEd1th/bnk-archive.git" }
+compiled-text = { git = "https://github.com/LambdaEd1th/compiled-text.git" }
+crypt-data = { git = "https://github.com/LambdaEd1th/crypt-data.git" }
+dzip = { git = "https://github.com/LambdaEd1th/dzip-archive.git" }
+newton-manifest = { git = "https://github.com/LambdaEd1th/newton-manifest.git" }
+pak-archive = { git = "https://github.com/LambdaEd1th/pak-archive.git" }
+pam-codec = { git = "https://github.com/LambdaEd1th/pam-codec.git" }
+particle-codec = { git = "https://github.com/LambdaEd1th/particle-codec.git" }
+reanim-codec = { git = "https://github.com/LambdaEd1th/reanim-codec.git" }
+rsb-archive = { git = "https://github.com/LambdaEd1th/rsb-archive.git" }
+rsb-patch = { git = "https://github.com/LambdaEd1th/rsb-patch.git" }
+serde-rton = { git = "https://github.com/LambdaEd1th/serde-rton.git" }
+smf-container = { git = "https://github.com/LambdaEd1th/smf-container.git" }
+wem-audio = { git = "https://github.com/LambdaEd1th/wem-audio.git" }
 ```
 
-Enable `serde_rton`'s optional `crypto` feature only when encrypted PvZ2 RTON
+Enable `serde-rton`'s optional `crypto` feature only when encrypted PvZ2 RTON
 payloads are required.
 
 ## Run

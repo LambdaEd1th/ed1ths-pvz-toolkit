@@ -447,6 +447,17 @@ pub fn convert_audio(
 mod tests {
     use super::*;
 
+    fn workspace_root() -> std::path::PathBuf {
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .ancestors()
+            .find(|path| {
+                std::fs::read_to_string(path.join("Cargo.toml"))
+                    .is_ok_and(|manifest| manifest.contains("[workspace]"))
+            })
+            .expect("workspace root")
+            .to_path_buf()
+    }
+
     fn source_wav() -> Vec<u8> {
         let mut output = Cursor::new(Vec::new());
         {
@@ -501,8 +512,10 @@ mod tests {
 
     #[test]
     fn prepares_and_converts_real_pvz_wem_when_available() {
-        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../../pvz2-toolkit/test_data/test_output/bnk_test/310646500.wem");
+        let path = workspace_root()
+            .parent()
+            .expect("workspace parent")
+            .join("pvz2-toolkit/test_data/test_output/bnk_test/310646500.wem");
         let Ok(data) = std::fs::read(&path) else {
             eprintln!("skipping missing real WEM sample: {}", path.display());
             return;

@@ -3,11 +3,19 @@ use std::sync::Arc;
 use pam_viewer_core::SpriteKey;
 use pam_viewer_formats::InputFile;
 
+fn workspace_root() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .find(|path| {
+            std::fs::read_to_string(path.join("Cargo.toml"))
+                .is_ok_and(|manifest| manifest.contains("[workspace]"))
+        })
+        .expect("workspace root")
+        .to_path_buf()
+}
+
 fn sample_files(name: &str) -> Vec<InputFile> {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../..")
-        .join("sample")
-        .join(name);
+    let root = workspace_root().join("sample").join(name);
     let mut paths = std::fs::read_dir(root)
         .expect("sample directory")
         .map(|entry| entry.expect("sample entry").path())
@@ -88,9 +96,7 @@ fn sunflower_frames_render_with_visible_and_changing_pixels() {
         }
     }
 
-    let output = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .join("target/test-artifacts/sunflower.png");
+    let output = workspace_root().join("target/test-artifacts/sunflower.png");
     std::fs::create_dir_all(output.parent().unwrap()).expect("artifact directory");
     let png = pam_viewer_formats::encode_png(&rendered[0], 390, 390).expect("encode PNG");
     std::fs::write(output, png).expect("write render artifact");

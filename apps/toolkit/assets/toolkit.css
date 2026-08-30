@@ -783,7 +783,7 @@ button {
   padding: 14px 10px 11px;
   border-radius: 26px;
   opacity: 0;
-  transform: translateX(calc(-100% - 24px));
+  transform: translateX(calc(-100% - 12px));
   transition:
     opacity 240ms ease,
     transform 420ms var(--tk-spring),
@@ -985,6 +985,16 @@ button {
 
 .tk-content-viewport--sidebar {
   left: 280px;
+}
+
+@media (min-width: 1201px) {
+  .tk-content-viewport:has(> .tk-tool-slot--active .ui-tool-page-toolbar) {
+    left: 0;
+  }
+
+  .tk-content-viewport--sidebar:has(> .tk-tool-slot--active .ui-tool-page-toolbar) {
+    left: 268px;
+  }
 }
 
 .tk-page-slot,
