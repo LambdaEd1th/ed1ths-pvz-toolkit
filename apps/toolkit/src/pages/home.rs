@@ -30,7 +30,7 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                         p { {i18n.t("home-description")} }
                         div { class: "tk-welcome-actions",
                             button {
-                                class: "tk-button tk-button--primary",
+                                class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Rsb),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "▤" }
                                 {open_tool_label(i18n, "RSB Archive")}

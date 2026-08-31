@@ -47,6 +47,7 @@ reanim-tool.workspace = true
 rsb-tool.workspace = true
 rsb-patch-tool.workspace = true
 rton-tool.workspace = true
+semver.workspace = true
 serde_json.workspace = true
 smf-tool.workspace = true
 toolkit-ui.workspace = true

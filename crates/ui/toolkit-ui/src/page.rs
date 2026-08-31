@@ -26,7 +26,7 @@ pub fn ToolPage(
 pub fn ToolPageToolbar(
     actions: Element,
     #[props(default)] class: String,
-    #[props(default = "工具栏".to_string())] label: String,
+    #[props(default = "工具".to_string())] label: String,
     #[props(default = "展开工具栏".to_string())] open_label: String,
     #[props(default = "收起工具栏".to_string())] close_label: String,
 ) -> Element {

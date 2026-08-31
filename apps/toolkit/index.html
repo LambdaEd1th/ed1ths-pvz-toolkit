@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" data-toolkit-startup-theme="light">
+  <head>
+    <meta charset="UTF-8">
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    >
+    <title>{app_title}</title>
+    <script>
+      (() => {
+        let appearance = "system";
+        try {
+          appearance = localStorage.getItem("ed1ths-pvz-toolkit-appearance") || "system";
+        } catch (_) {}
+        const dark = appearance === "dark"
+          || (appearance === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.toolkitStartupTheme = dark ? "dark" : "light";
+      })();
+    </script>
+    <style>
+      :root {
+        color-scheme: light;
+        --startup-page-start: #ffffff;
+        --startup-page-end: #f0fbf9;
+        --startup-overlay-start: rgba(255, 255, 255, 0.78);
+        --startup-overlay-end: rgba(240, 251, 249, 0.8);
+        --startup-track: rgba(45, 168, 155, 0.14);
+        --startup-track-edge: rgba(45, 168, 155, 0.18);
+        --startup-accent: #33ccbb;
+        --startup-accent-strong: #2da89b;
+        --startup-glow: rgba(51, 204, 187, 0.34);
+      }
+
+      :root[data-toolkit-startup-theme="dark"] {
+        color-scheme: dark;
+        --startup-page-start: #08111b;
+        --startup-page-end: #101b2d;
+        --startup-overlay-start: rgba(8, 17, 27, 0.82);
+        --startup-overlay-end: rgba(16, 27, 45, 0.82);
+        --startup-track: rgba(51, 204, 187, 0.13);
+        --startup-track-edge: rgba(148, 163, 184, 0.16);
+        --startup-accent: #33ccbb;
+        --startup-accent-strong: #33ccbb;
+        --startup-glow: rgba(51, 204, 187, 0.28);
+      }
+
+      html,
+      body,
+      #main {
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 100%;
+        margin: 0;
+      }
+
+      body {
+        overflow: hidden;
+        background: linear-gradient(135deg, var(--startup-page-start), var(--startup-page-end));
+      }
+
+      #toolkit-startup {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        display: grid;
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        place-items: center;
+        padding:
+          max(24px, env(safe-area-inset-top))
+          max(24px, env(safe-area-inset-right))
+          max(24px, env(safe-area-inset-bottom))
+          max(24px, env(safe-area-inset-left));
+        overflow: hidden;
+        box-sizing: border-box;
+        background: linear-gradient(
+          135deg,
+          var(--startup-overlay-start),
+          var(--startup-overlay-end)
+        );
+        backdrop-filter: blur(28px) saturate(190%);
+        -webkit-backdrop-filter: blur(28px) saturate(190%);
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 360ms ease, visibility 360ms ease;
+      }
+
+      #toolkit-startup.is-leaving {
+        pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .toolkit-startup-track {
+        position: relative;
+        width: clamp(240px, 36vw, 400px);
+        height: 6px;
+        overflow: hidden;
+        border: 1px solid var(--startup-track-edge);
+        border-radius: 999px;
+        box-sizing: border-box;
+        background: var(--startup-track);
+        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
+      }
+
+      .toolkit-startup-fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: var(--toolkit-startup-progress, 8%);
+        border-radius: inherit;
+        background: linear-gradient(
+          90deg,
+          var(--startup-accent-strong),
+          var(--startup-accent)
+        );
+        box-shadow: 0 0 12px var(--startup-glow);
+        transition: width 260ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      #toolkit-startup.is-indeterminate .toolkit-startup-fill {
+        width: 34%;
+        animation: toolkit-startup-wait 1.15s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+      }
+
+      @keyframes toolkit-startup-wait {
+        from {
+          transform: translateX(-88%);
+        }
+        to {
+          transform: translateX(285%);
+        }
+      }
+
+      @media (max-width: 600px) {
+        .toolkit-startup-track {
+          width: min(72vw, 300px);
+          height: 5px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #toolkit-startup {
+          transition-duration: 1ms;
+        }
+
+        .toolkit-startup-fill {
+          box-shadow: none;
+          transition-duration: 1ms;
+        }
+
+        #toolkit-startup.is-indeterminate .toolkit-startup-fill {
+          animation-duration: 2s;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main"></div>
+    <div id="toolkit-startup" class="is-indeterminate" aria-busy="true">
+      <div
+        id="toolkit-startup-progress"
+        class="toolkit-startup-track"
+        role="progressbar"
+        aria-label="Loading Ed1th's PvZ Toolkit"
+        aria-valuemin="0"
+        aria-valuemax="100"
+      >
+        <div class="toolkit-startup-fill" aria-hidden="true"></div>
+      </div>
+    </div>
+    <script>
+      (() => {
+        const overlay = document.getElementById("toolkit-startup");
+        const progressbar = document.getElementById("toolkit-startup-progress");
+        if (!overlay || !progressbar) return;
+
+        const startedAt = performance.now();
+        const minimumVisibleMs = 650;
+        let progress = 0;
+        let finishing = null;
+
+        const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+        const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const update = (nextProgress) => {
+          if (!Number.isFinite(nextProgress) || finishing) return;
+          progress = Math.max(progress, Math.min(100, Math.round(nextProgress)));
+          overlay.classList.remove("is-indeterminate");
+          overlay.style.setProperty("--toolkit-startup-progress", `${progress}%`);
+          progressbar.setAttribute("aria-valuenow", String(progress));
+        };
+
+        const waitForStyles = () => Promise.all(
+          Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map((link) => {
+            try {
+              if (link.sheet) return Promise.resolve();
+            } catch (_) {
+              return Promise.resolve();
+            }
+            return new Promise((resolve) => {
+              const done = () => resolve();
+              link.addEventListener("load", done, { once: true });
+              link.addEventListener("error", done, { once: true });
+              setTimeout(done, 5000);
+            });
+          }),
+        );
+
+        const finish = () => {
+          if (finishing) return finishing;
+          finishing = (async () => {
+            update(88);
+            await waitForStyles();
+            if (document.fonts && document.fonts.ready) await document.fonts.ready;
+            await nextFrame();
+            await nextFrame();
+
+            const remaining = Math.max(0, minimumVisibleMs - (performance.now() - startedAt));
+            if (remaining > 0) await delay(remaining);
+
+            progress = 100;
+            overlay.classList.remove("is-indeterminate");
+            overlay.style.setProperty("--toolkit-startup-progress", "100%");
+            progressbar.setAttribute("aria-valuenow", "100");
+            await delay(window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 180);
+            overlay.setAttribute("aria-busy", "false");
+            overlay.classList.add("is-leaving");
+            await delay(window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 1 : 380);
+            overlay.remove();
+            delete window.toolkitStartup;
+          })();
+          return finishing;
+        };
+
+        window.toolkitStartup = { update, finish };
+      })();
+    </script>
+  </body>
+</html>

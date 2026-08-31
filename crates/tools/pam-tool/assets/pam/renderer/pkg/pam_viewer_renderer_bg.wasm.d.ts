@@ -12,9 +12,9 @@ export const rendererhandle_start: (a: number, b: number, c: number, d: number, 
 export const rendererhandle_start_offscreen: (a: number, b: number, c: number, d: number, e: number) => number;
 export const rendererhandle_start_webgl: (a: number, b: number, c: number, d: number, e: number) => number;
 export const __wasm_bindgen_func_elem_9864: (a: number, b: number, c: number, d: number) => void;
-export const __wasm_bindgen_func_elem_1415: (a: number, b: number, c: number, d: number) => void;
-export const __wasm_bindgen_func_elem_1415_2: (a: number, b: number, c: number, d: number) => void;
-export const __wasm_bindgen_func_elem_1415_3: (a: number, b: number, c: number, d: number) => void;
+export const __wasm_bindgen_func_elem_1530: (a: number, b: number, c: number, d: number) => void;
+export const __wasm_bindgen_func_elem_1530_2: (a: number, b: number, c: number, d: number) => void;
+export const __wasm_bindgen_func_elem_1530_3: (a: number, b: number, c: number, d: number) => void;
 export const __wasm_bindgen_func_elem_9866: (a: number, b: number, c: number, d: number) => void;
 export const __wasm_bindgen_func_elem_980: (a: number, b: number) => void;
 export const __wbindgen_export: (a: number, b: number) => number;

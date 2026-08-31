@@ -7,7 +7,9 @@ mod pages;
 #[cfg(not(target_arch = "wasm32"))]
 mod preferences;
 mod shell;
+mod startup;
 mod tool_registry;
+mod update_check;
 
 fn main() {
     app::launch();

@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = 1;
+  const VERSION = 3;
   const SELECTOR = ".ui-tool-drawer-handle";
   const STORAGE_KEY = "ed1ths-pvz-toolkit.tool-drawer-handle-ratio.v1";
   const EDGE_INSET = 12;
@@ -24,15 +24,115 @@
   const findHandle = (target) =>
     target instanceof Element ? target.closest(SELECTOR) : null;
 
+  const radiusY = (value, referenceHeight) => {
+    const parts = value.trim().split(/\s+/);
+    const vertical = parts[1] ?? parts[0];
+    const parsed = Number.parseFloat(vertical);
+    if (!Number.isFinite(parsed)) return 0;
+    return vertical.endsWith("%") ? (parsed / 100) * referenceHeight : parsed;
+  };
+
+  const pixelScale = () => {
+    const scale = window.devicePixelRatio;
+    return Number.isFinite(scale) && scale > 0 ? scale : 1;
+  };
+  const snapUp = (value) => Math.ceil(value * pixelScale()) / pixelScale();
+  const snapDown = (value) => Math.floor(value * pixelScale()) / pixelScale();
+  const snapNearest = (value) => Math.round(value * pixelScale()) / pixelScale();
+
+  const clipsOverflow = (value) =>
+    value === "auto" || value === "clip" || value === "hidden" || value === "scroll";
+
+  const roundedClipFor = (root, rootRect) => {
+    const edgeTolerance = 1 / pixelScale();
+    for (let ancestor = root.parentElement; ancestor; ancestor = ancestor.parentElement) {
+      const style = window.getComputedStyle(ancestor);
+      if (!clipsOverflow(style.overflowX) && !clipsOverflow(style.overflowY)) continue;
+
+      const rect = ancestor.getBoundingClientRect();
+      if (rect.height <= 0 || Math.abs(rect.left - rootRect.left) > edgeTolerance) continue;
+
+      const topRadius = radiusY(style.borderTopLeftRadius, rect.height);
+      const bottomRadius = radiusY(style.borderBottomLeftRadius, rect.height);
+      if (topRadius > 0 || bottomRadius > 0) {
+        return { rect, topRadius, bottomRadius };
+      }
+    }
+    return null;
+  };
+
+  const constrainedBounds = (
+    rootRect,
+    handleRect,
+    rootMin,
+    rootMax,
+    requestedMin,
+    requestedMax,
+    center,
+  ) => {
+    const min = snapUp(Math.max(rootMin, requestedMin));
+    const max = snapDown(Math.min(rootMax, requestedMax));
+    if (min <= max) return { rootRect, handleRect, min, max };
+
+    const centered = Math.min(rootMax, Math.max(rootMin, snapNearest(center)));
+    return { rootRect, handleRect, min: centered, max: centered };
+  };
+
   const boundsFor = (handle) => {
     const root = handle.closest(".ui-tool-page-toolbar");
     if (!root) return null;
     const rootRect = root.getBoundingClientRect();
     const handleRect = handle.getBoundingClientRect();
     if (rootRect.height <= 0 || handleRect.height <= 0) return null;
-    const min = Math.min(EDGE_INSET, Math.max(0, rootRect.height - handleRect.height));
-    const max = Math.max(min, rootRect.height - handleRect.height - EDGE_INSET);
-    return { rootRect, handleRect, min, max };
+
+    const lastTop = Math.max(0, rootRect.height - handleRect.height);
+    const rootMin = snapUp(Math.min(EDGE_INSET, lastTop));
+    const rootMax = snapDown(Math.max(rootMin, lastTop - EDGE_INSET));
+    if (!root.classList.contains("is-open")) {
+      const clip = roundedClipFor(root, rootRect);
+      if (clip) {
+        const clipTop = clip.rect.top - rootRect.top;
+        const clipBottom = clip.rect.bottom - rootRect.top;
+        return constrainedBounds(
+          rootRect,
+          handleRect,
+          rootMin,
+          rootMax,
+          clipTop + clip.topRadius,
+          clipBottom - clip.bottomRadius - handleRect.height,
+          clipTop + (clip.rect.height - handleRect.height) / 2,
+        );
+      }
+      return { rootRect, handleRect, min: rootMin, max: rootMax };
+    }
+
+    const panel = root.querySelector(".ui-tool-drawer-panel");
+    if (!(panel instanceof Element)) {
+      return { rootRect, handleRect, min: rootMin, max: rootMax };
+    }
+    const panelRect = panel.getBoundingClientRect();
+    if (panelRect.height <= 0) {
+      return { rootRect, handleRect, min: rootMin, max: rootMax };
+    }
+
+    const panelStyle = window.getComputedStyle(panel);
+    const panelTop = panelRect.top - rootRect.top;
+    const panelBottom = panelRect.bottom - rootRect.top;
+    const roundedMin =
+      panelTop + radiusY(panelStyle.borderTopRightRadius, panelRect.height);
+    const roundedMax =
+      panelBottom -
+      radiusY(panelStyle.borderBottomRightRadius, panelRect.height) -
+      handleRect.height;
+    return constrainedBounds(
+      rootRect,
+      handleRect,
+      rootMin,
+      rootMax,
+      roundedMin,
+      roundedMax,
+      panelTop + (panelRect.height - handleRect.height) / 2,
+    );
   };
 
   const ratioFromTop = (top, bounds) =>
@@ -43,7 +143,13 @@
     document.querySelectorAll(SELECTOR).forEach((handle) => {
       const bounds = boundsFor(handle);
       if (!bounds) return;
-      const top = bounds.min + (bounds.max - bounds.min) * clampedRatio;
+      const top = Math.min(
+        bounds.max,
+        Math.max(
+          bounds.min,
+          snapNearest(bounds.min + (bounds.max - bounds.min) * clampedRatio),
+        ),
+      );
       handle.style.setProperty("--ui-tool-drawer-handle-top", `${top}px`);
     });
   };
@@ -148,16 +254,24 @@
     resolveInitialRatio();
     scheduleApply();
   });
+  const mutationObserver = new MutationObserver(() => {
+    resolveInitialRatio();
+    scheduleApply();
+  });
   const refresh = () => {
     document
       .querySelectorAll(".ui-tool-page-toolbar")
-      .forEach((root) => resizeObserver.observe(root));
+      .forEach((root) => {
+        resizeObserver.observe(root);
+        mutationObserver.observe(root, { attributes: true, attributeFilter: ["class"] });
+      });
     resolveInitialRatio();
     scheduleApply();
   };
   const destroy = () => {
     if (applyFrame) window.cancelAnimationFrame(applyFrame);
     resizeObserver.disconnect();
+    mutationObserver.disconnect();
     document.removeEventListener("pointerdown", onPointerDown, true);
     document.removeEventListener("pointermove", onPointerMove, true);
     document.removeEventListener("pointerup", finishPointer, true);

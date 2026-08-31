@@ -680,6 +680,96 @@ button {
   font-weight: 700;
 }
 
+.tk-settings-info .tk-settings-version-row {
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.tk-settings-version-action {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.tk-settings-version-number {
+  display: inline-flex;
+  margin-left: auto;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.tk-settings-update-action {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 9px;
+  border: 1px solid var(--tk-border);
+  border-radius: 999px;
+  outline: 0;
+  background: var(--tk-control);
+  color: var(--tk-muted);
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 750;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease,
+    transform 160ms ease;
+}
+
+.tk-settings-update-action:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--tk-accent) 38%, var(--tk-border));
+  background: var(--tk-control-hover);
+  color: var(--tk-ink);
+}
+
+.tk-settings-update-action:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.tk-settings-update-action:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tk-accent) 42%, transparent);
+}
+
+.tk-settings-update-action:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.tk-settings-update-action.is-current,
+.tk-settings-update-action.is-available {
+  border-color: color-mix(in srgb, var(--tk-accent) 28%, var(--tk-border));
+  background: var(--tk-accent-soft);
+  color: var(--tk-accent-strong);
+}
+
+.tk-settings-update-action.is-failed {
+  border-color: color-mix(in srgb, var(--tk-danger) 28%, var(--tk-border));
+  background: var(--tk-danger-soft);
+  color: var(--tk-danger);
+}
+
+.tk-settings-update-action.is-checking::before {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border: 1.5px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  content: "";
+  animation: tk-settings-update-spin 700ms linear infinite;
+}
+
+.tk-settings-update-action b {
+  font-size: 10px;
+  line-height: 1;
+}
+
 .tk-settings-logs {
   display: grid;
   height: 100%;
@@ -3457,5 +3547,11 @@ button {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes tk-settings-update-spin {
+  to {
+    transform: rotate(360deg);
   }
 }

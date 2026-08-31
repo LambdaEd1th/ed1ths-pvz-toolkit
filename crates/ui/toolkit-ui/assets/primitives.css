@@ -384,7 +384,7 @@
 }
 
 .ui-tool-page {
-  --ui-tool-drawer-dock-space: 390px;
+  --ui-tool-drawer-dock-space: 346px;
   position: relative;
   display: grid;
   width: 100%;
@@ -395,7 +395,7 @@
   gap: 10px;
   padding: 4px 10px 10px;
   overflow: hidden;
-  transition: padding-left 240ms var(--tk-spring);
+  transition: padding-left 420ms var(--tk-spring);
 }
 
 .ui-tool-page::before,
@@ -451,9 +451,9 @@
   opacity: 0;
   pointer-events: none;
   transition:
-    background 160ms ease,
-    opacity 160ms ease,
-    backdrop-filter 160ms ease;
+    background 220ms ease,
+    opacity 220ms ease,
+    backdrop-filter 220ms ease;
 }
 
 .ui-tool-drawer-panel {
@@ -478,9 +478,9 @@
   backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
   -webkit-backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
   transition:
-    transform 240ms var(--tk-spring),
-    opacity 160ms ease,
-    visibility 0s linear 240ms;
+    transform 420ms var(--tk-spring),
+    opacity 240ms ease,
+    visibility 0s linear 420ms;
 }
 
 .ui-tool-page-toolbar.is-open .ui-tool-drawer-panel {
@@ -690,9 +690,9 @@
   backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
   -webkit-backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
   transition:
-    left 240ms var(--tk-spring),
-    opacity 160ms ease,
-    transform 160ms ease,
+    left 420ms var(--tk-spring),
+    opacity 240ms ease,
+    transform 420ms var(--tk-spring),
     background 160ms ease,
     box-shadow 160ms ease;
 }
@@ -940,6 +940,10 @@
 }
 
 @container toolkit-content (min-width: 1024px) {
+  .ui-tool-drawer-panel {
+    top: 0;
+  }
+
   .ui-tool-page:has(> .ui-tool-page-toolbar.is-open) {
     padding-left: var(--ui-tool-drawer-dock-space);
   }

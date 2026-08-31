@@ -16,19 +16,27 @@ return (async function () {
     const report = () => dioxus.send(media.matches);
     const host = {
         destroy() {
-            media.removeEventListener("change", report);
+            if (typeof media.removeEventListener === "function") {
+                media.removeEventListener("change", report);
+            } else {
+                media.removeListener(report);
+            }
             if (window.toolkitResponsiveHost === host) window.toolkitResponsiveHost = null;
         },
     };
     window.toolkitResponsiveHost = host;
-    media.addEventListener("change", report);
+    if (typeof media.addEventListener === "function") {
+        media.addEventListener("change", report);
+    } else {
+        media.addListener(report);
+    }
     report();
     await new Promise(() => {});
 })();
 "#;
 
 #[component]
-pub(crate) fn AppShell() -> Element {
+pub(crate) fn AppShell(on_ready: EventHandler<()>) -> Element {
     let route = use_signal(AppRoute::default);
     let sidebar_open = use_signal(|| true);
     let compact_shell = use_signal(|| false);
@@ -51,9 +59,14 @@ pub(crate) fn AppShell() -> Element {
     let start_responsive_host = move |_| {
         let mut evaluator = document::eval(SHELL_RESPONSIVE_HOST);
         spawn(async move {
+            let mut initial_layout_ready = false;
             while let Ok(compact) = evaluator.recv::<bool>().await {
                 compact_signal.set(compact);
                 responsive_sidebar.set(!compact);
+                if !initial_layout_ready {
+                    initial_layout_ready = true;
+                    on_ready.call(());
+                }
             }
         });
     };

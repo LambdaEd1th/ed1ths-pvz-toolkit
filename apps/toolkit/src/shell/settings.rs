@@ -2,12 +2,25 @@ use dioxus::prelude::*;
 use toolkit_ui::{Appearance, IconButton, use_appearance};
 
 use crate::i18n::{language_options, use_i18n, use_locale};
+use crate::update_check::{LATEST_RELEASE_URL, UpdateCheckResult};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 enum SettingsView {
     #[default]
     General,
     Logs,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+enum SettingsUpdateState {
+    #[default]
+    Idle,
+    Checking,
+    UpToDate,
+    Available {
+        version: String,
+    },
+    Failed,
 }
 
 fn copy_to_clipboard(text: &str) {
@@ -55,6 +68,7 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
     let mut log_revision = use_signal(|| 0_u64);
     let mut copied = use_signal(|| false);
     let mut language_open = use_signal(|| false);
+    let mut update_state = use_signal(SettingsUpdateState::default);
 
     if !open() {
         return rsx! {};
@@ -84,6 +98,24 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
         (Appearance::Light, i18n.t("appearance-light")),
         (Appearance::Dark, i18n.t("appearance-dark")),
     ];
+    let update_state_snapshot = update_state();
+    let update_checking = update_state_snapshot == SettingsUpdateState::Checking;
+    let update_action_label = match &update_state_snapshot {
+        SettingsUpdateState::Idle => i18n.t("settings-check-updates"),
+        SettingsUpdateState::Checking => i18n.t("settings-checking-updates"),
+        SettingsUpdateState::UpToDate => i18n.t("settings-up-to-date"),
+        SettingsUpdateState::Available { version } => {
+            i18n.t_args("settings-update-available", &[("version", version.clone())])
+        }
+        SettingsUpdateState::Failed => i18n.t("settings-update-failed"),
+    };
+    let update_action_class = match &update_state_snapshot {
+        SettingsUpdateState::Checking => "tk-settings-update-action is-checking",
+        SettingsUpdateState::UpToDate => "tk-settings-update-action is-current",
+        SettingsUpdateState::Available { .. } => "tk-settings-update-action is-available",
+        SettingsUpdateState::Failed => "tk-settings-update-action is-failed",
+        SettingsUpdateState::Idle => "tk-settings-update-action",
+    };
 
     rsx! {
         div { class: "tk-settings-overlay",
@@ -186,9 +218,78 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                         div { class: "tk-settings-section tk-settings-section--info",
                             span { class: "tk-settings-label", {i18n.t("settings-app-info")} }
                             div { class: "tk-settings-info",
-                                div {
-                                    span { {i18n.t("settings-version")} }
-                                    strong { "{app_version}" }
+                                div { class: "tk-settings-version-row",
+                                    span {
+                                        class: "tk-settings-version-action",
+                                        aria_live: "polite",
+                                        aria_atomic: "true",
+                                        if let SettingsUpdateState::Available { .. } = &update_state_snapshot {
+                                            a {
+                                                class: "{update_action_class}",
+                                                href: LATEST_RELEASE_URL,
+                                                target: if cfg!(target_arch = "wasm32") { "_blank" } else { "_self" },
+                                                rel: "noopener noreferrer",
+                                                aria_label: "{update_action_label}",
+                                                "{update_action_label}"
+                                                b { aria_hidden: "true", "↗" }
+                                            }
+                                        } else {
+                                            button {
+                                                r#type: "button",
+                                                class: "{update_action_class}",
+                                                disabled: update_checking,
+                                                aria_busy: update_checking,
+                                                aria_label: "{update_action_label}",
+                                                title: "{update_action_label}",
+                                                onclick: move |_| {
+                                                    if matches!(
+                                                        &*update_state.peek(),
+                                                        SettingsUpdateState::Checking
+                                                    ) {
+                                                        return;
+                                                    }
+                                                    update_state.set(SettingsUpdateState::Checking);
+                                                    let mut result_state = update_state;
+                                                    spawn(async move {
+                                                        match crate::update_check::check(app_version).await {
+                                                            Ok(UpdateCheckResult::UpToDate) => {
+                                                                toolkit_ui::push_application_log(
+                                                                    "TOOLKIT",
+                                                                    "INFO",
+                                                                    "UPDATE",
+                                                                    format!("Version {app_version} is up to date"),
+                                                                );
+                                                                result_state.set(SettingsUpdateState::UpToDate);
+                                                            }
+                                                            Ok(UpdateCheckResult::Available { version }) => {
+                                                                toolkit_ui::push_application_log(
+                                                                    "TOOLKIT",
+                                                                    "INFO",
+                                                                    "UPDATE",
+                                                                    format!("Version {version} is available"),
+                                                                );
+                                                                result_state.set(SettingsUpdateState::Available { version });
+                                                            }
+                                                            Err(error) => {
+                                                                toolkit_ui::push_application_log(
+                                                                    "TOOLKIT",
+                                                                    "ERROR",
+                                                                    "UPDATE",
+                                                                    format!("Update check failed: {error}"),
+                                                                );
+                                                                result_state.set(SettingsUpdateState::Failed);
+                                                            }
+                                                        }
+                                                    });
+                                                },
+                                                "{update_action_label}"
+                                            }
+                                        }
+                                    }
+                                    span { class: "tk-settings-version-number",
+                                        span { {i18n.t("settings-version")} }
+                                        strong { "{app_version}" }
+                                    }
                                 }
                                 div {
                                     span { {i18n.t("settings-license")} }

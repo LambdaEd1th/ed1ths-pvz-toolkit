@@ -1252,15 +1252,6 @@
     width: calc(100vw - 46px);
   }
 
-  .bnk-experimental-pill {
-    padding-right: 7px;
-    font-size: 0;
-  }
-
-  .bnk-experimental-pill > span {
-    font-size: 10px;
-  }
-
   .bnk-document {
     display: block;
     padding: 7px;

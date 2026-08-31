@@ -478,9 +478,12 @@ pub fn BnkArchivePage(on_open_wem: Option<EventHandler<BnkWemOpenRequest>>) -> E
                                 }
                             }
                             span { class: "bnk-toolbar-spacer" }
-                            span { class: "bnk-experimental-pill",
+                            span {
+                                class: "bnk-experimental-pill",
+                                role: "note",
+                                aria_label: "BNK Archive 目前是实验性功能",
                                 span { aria_hidden: "true", "!" }
-                                "Experimental"
+                                "实验性"
                             }
                         }
                     }
