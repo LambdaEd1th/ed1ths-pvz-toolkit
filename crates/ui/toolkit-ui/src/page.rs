@@ -1,4 +1,11 @@
+use dioxus::html::input_data::MouseButton;
 use dioxus::prelude::*;
+
+const TOOL_DRAWER_HANDLE_DRAG_THRESHOLD: f64 = 4.0;
+
+fn handle_moved(start_y: Option<f64>, current_y: f64) -> bool {
+    start_y.is_some_and(|start_y| (current_y - start_y).abs() >= TOOL_DRAWER_HANDLE_DRAG_THRESHOLD)
+}
 
 #[component]
 pub fn ToolPage(
@@ -24,6 +31,8 @@ pub fn ToolPageToolbar(
     #[props(default = "收起工具栏".to_string())] close_label: String,
 ) -> Element {
     let mut open = use_signal(|| false);
+    let mut handle_drag_start = use_signal(|| None::<f64>);
+    let mut handle_dragged = use_signal(|| false);
     let is_open = open();
     let root_class = if is_open {
         format!("ui-tool-page-toolbar is-open {class}")
@@ -93,8 +102,46 @@ pub fn ToolPageToolbar(
                 title: toggle_label.clone(),
                 aria_label: toggle_label,
                 aria_expanded: is_open,
+                onmounted: move |_| {
+                    let _ = document::eval("window.toolkitToolDrawerHandleDrag?.refresh?.();");
+                },
+                onpointerdown: move |event| {
+                    if !event.is_primary()
+                        || !matches!(
+                            event.trigger_button(),
+                            None | Some(MouseButton::Primary)
+                        )
+                    {
+                        return;
+                    }
+                    event.stop_propagation();
+                    handle_drag_start.set(Some(event.client_coordinates().y));
+                    handle_dragged.set(false);
+                },
+                onpointermove: move |event| {
+                    if handle_moved(handle_drag_start(), event.client_coordinates().y) {
+                        event.prevent_default();
+                        event.stop_propagation();
+                        handle_dragged.set(true);
+                    }
+                },
+                onpointerup: move |event| {
+                    event.stop_propagation();
+                    handle_drag_start.set(None);
+                },
+                onpointercancel: move |_| {
+                    handle_drag_start.set(None);
+                    handle_dragged.set(false);
+                },
+                onlostpointercapture: move |_| {
+                    handle_drag_start.set(None);
+                },
                 onclick: move |event| {
                     event.stop_propagation();
+                    if handle_dragged() {
+                        handle_dragged.set(false);
+                        return;
+                    }
                     open.toggle();
                 },
                 svg {
@@ -128,6 +175,19 @@ pub fn ToolPageToolbar(
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::handle_moved;
+
+    #[test]
+    fn toolbar_handle_requires_a_real_drag_before_suppressing_click() {
+        assert!(!handle_moved(None, 100.0));
+        assert!(!handle_moved(Some(100.0), 103.99));
+        assert!(handle_moved(Some(100.0), 104.0));
+        assert!(handle_moved(Some(100.0), 92.0));
     }
 }
 

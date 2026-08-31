@@ -384,7 +384,6 @@
 }
 
 .ui-tool-page {
-  --ui-tool-drawer-rail-space: 58px;
   --ui-tool-drawer-dock-space: 390px;
   position: relative;
   display: grid;
@@ -394,7 +393,7 @@
   min-height: 0;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 10px;
-  padding: 4px 10px 10px var(--ui-tool-drawer-rail-space);
+  padding: 4px 10px 10px;
   overflow: hidden;
   transition: padding-left 240ms var(--tk-spring);
 }
@@ -433,11 +432,6 @@
   inset: 0;
   min-width: 0;
   pointer-events: none;
-}
-
-.ui-tool-page:has(> .ui-tool-page-toolbar) {
-  grid-template-rows: auto minmax(0, 1fr);
-  padding-left: var(--ui-tool-drawer-rail-space);
 }
 
 .ui-tool-drawer-backdrop {
@@ -665,9 +659,10 @@
 }
 
 .ui-tool-drawer-handle {
+  --ui-tool-drawer-handle-top: 76px;
   position: absolute;
   z-index: 2;
-  top: 76px;
+  top: var(--ui-tool-drawer-handle-top);
   left: 0;
   display: flex;
   width: 44px;
@@ -683,9 +678,11 @@
   background: color-mix(in srgb, var(--tk-island-glass) 96%, var(--tk-surface-strong));
   box-shadow: var(--tk-shadow-control);
   color: var(--tk-accent-strong);
-  cursor: pointer;
+  cursor: ns-resize;
   pointer-events: auto;
+  touch-action: none;
   user-select: none;
+  will-change: top;
   backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
   -webkit-backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
   transition:
@@ -694,6 +691,10 @@
     transform 160ms ease,
     background 160ms ease,
     box-shadow 160ms ease;
+}
+
+.ui-tool-drawer-handle.is-dragging {
+  cursor: grabbing;
 }
 
 .ui-tool-page-toolbar.is-open .ui-tool-drawer-handle {
@@ -958,9 +959,8 @@
 
 @container toolkit-content (max-width: 720px) {
   .ui-tool-page {
-    --ui-tool-drawer-rail-space: 54px;
     gap: 7px;
-    padding: 2px 6px 6px var(--ui-tool-drawer-rail-space);
+    padding: 2px 6px 6px;
   }
 
   .ui-tool-page-actions {

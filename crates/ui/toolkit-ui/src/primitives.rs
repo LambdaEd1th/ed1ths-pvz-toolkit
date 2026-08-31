@@ -2,10 +2,12 @@ use dioxus::prelude::*;
 
 const TOKENS_CSS: Asset = asset!("/assets/tokens.css");
 const PRIMITIVES_CSS: Asset = asset!("/assets/primitives.css");
+const TOOL_DRAWER_JS: Asset = asset!("/assets/tool-drawer.js");
 
 #[component]
 pub fn UiStyles() -> Element {
     rsx! {
+        document::Script { src: TOOL_DRAWER_JS }
         document::Stylesheet { href: TOKENS_CSS }
         document::Stylesheet { href: PRIMITIVES_CSS }
     }
