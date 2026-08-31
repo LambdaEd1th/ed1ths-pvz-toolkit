@@ -19,7 +19,7 @@
 
 .rsp-page {
   display: grid;
-  grid-template-rows: auto 34px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 10px;
   box-sizing: border-box;
   overflow: clip;
@@ -27,7 +27,7 @@
 }
 
 .rsp-page.is-empty {
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .rsp-glyph {

@@ -434,6 +434,10 @@
   pointer-events: none;
 }
 
+.ui-tool-page:has(> .ui-tool-page-toolbar) {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
 .ui-tool-drawer-backdrop {
   position: absolute;
   z-index: 0;
