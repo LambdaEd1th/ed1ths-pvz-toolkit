@@ -219,75 +219,76 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                             span { class: "tk-settings-label", {i18n.t("settings-app-info")} }
                             div { class: "tk-settings-info",
                                 div { class: "tk-settings-version-row",
+                                    span { {i18n.t("settings-version")} }
                                     span {
-                                        class: "tk-settings-version-action",
-                                        aria_live: "polite",
-                                        aria_atomic: "true",
-                                        if let SettingsUpdateState::Available { .. } = &update_state_snapshot {
-                                            a {
-                                                class: "{update_action_class}",
-                                                href: LATEST_RELEASE_URL,
-                                                target: if cfg!(target_arch = "wasm32") { "_blank" } else { "_self" },
-                                                rel: "noopener noreferrer",
-                                                aria_label: "{update_action_label}",
-                                                "{update_action_label}"
-                                                b { aria_hidden: "true", "↗" }
-                                            }
-                                        } else {
-                                            button {
-                                                r#type: "button",
-                                                class: "{update_action_class}",
-                                                disabled: update_checking,
-                                                aria_busy: update_checking,
-                                                aria_label: "{update_action_label}",
-                                                title: "{update_action_label}",
-                                                onclick: move |_| {
-                                                    if matches!(
-                                                        &*update_state.peek(),
-                                                        SettingsUpdateState::Checking
-                                                    ) {
-                                                        return;
-                                                    }
-                                                    update_state.set(SettingsUpdateState::Checking);
-                                                    let mut result_state = update_state;
-                                                    spawn(async move {
-                                                        match crate::update_check::check(app_version).await {
-                                                            Ok(UpdateCheckResult::UpToDate) => {
-                                                                toolkit_ui::push_application_log(
-                                                                    "TOOLKIT",
-                                                                    "INFO",
-                                                                    "UPDATE",
-                                                                    format!("Version {app_version} is up to date"),
-                                                                );
-                                                                result_state.set(SettingsUpdateState::UpToDate);
-                                                            }
-                                                            Ok(UpdateCheckResult::Available { version }) => {
-                                                                toolkit_ui::push_application_log(
-                                                                    "TOOLKIT",
-                                                                    "INFO",
-                                                                    "UPDATE",
-                                                                    format!("Version {version} is available"),
-                                                                );
-                                                                result_state.set(SettingsUpdateState::Available { version });
-                                                            }
-                                                            Err(error) => {
-                                                                toolkit_ui::push_application_log(
-                                                                    "TOOLKIT",
-                                                                    "ERROR",
-                                                                    "UPDATE",
-                                                                    format!("Update check failed: {error}"),
-                                                                );
-                                                                result_state.set(SettingsUpdateState::Failed);
-                                                            }
+                                        class: "tk-settings-version-controls",
+                                        span {
+                                            class: "tk-settings-version-action",
+                                            aria_live: "polite",
+                                            aria_atomic: "true",
+                                            if let SettingsUpdateState::Available { .. } = &update_state_snapshot {
+                                                a {
+                                                    class: "{update_action_class}",
+                                                    href: LATEST_RELEASE_URL,
+                                                    target: if cfg!(target_arch = "wasm32") { "_blank" } else { "_self" },
+                                                    rel: "noopener noreferrer",
+                                                    aria_label: "{update_action_label}",
+                                                    "{update_action_label}"
+                                                    b { aria_hidden: "true", "↗" }
+                                                }
+                                            } else {
+                                                button {
+                                                    r#type: "button",
+                                                    class: "{update_action_class}",
+                                                    disabled: update_checking,
+                                                    aria_busy: update_checking,
+                                                    aria_label: "{update_action_label}",
+                                                    title: "{update_action_label}",
+                                                    onclick: move |_| {
+                                                        if matches!(
+                                                            &*update_state.peek(),
+                                                            SettingsUpdateState::Checking
+                                                        ) {
+                                                            return;
                                                         }
-                                                    });
-                                                },
-                                                "{update_action_label}"
+                                                        update_state.set(SettingsUpdateState::Checking);
+                                                        let mut result_state = update_state;
+                                                        spawn(async move {
+                                                            match crate::update_check::check(app_version).await {
+                                                                Ok(UpdateCheckResult::UpToDate) => {
+                                                                    toolkit_ui::push_application_log(
+                                                                        "TOOLKIT",
+                                                                        "INFO",
+                                                                        "UPDATE",
+                                                                        format!("Version {app_version} is up to date"),
+                                                                    );
+                                                                    result_state.set(SettingsUpdateState::UpToDate);
+                                                                }
+                                                                Ok(UpdateCheckResult::Available { version }) => {
+                                                                    toolkit_ui::push_application_log(
+                                                                        "TOOLKIT",
+                                                                        "INFO",
+                                                                        "UPDATE",
+                                                                        format!("Version {version} is available"),
+                                                                    );
+                                                                    result_state.set(SettingsUpdateState::Available { version });
+                                                                }
+                                                                Err(error) => {
+                                                                    toolkit_ui::push_application_log(
+                                                                        "TOOLKIT",
+                                                                        "ERROR",
+                                                                        "UPDATE",
+                                                                        format!("Update check failed: {error}"),
+                                                                    );
+                                                                    result_state.set(SettingsUpdateState::Failed);
+                                                                }
+                                                            }
+                                                        });
+                                                    },
+                                                    "{update_action_label}"
+                                                }
                                             }
                                         }
-                                    }
-                                    span { class: "tk-settings-version-number",
-                                        span { {i18n.t("settings-version")} }
                                         strong { "{app_version}" }
                                     }
                                 }
