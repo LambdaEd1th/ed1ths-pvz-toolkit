@@ -23,7 +23,6 @@ toolbar-encrypted = Зашифрованный
 toolbar-validate = Проверить
 toolbar-wrap = Перенос
 toolbar-search = Поиск
-toolbar-more = Еще
 toolbar-close-menu = Закрыть меню
 tabs-new-file = Новый пустой файл { $format }
 

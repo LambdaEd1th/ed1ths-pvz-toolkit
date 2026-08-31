@@ -733,7 +733,6 @@
   background: var(--color-accent-soft);
 }
 
-.rton-action-sheet-layer,
 .rton-unsaved-backdrop {
   position: fixed;
   inset: 0;
@@ -746,16 +745,6 @@
   backdrop-filter: blur(9px);
 }
 
-.rton-action-sheet-backdrop {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
-  background: transparent;
-}
-
-.rton-action-sheet,
 .rton-unsaved-dialog {
   position: relative;
   z-index: 1;
@@ -775,7 +764,6 @@
   width: min(520px, 100%);
 }
 
-.rton-action-sheet-header,
 .rton-unsaved-header {
   display: flex;
   min-width: 0;
@@ -788,11 +776,14 @@
 
 .rton-action-groups {
   display: grid;
+  width: 100%;
   min-height: 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+  flex: 0 0 100%;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
-  padding: 12px;
-  overflow: auto;
+  padding: 0;
+  overflow: visible;
 }
 
 .rton-action-group {
@@ -975,7 +966,6 @@
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
-.rton-action-sheet-layer.closing,
 .rton-unsaved-backdrop.closing,
 .rton-mode-menu.closing,
 .rton-mode-menu-backdrop.closing {
@@ -1037,21 +1027,15 @@
     border-radius: 14px;
   }
 
-  .rton-action-sheet-layer,
   .rton-unsaved-backdrop {
     align-items: flex-end;
     padding: 0;
   }
 
-  .rton-action-sheet,
   .rton-unsaved-dialog {
     width: 100%;
     max-height: 86vh;
     border-radius: 24px 24px 0 0;
-  }
-
-  .rton-action-groups {
-    grid-template-columns: 1fr;
   }
 
   .panel-header-actions .rton-button .button-icon + *,
@@ -1076,7 +1060,8 @@
 
 /* MoeSekai floating-island workspace */
 .rton-page-actions {
-  flex-wrap: nowrap;
+  align-content: flex-start;
+  flex-wrap: wrap;
 }
 
 .rton-page-icon-button,
@@ -1298,17 +1283,12 @@
   letter-spacing: 0.04em;
 }
 
-.rton-action-sheet,
 .rton-unsaved-dialog {
   border-color: var(--tk-island-border);
   border-radius: 28px;
   background: color-mix(in srgb, var(--tk-island-glass) 96%, transparent);
   box-shadow: var(--tk-shadow-high);
   backdrop-filter: blur(28px) saturate(200%);
-}
-
-.rton-action-sheet-layer:focus {
-  outline: none;
 }
 
 .rton-action-group {

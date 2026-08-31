@@ -23,7 +23,6 @@ toolbar-encrypted = 加密
 toolbar-validate = 校验
 toolbar-wrap = 换行
 toolbar-search = 搜索
-toolbar-more = 更多
 toolbar-close-menu = 关闭菜单
 tabs-new-file = 新建空白 { $format } 文件
 

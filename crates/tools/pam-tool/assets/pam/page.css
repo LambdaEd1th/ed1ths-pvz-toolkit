@@ -790,7 +790,6 @@ html.native-wgpu-host .pam-stage {
   background: transparent;
 }
 
-.pam-action-sheet-layer,
 .pam-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -798,13 +797,6 @@ html.native-wgpu-host .pam-stage {
   display: flex;
 }
 
-.pam-action-sheet-layer {
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
-.pam-action-sheet-backdrop,
 .pam-modal-backdrop::before {
   position: absolute;
   inset: 0;
@@ -813,38 +805,13 @@ html.native-wgpu-host .pam-stage {
   backdrop-filter: blur(8px);
 }
 
-.pam-action-sheet {
-  position: relative;
-  z-index: 1;
+.pam-toolbar-action-groups {
   display: grid;
-  width: min(680px, 100%);
-  max-height: min(76vh, 720px);
-  grid-template-rows: auto minmax(0, 1fr);
-  overflow: visible;
-  border: 1px solid var(--tk-island-border);
-  border-radius: 24px;
-  background: var(--color-surface-raised);
-  box-shadow: 0 28px 90px rgba(9, 31, 27, 0.24);
-  animation: pam-dialog-in 220ms var(--tk-spring) both;
-}
-
-.pam-action-sheet-header {
-  display: flex;
+  width: 100%;
   min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.pam-action-sheet-groups {
-  display: grid;
-  min-height: 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  flex: 0 0 100%;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
-  padding: 12px;
-  overflow: auto;
 }
 
 .pam-action-group-shell {
@@ -1122,21 +1089,15 @@ html.native-wgpu-host .pam-stage {
     width: min(36vw, 150px);
   }
 
-  .pam-action-sheet-layer,
   .pam-modal-backdrop {
     align-items: flex-end;
     padding: 0;
   }
 
-  .pam-action-sheet,
   .pam-export-dialog {
     width: 100%;
     max-height: 86vh;
     border-radius: 24px 24px 0 0;
-  }
-
-  .pam-action-sheet-groups {
-    grid-template-columns: 1fr;
   }
 
   .pam-panel-actions .pam-button span {
@@ -1156,7 +1117,8 @@ html.native-wgpu-host .pam-stage {
 
 /* MoeSekai floating-island workspace */
 .pam-page-actions {
-  flex-wrap: nowrap;
+  align-content: flex-start;
+  flex-wrap: wrap;
 }
 
 .pam-button,
@@ -1348,7 +1310,6 @@ html.native-wgpu-host .pam-stage {
   color: var(--color-accent-strong);
 }
 
-.pam-action-sheet,
 .pam-export-dialog {
   border-color: var(--tk-island-border);
   border-radius: 28px;
@@ -1358,20 +1319,6 @@ html.native-wgpu-host .pam-stage {
 
 .pam-export-dialog {
   backdrop-filter: blur(28px) saturate(200%);
-}
-
-.pam-action-sheet {
-  animation: pam-action-sheet-in 180ms ease both;
-}
-
-.pam-action-sheet-layer:focus {
-  outline: none;
-}
-
-@keyframes pam-action-sheet-in {
-  from {
-    opacity: 0;
-  }
 }
 
 .pam-action-group-shell {

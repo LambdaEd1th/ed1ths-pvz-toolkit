@@ -4572,9 +4572,6 @@ fn ArchiveToolbar(
     on_toggle_tree: EventHandler<()>,
     on_toggle_inspector: EventHandler<()>,
 ) -> Element {
-    let mut more_open = use_signal(|| false);
-    let more_open_snapshot = more_open();
-
     rsx! {
         div { class: "ui-island ui-tool-page-actions rsb-page-actions",
             button {
@@ -4602,6 +4599,15 @@ fn ArchiveToolbar(
                     aria_label: "保存",
                     onclick: move |_| on_save.call(()),
                     Glyph { name: "save" }
+                }
+                button {
+                    r#type: "button",
+                    class: "rsb-tool-button rsb-tool-button--icon",
+                    disabled: !has_archive,
+                    title: "另存为",
+                    aria_label: "另存为",
+                    onclick: move |_| on_save_as.call(()),
+                    Glyph { name: "save-as" }
                 }
             }
             div { class: "rsb-document-pill", title: "{archive_name}",
@@ -4660,12 +4666,39 @@ fn ArchiveToolbar(
                 }
                 button {
                     r#type: "button",
-                    class: if more_open_snapshot { "rsb-tool-button rsb-tool-button--icon is-active" } else { "rsb-tool-button rsb-tool-button--icon" },
-                    title: "更多",
-                    aria_label: "更多",
-                    aria_expanded: more_open_snapshot,
-                    onclick: move |_| more_open.toggle(),
-                    Glyph { name: "more" }
+                    class: "rsb-tool-button rsb-tool-button--icon",
+                    disabled: !can_rename,
+                    title: "重命名",
+                    aria_label: "重命名所选项目",
+                    onclick: move |_| on_rename.call(()),
+                    Glyph { name: "rename" }
+                }
+                button {
+                    r#type: "button",
+                    class: "rsb-tool-button rsb-tool-button--icon",
+                    disabled: !can_properties,
+                    title: "属性",
+                    aria_label: "编辑所选项目属性",
+                    onclick: move |_| on_properties.call(()),
+                    Glyph { name: "properties" }
+                }
+                button {
+                    r#type: "button",
+                    class: "rsb-tool-button rsb-tool-button--icon rsb-tool-button--danger",
+                    disabled: !can_delete,
+                    title: "删除",
+                    aria_label: "删除所选项目",
+                    onclick: move |_| on_delete.call(()),
+                    Glyph { name: "delete" }
+                }
+                button {
+                    r#type: "button",
+                    class: "rsb-tool-button rsb-tool-button--icon",
+                    disabled: !can_export_png,
+                    title: "导出 PNG",
+                    aria_label: "将所选 PTX 导出为 PNG",
+                    onclick: move |_| on_export_png.call(()),
+                    Glyph { name: "image" }
                 }
                 button {
                     r#type: "button",
@@ -4675,121 +4708,6 @@ fn ArchiveToolbar(
                     aria_pressed: inspector_visible,
                     onclick: move |_| on_toggle_inspector.call(()),
                     Glyph { name: "panel" }
-                }
-            }
-        }
-        if more_open_snapshot {
-            div {
-                class: "rsb-action-sheet-layer",
-                tabindex: "-1",
-                onmounted: move |event| async move {
-                    let _ = event.set_focus(true).await;
-                },
-                onkeydown: move |event| {
-                    if event.key() == Key::Escape {
-                        event.prevent_default();
-                        more_open.set(false);
-                    }
-                },
-                onclick: move |_| more_open.set(false),
-                div { class: "rsb-action-sheet-backdrop", aria_hidden: "true" }
-                section {
-                    class: "rsb-action-sheet",
-                    role: "dialog",
-                    aria_modal: "true",
-                    aria_labelledby: "rsb-more-title",
-                    onclick: move |event| event.stop_propagation(),
-                    header { class: "rsb-action-sheet-header",
-                        strong { id: "rsb-more-title", "更多" }
-                        button {
-                            r#type: "button",
-                            class: "rsb-tool-button rsb-tool-button--icon",
-                            title: "关闭更多操作",
-                            aria_label: "关闭更多操作",
-                            onclick: move |_| more_open.set(false),
-                            Glyph { name: "close" }
-                        }
-                    }
-                    div { class: "rsb-action-sheet-groups",
-                        section { class: "rsb-action-group",
-                            div { class: "rsb-action-group-heading",
-                                strong { "归档" }
-                                span { "保存与副本" }
-                            }
-                            div { class: "rsb-action-row",
-                                button {
-                                    r#type: "button",
-                                    class: "rsb-action-button",
-                                    onclick: move |_| {
-                                        more_open.set(false);
-                                        on_save_as.call(());
-                                    },
-                                    Glyph { name: "save-as" }
-                                    span { "另存为" }
-                                }
-                            }
-                        }
-                        section { class: "rsb-action-group",
-                            div { class: "rsb-action-group-heading",
-                                strong { "所选项目" }
-                                span { "编辑名称、属性或内容" }
-                            }
-                            div { class: "rsb-action-row",
-                                button {
-                                    r#type: "button",
-                                    class: "rsb-action-button",
-                                    disabled: !can_rename,
-                                    onclick: move |_| {
-                                        more_open.set(false);
-                                        on_rename.call(());
-                                    },
-                                    Glyph { name: "rename" }
-                                    span { "重命名" }
-                                }
-                                button {
-                                    r#type: "button",
-                                    class: "rsb-action-button",
-                                    disabled: !can_properties,
-                                    onclick: move |_| {
-                                        more_open.set(false);
-                                        on_properties.call(());
-                                    },
-                                    Glyph { name: "properties" }
-                                    span { "属性" }
-                                }
-                                button {
-                                    r#type: "button",
-                                    class: "rsb-action-button rsb-action-button--danger",
-                                    disabled: !can_delete,
-                                    onclick: move |_| {
-                                        more_open.set(false);
-                                        on_delete.call(());
-                                    },
-                                    Glyph { name: "delete" }
-                                    span { "删除" }
-                                }
-                            }
-                        }
-                        section { class: "rsb-action-group",
-                            div { class: "rsb-action-group-heading",
-                                strong { "纹理输出" }
-                                span { "将所选 PTX 解码为原始尺寸图片" }
-                            }
-                            div { class: "rsb-action-row",
-                                button {
-                                    r#type: "button",
-                                    class: "rsb-action-button",
-                                    disabled: !can_export_png,
-                                    onclick: move |_| {
-                                        more_open.set(false);
-                                        on_export_png.call(());
-                                    },
-                                    Glyph { name: "image" }
-                                    span { "导出 PNG" }
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }

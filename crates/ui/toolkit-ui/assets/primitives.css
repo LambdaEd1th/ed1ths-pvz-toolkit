@@ -548,6 +548,12 @@
   min-width: 0;
   min-height: 0;
   padding: 16px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.ui-tool-drawer-body:has(.pam-select-menu, .rton-mode-menu) {
   overflow: visible;
 }
 

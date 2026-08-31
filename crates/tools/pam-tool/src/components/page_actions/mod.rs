@@ -5,7 +5,7 @@ mod selector;
 mod view;
 
 use dioxus::prelude::*;
-use dioxus_free_icons::icons::ld_icons::{LdEllipsis, LdFolderOpen, LdMenu, LdPanelRight, LdX};
+use dioxus_free_icons::icons::ld_icons::{LdFolderOpen, LdMenu, LdPanelRight, LdX};
 
 use crate::actions::{clear_tabs, set_resource_sheet_open};
 #[cfg(target_arch = "wasm32")]
@@ -28,8 +28,6 @@ pub fn PageActions() -> Element {
     let preferences = context.preferences.read().clone();
     let images_sheet_open = *context.images_sheet_open.read();
     let sprites_sheet_open = *context.sprites_sheet_open.read();
-    let mut more_open = use_signal(|| false);
-    let more_open_snapshot = *more_open.read();
     let locale = preferences.locale;
     let active_name = active_tab
         .map(|tab| tab.display_name())
@@ -64,19 +62,6 @@ pub fn PageActions() -> Element {
             }
             button {
                 r#type: "button",
-                class: if more_open_snapshot {
-                    "pam-page-icon-button active"
-                } else {
-                    "pam-page-icon-button"
-                },
-                title: tr(locale, "more"),
-                aria_label: tr(locale, "more"),
-                aria_expanded: more_open_snapshot,
-                onclick: move |_| more_open.toggle(),
-                {icon(LdEllipsis)}
-            }
-            button {
-                r#type: "button",
                 class: if sprites_sheet_open {
                     "pam-page-icon-button active"
                 } else {
@@ -90,50 +75,12 @@ pub fn PageActions() -> Element {
                 },
                 {icon(LdPanelRight)}
             }
-        }
-        if more_open_snapshot {
-            div {
-                class: "pam-action-sheet-layer",
-                tabindex: "-1",
-                onmounted: move |event| async move {
-                    let _ = event.set_focus(true).await;
-                },
-                onkeydown: move |event| {
-                    if event.key() == Key::Escape {
-                        event.prevent_default();
-                        more_open.set(false);
-                    }
-                },
-                onclick: move |_| more_open.set(false),
-                div {
-                    class: "pam-action-sheet-backdrop",
-                    aria_hidden: "true",
-                }
-                section {
-                    class: "pam-action-sheet",
-                    role: "dialog",
-                    aria_modal: "true",
-                    aria_labelledby: "pam-more-title",
-                    onclick: move |event| event.stop_propagation(),
-                    header { class: "pam-action-sheet-header",
-                        strong { id: "pam-more-title", {tr(locale, "more")} }
-                        button {
-                            r#type: "button",
-                            class: "pam-page-icon-button",
-                            title: tr(locale, "close_menu"),
-                            aria_label: tr(locale, "close_menu"),
-                            onclick: move |_| more_open.set(false),
-                            {icon(LdX)}
-                        }
-                    }
-                    div { class: "pam-action-sheet-groups",
-                        for group in action_groups {
-                            ActionGroup {
-                                key: "sheet-{group}",
-                                id: group.to_string(),
-                                {action_group_content(group, more_open)}
-                            }
-                        }
+            div { class: "pam-toolbar-action-groups",
+                for group in action_groups {
+                    ActionGroup {
+                        key: "toolbar-{group}",
+                        id: group.to_string(),
+                        {action_group_content(group)}
                     }
                 }
             }
@@ -150,14 +97,14 @@ fn ActionGroup(id: String, children: Element) -> Element {
     }
 }
 
-fn action_group_content(id: &str, mut more_open: Signal<bool>) -> Element {
+fn action_group_content(id: &str) -> Element {
     match id {
         "selectors" => rsx! { SelectorGroup {} },
         "layers" => rsx! { LayerGroup {} },
         "view" => rsx! { ViewGroup {} },
         "size" => rsx! { SizeGroup {} },
-        "export" => rsx! { ExportGroup { on_dismiss: move |_| more_open.set(false) } },
-        "convert" => rsx! { ConvertGroup { on_dismiss: move |_| more_open.set(false) } },
+        "export" => rsx! { ExportGroup {} },
+        "convert" => rsx! { ConvertGroup {} },
         _ => rsx! {},
     }
 }

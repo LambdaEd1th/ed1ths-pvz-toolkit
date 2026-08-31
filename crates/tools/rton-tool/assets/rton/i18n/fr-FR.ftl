@@ -23,7 +23,6 @@ toolbar-encrypted = Chiffre
 toolbar-validate = Valider
 toolbar-wrap = Retour ligne
 toolbar-search = Rechercher
-toolbar-more = Plus
 toolbar-close-menu = Fermer le menu
 tabs-new-file = Nouveau fichier { $format } vide
 

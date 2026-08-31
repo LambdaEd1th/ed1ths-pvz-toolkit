@@ -23,7 +23,6 @@ toolbar-encrypted = Cifrado
 toolbar-validate = Validar
 toolbar-wrap = Ajuste
 toolbar-search = Buscar
-toolbar-more = Mas
 toolbar-close-menu = Cerrar menu
 tabs-new-file = Nuevo archivo { $format } vacio
 

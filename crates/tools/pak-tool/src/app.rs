@@ -416,7 +416,6 @@ fn ArchiveToolbar(
     let has_archive = tab.is_some();
     let can_up = tab.as_ref().is_some_and(|tab| !tab.directory.is_empty());
     let dirty = tab.as_ref().is_some_and(|tab| tab.dirty);
-    let mut more_open = use_signal(|| false);
     rsx! {
         div { class: "ui-island ui-tool-page-actions pak-page-actions",
             button {
@@ -454,15 +453,8 @@ fn ArchiveToolbar(
             if let Some(tab) = tab {
                 span { class: "pak-format-pill", "{format_label(tab.archive.options().format)}" }
             }
-            div { class: "pak-more-anchor",
-                button { class: if more_open() { "pak-icon-button is-active" } else { "pak-icon-button" }, title: "更多", aria_label: "更多", disabled: !has_archive, onclick: move |event| { event.stop_propagation(); more_open.toggle(); }, Glyph { name: "more" } }
-                if more_open() {
-                    div { class: "pak-more-menu", onclick: move |event| event.stop_propagation(),
-                        button { onclick: move |_| { more_open.set(false); on_validate.call(()); }, Glyph { name: "validate" } "校验归档" }
-                        button { onclick: move |_| { more_open.set(false); on_properties.call(()); }, Glyph { name: "properties" } "归档属性" }
-                    }
-                }
-            }
+            button { class: "pak-icon-button", title: "校验归档", aria_label: "校验归档", disabled: !has_archive, onclick: move |_| on_validate.call(()), Glyph { name: "validate" } }
+            button { class: "pak-icon-button", title: "归档属性", aria_label: "归档属性", disabled: !has_archive, onclick: move |_| on_properties.call(()), Glyph { name: "properties" } }
             button { class: if inspector_visible { "pak-icon-button is-active" } else { "pak-icon-button" }, title: "属性", aria_label: "显示或隐藏属性", disabled: !has_archive, onclick: move |_| on_toggle_inspector.call(()), Glyph { name: "inspector" } }
         }
     }

@@ -495,7 +495,6 @@ fn ArchiveToolbar(
     let can_up = tab.as_ref().is_some_and(|tab| !tab.directory.is_empty());
     let dirty = tab.as_ref().is_some_and(|tab| tab.dirty);
     let can_save = tab.as_ref().is_some_and(|tab| !tab.entries.is_empty());
-    let mut more_open = use_signal(|| false);
     rsx! {
         div { class: "ui-island ui-tool-page-actions dzip-page-actions",
             button { class: if tree_visible { "dzip-icon-button is-active" } else { "dzip-icon-button" }, title: "目录", aria_label: "显示或隐藏目录", disabled: !has_archive, onclick: move |_| on_toggle_tree.call(()), Glyph { name: "tree" } }
@@ -519,16 +518,9 @@ fn ArchiveToolbar(
             if let Some(tab) = tab {
                 span { class: "dzip-format-pill", "{tab.volume_count} VOL · {compression_label(tab.default_compression)}" }
             }
-            div { class: "dzip-more-anchor",
-                button { class: if more_open() { "dzip-icon-button is-active" } else { "dzip-icon-button" }, title: "更多", aria_label: "更多", onclick: move |event| { event.stop_propagation(); more_open.toggle(); }, Glyph { name: "more" } }
-                if more_open() {
-                    div { class: "dzip-more-menu", onclick: move |event| event.stop_propagation(),
-                        button { onclick: move |_| { more_open.set(false); on_new.call(()); }, Glyph { name: "new" } "新建归档" }
-                        button { disabled: !has_archive, onclick: move |_| { more_open.set(false); on_validate.call(()); }, Glyph { name: "validate" } "检查归档" }
-                        button { disabled: !has_archive, onclick: move |_| { more_open.set(false); on_properties.call(()); }, Glyph { name: "settings" } "归档设置" }
-                    }
-                }
-            }
+            button { class: "dzip-icon-button", title: "新建归档", aria_label: "新建归档", onclick: move |_| on_new.call(()), Glyph { name: "new" } }
+            button { class: "dzip-icon-button", title: "检查归档", aria_label: "检查归档", disabled: !has_archive, onclick: move |_| on_validate.call(()), Glyph { name: "validate" } }
+            button { class: "dzip-icon-button", title: "归档设置", aria_label: "归档设置", disabled: !has_archive, onclick: move |_| on_properties.call(()), Glyph { name: "settings" } }
             button { class: if inspector_visible { "dzip-icon-button is-active" } else { "dzip-icon-button" }, title: "属性", aria_label: "显示或隐藏属性", disabled: !has_archive, onclick: move |_| on_toggle_inspector.call(()), Glyph { name: "inspector" } }
         }
     }

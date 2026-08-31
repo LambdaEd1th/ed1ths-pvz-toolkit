@@ -1,9 +1,7 @@
 mod groups;
 
 use dioxus::prelude::*;
-use dioxus_free_icons::icons::ld_icons::{
-    LdChevronDown, LdEllipsis, LdFilePlus2, LdMenu, LdPanelRight, LdRedo2, LdSearch, LdUndo2, LdX,
-};
+use dioxus_free_icons::icons::ld_icons::{LdChevronDown, LdMenu, LdPanelRight};
 use rton_editor_core::TextFormat;
 
 use crate::components::{FileSelection, lucide_icon};
@@ -12,7 +10,7 @@ use crate::file_import::LoadedFileState;
 use crate::i18n::I18n;
 use crate::platform;
 
-use groups::{ActionGroupContent, WebFileOpenControl};
+use groups::ActionGroupContent;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(super) enum ActionGroupId {
@@ -43,7 +41,7 @@ struct ModeMenuPosition {
 }
 
 #[derive(Clone, PartialEq)]
-struct ActionSheetContext {
+struct ActionToolbarContext {
     i18n: I18n,
     active_mode: Option<EditorMode>,
     active_file_label: String,
@@ -69,7 +67,6 @@ struct ActionSheetContext {
     export_text: EventHandler<TextFormat>,
     parse_current: EventHandler<()>,
     export_rton: EventHandler<()>,
-    on_dismiss: EventHandler<()>,
 }
 
 const EDITOR_MODES: [EditorMode; 4] = [
@@ -80,7 +77,6 @@ const EDITOR_MODES: [EditorMode; 4] = [
 ];
 
 const MENU_EXIT_MS: u64 = 200;
-const MORE_MENU_EXIT_MS: u64 = 170;
 
 fn close_mode_menu(mut position: Signal<Option<ModeMenuPosition>>, mut closing: Signal<bool>) {
     if position.peek().is_none() || *closing.peek() {
@@ -90,18 +86,6 @@ fn close_mode_menu(mut position: Signal<Option<ModeMenuPosition>>, mut closing: 
     spawn(async move {
         platform::sleep_ms(MENU_EXIT_MS).await;
         position.set(None);
-        closing.set(false);
-    });
-}
-
-fn close_more_menu(mut mounted: Signal<bool>, mut closing: Signal<bool>) {
-    if !*mounted.peek() || *closing.peek() {
-        return;
-    }
-    closing.set(true);
-    spawn(async move {
-        platform::sleep_ms(MORE_MENU_EXIT_MS).await;
-        mounted.set(false);
         closing.set(false);
     });
 }
@@ -169,26 +153,20 @@ pub(super) fn PageActions(
     parse_current: EventHandler<()>,
     export_rton: EventHandler<()>,
 ) -> Element {
-    let mut action_sheet_mounted = use_signal(|| false);
-    let mut action_sheet_closing = use_signal(|| false);
     let mut mode_control_mounted = use_signal(|| None::<MountedEvent>);
     let mut mode_menu_position = use_signal(|| None::<ModeMenuPosition>);
     let mut mode_menu_closing = use_signal(|| false);
-    let action_sheet_mounted_snapshot = *action_sheet_mounted.read();
-    let action_sheet_closing_snapshot = *action_sheet_closing.read();
     let mode_menu_position_snapshot = *mode_menu_position.read();
     let mode_menu_closing_snapshot = *mode_menu_closing.read();
     let file_sheet_open_snapshot = *file_sheet_open.read();
     let inspector_sheet_open_snapshot = *inspector_sheet_open.read();
     let mode_menu_open = mode_menu_position_snapshot.is_some() && !mode_menu_closing_snapshot;
-    let action_sheet_open = action_sheet_mounted_snapshot && !action_sheet_closing_snapshot;
-    let has_active_document = active_mode_snapshot.is_some();
     let selector_mode = active_mode_snapshot
         .or(preferred_mode_snapshot)
         .unwrap_or(EditorMode::RtonHex);
     let active_mode_label = selector_mode.label();
     let mode_selector_label = i18n.t("toolbar-group-format");
-    let action_sheet_context = ActionSheetContext {
+    let action_toolbar_context = ActionToolbarContext {
         i18n,
         active_mode: active_mode_snapshot,
         active_file_label: active_file_label.clone(),
@@ -214,9 +192,6 @@ pub(super) fn PageActions(
         export_text,
         parse_current,
         export_rton,
-        on_dismiss: EventHandler::new(move |_| {
-            close_more_menu(action_sheet_mounted, action_sheet_closing)
-        }),
     };
 
     rsx! {
@@ -263,79 +238,6 @@ pub(super) fn PageActions(
                 span { class: "rton-document-dot" }
                 span { class: "rton-document-name", "{active_file_label}" }
             }
-            if cfg!(target_arch = "wasm32") {
-                WebFileOpenControl {
-                    i18n,
-                    class_name: "rton-page-icon-button primary".to_string(),
-                    compact: true,
-                    loaded_files,
-                    next_loaded_file_id,
-                    file_selection,
-                    status,
-                    on_files_staged
-                }
-            } else {
-                button {
-                    r#type: "button",
-                    class: "rton-page-icon-button primary",
-                    title: i18n.t("toolbar-open"),
-                    aria_label: i18n.t("toolbar-open"),
-                    onclick: move |_| open_native_files.call(()),
-                    {lucide_icon(LdFilePlus2)}
-                }
-            }
-            button {
-                r#type: "button",
-                class: "rton-page-icon-button rton-history-button",
-                disabled: !can_undo_snapshot,
-                title: i18n.t("toolbar-undo"),
-                aria_label: i18n.t("toolbar-undo"),
-                onclick: move |_| undo_edit.call(()),
-                {lucide_icon(LdUndo2)}
-            }
-            button {
-                r#type: "button",
-                class: "rton-page-icon-button rton-history-button",
-                disabled: !can_redo_snapshot,
-                title: i18n.t("toolbar-redo"),
-                aria_label: i18n.t("toolbar-redo"),
-                onclick: move |_| redo_edit.call(()),
-                {lucide_icon(LdRedo2)}
-            }
-            button {
-                r#type: "button",
-                class: if editor_search_panel_visible_snapshot {
-                    "rton-page-icon-button rton-search-button active"
-                } else {
-                    "rton-page-icon-button rton-search-button"
-                },
-                disabled: !has_active_document,
-                title: i18n.t("toolbar-search"),
-                aria_label: i18n.t("toolbar-search"),
-                aria_pressed: editor_search_panel_visible_snapshot,
-                onclick: move |_| editor_search_panel_visible.set(!editor_search_panel_visible_snapshot),
-                {lucide_icon(LdSearch)}
-            }
-            button {
-                r#type: "button",
-                class: if action_sheet_open {
-                    "rton-page-icon-button rton-more-button active"
-                } else {
-                    "rton-page-icon-button rton-more-button"
-                },
-                title: i18n.t("toolbar-more"),
-                aria_label: i18n.t("toolbar-more"),
-                aria_expanded: action_sheet_open,
-                onclick: move |_| {
-                    if action_sheet_mounted_snapshot {
-                        close_more_menu(action_sheet_mounted, action_sheet_closing);
-                    } else {
-                        action_sheet_closing.set(false);
-                        action_sheet_mounted.set(true);
-                    }
-                },
-                {lucide_icon(LdEllipsis)}
-            }
             button {
                 r#type: "button",
                 class: if inspector_sheet_open_snapshot { "rton-page-icon-button active" } else { "rton-page-icon-button" },
@@ -351,50 +253,7 @@ pub(super) fn PageActions(
                 },
                 {lucide_icon(LdPanelRight)}
             }
-        }
-
-        if action_sheet_mounted_snapshot {
-            div {
-                class: if action_sheet_closing_snapshot {
-                    "rton-action-sheet-layer closing"
-                } else {
-                    "rton-action-sheet-layer"
-                },
-                tabindex: "-1",
-                onmounted: move |event| async move {
-                    let _ = event.set_focus(true).await;
-                },
-                onkeydown: move |event| {
-                    if event.key() == Key::Escape {
-                        event.prevent_default();
-                        close_more_menu(action_sheet_mounted, action_sheet_closing);
-                    }
-                },
-                onclick: move |_| close_more_menu(action_sheet_mounted, action_sheet_closing),
-                div {
-                    class: "rton-action-sheet-backdrop",
-                    aria_hidden: "true",
-                }
-                section {
-                    class: "rton-action-sheet",
-                    role: "dialog",
-                    aria_modal: "true",
-                    aria_labelledby: "rton-more-title",
-                    onclick: move |event| event.stop_propagation(),
-                    header { class: "rton-action-sheet-header",
-                        strong { id: "rton-more-title", {i18n.t("toolbar-more")} }
-                        button {
-                            r#type: "button",
-                            class: "rton-page-icon-button",
-                            title: i18n.t("toolbar-close-menu"),
-                            aria_label: i18n.t("toolbar-close-menu"),
-                            onclick: move |_| close_more_menu(action_sheet_mounted, action_sheet_closing),
-                            {lucide_icon(LdX)}
-                        }
-                    }
-                    ActionGroups { context: action_sheet_context.clone() }
-                }
-            }
+            ActionGroups { context: action_toolbar_context.clone() }
         }
 
         if let Some(position) = mode_menu_position_snapshot {
@@ -429,7 +288,7 @@ pub(super) fn PageActions(
 }
 
 #[component]
-fn ActionGroups(context: ActionSheetContext) -> Element {
+fn ActionGroups(context: ActionToolbarContext) -> Element {
     const GROUPS: [ActionGroupId; 5] = [
         ActionGroupId::File,
         ActionGroupId::Edit,
@@ -463,63 +322,15 @@ fn ActionGroups(context: ActionSheetContext) -> Element {
                         line_wrapping: context.line_wrapping,
                         editor_search_panel_visible: context.editor_search_panel_visible,
                         status: context.status,
-                        open_native_files: EventHandler::new({
-                            let context = context.clone();
-                            move |_| {
-                                context.on_dismiss.call(());
-                                context.open_native_files.call(());
-                            }
-                        }),
-                        open_native_folder: EventHandler::new({
-                            let context = context.clone();
-                            move |_| {
-                                context.on_dismiss.call(());
-                                context.open_native_folder.call(());
-                            }
-                        }),
-                        on_files_staged: EventHandler::new({
-                            let context = context.clone();
-                            move |_| {
-                                context.on_dismiss.call(());
-                                context.on_files_staged.call(());
-                            }
-                        }),
-                        undo_edit: EventHandler::new({
-                            let context = context.clone();
-                            move |_| {
-                                context.on_dismiss.call(());
-                                context.undo_edit.call(());
-                            }
-                        }),
-                        redo_edit: EventHandler::new({
-                            let context = context.clone();
-                            move |_| {
-                                context.on_dismiss.call(());
-                                context.redo_edit.call(());
-                            }
-                        }),
+                        open_native_files: context.open_native_files,
+                        open_native_folder: context.open_native_folder,
+                        on_files_staged: context.on_files_staged,
+                        undo_edit: context.undo_edit,
+                        redo_edit: context.redo_edit,
                         on_compact_change: context.on_compact_change,
-                        export_text: EventHandler::new({
-                            let context = context.clone();
-                            move |format| {
-                                context.on_dismiss.call(());
-                                context.export_text.call(format);
-                            }
-                        }),
-                        parse_current: EventHandler::new({
-                            let context = context.clone();
-                            move |_| {
-                                context.on_dismiss.call(());
-                                context.parse_current.call(());
-                            }
-                        }),
-                        export_rton: EventHandler::new({
-                            let context = context.clone();
-                            move |_| {
-                                context.on_dismiss.call(());
-                                context.export_rton.call(());
-                            }
-                        }),
+                        export_text: context.export_text,
+                        parse_current: context.parse_current,
+                        export_rton: context.export_rton,
                     }
                 }
             }

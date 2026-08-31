@@ -15,7 +15,6 @@ use crate::i18n::I18n;
 use super::ActionGroupId;
 use edit::EditActions;
 use file::FileActions;
-pub(super) use file::WebFileOpenControl;
 use preferences::PreferencesActions;
 use rton_export::RtonExportActions;
 use text_export::TextExportActions;
