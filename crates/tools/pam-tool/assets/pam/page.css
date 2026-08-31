@@ -877,10 +877,15 @@ html.native-wgpu-host .pam-stage {
 }
 
 .pam-select-menu {
-  position: fixed;
-  top: var(--select-y);
-  left: var(--select-x);
-  width: var(--select-width);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+}
+
+.pam-preview-controls .pam-select-menu {
+  top: auto;
+  bottom: calc(100% + 6px);
 }
 
 .pam-select-menu button {

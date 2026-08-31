@@ -31,6 +31,12 @@
   gap: 6px;
 }
 
+.rton-mode-control {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
 .rton-page-icon-button,
 .rton-mode-pill {
   position: relative;
@@ -880,9 +886,12 @@
 }
 
 .rton-mode-menu {
-  position: fixed;
+  position: absolute;
   z-index: 129;
+  top: calc(100% + 8px);
+  left: 0;
   display: grid;
+  width: 100%;
   gap: 3px;
   min-width: 130px;
   padding: 5px;
@@ -1011,17 +1020,6 @@
 }
 
 @container toolkit-content (max-width: 640px) {
-  .rton-mode-pill {
-    width: 36px;
-    min-width: 36px;
-    padding: 0;
-  }
-
-  .rton-mode-label,
-  .rton-mode-caret {
-    display: none;
-  }
-
   .rton-editor-stage {
     padding: 6px;
   }

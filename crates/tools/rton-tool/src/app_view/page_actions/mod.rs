@@ -33,13 +33,6 @@ impl ActionGroupId {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct ModeMenuPosition {
-    left: i32,
-    top: i32,
-    width: i32,
-}
-
 #[derive(Clone, PartialEq)]
 struct ActionToolbarContext {
     i18n: I18n,
@@ -78,14 +71,14 @@ const EDITOR_MODES: [EditorMode; 4] = [
 
 const MENU_EXIT_MS: u64 = 200;
 
-fn close_mode_menu(mut position: Signal<Option<ModeMenuPosition>>, mut closing: Signal<bool>) {
-    if position.peek().is_none() || *closing.peek() {
+fn close_mode_menu(mut visible: Signal<bool>, mut closing: Signal<bool>) {
+    if !*visible.peek() || *closing.peek() {
         return;
     }
     closing.set(true);
     spawn(async move {
         platform::sleep_ms(MENU_EXIT_MS).await;
-        position.set(None);
+        visible.set(false);
         closing.set(false);
     });
 }
@@ -96,28 +89,6 @@ fn mode_mark(mode: Option<EditorMode>) -> &'static str {
         EditorMode::Json => "J",
         EditorMode::Yaml => "Y",
         EditorMode::Toml => "T",
-    }
-}
-
-async fn calculate_mode_menu_position(mounted: Option<MountedEvent>) -> ModeMenuPosition {
-    let Some(event) = mounted else {
-        return ModeMenuPosition {
-            left: 12,
-            top: 68,
-            width: 112,
-        };
-    };
-    let Ok(rect) = event.get_client_rect().await else {
-        return ModeMenuPosition {
-            left: 12,
-            top: 68,
-            width: 112,
-        };
-    };
-    ModeMenuPosition {
-        left: rect.origin.x.round().max(8.0) as i32,
-        top: (rect.origin.y + rect.height() + 8.0).round().max(8.0) as i32,
-        width: rect.width().round().max(1.0) as i32,
     }
 }
 
@@ -153,14 +124,13 @@ pub(super) fn PageActions(
     parse_current: EventHandler<()>,
     export_rton: EventHandler<()>,
 ) -> Element {
-    let mut mode_control_mounted = use_signal(|| None::<MountedEvent>);
-    let mut mode_menu_position = use_signal(|| None::<ModeMenuPosition>);
+    let mut mode_menu_visible = use_signal(|| false);
     let mut mode_menu_closing = use_signal(|| false);
-    let mode_menu_position_snapshot = *mode_menu_position.read();
+    let mode_menu_visible_snapshot = *mode_menu_visible.read();
     let mode_menu_closing_snapshot = *mode_menu_closing.read();
     let file_sheet_open_snapshot = *file_sheet_open.read();
     let inspector_sheet_open_snapshot = *inspector_sheet_open.read();
-    let mode_menu_open = mode_menu_position_snapshot.is_some() && !mode_menu_closing_snapshot;
+    let mode_menu_open = mode_menu_visible_snapshot && !mode_menu_closing_snapshot;
     let selector_mode = active_mode_snapshot
         .or(preferred_mode_snapshot)
         .unwrap_or(EditorMode::RtonHex);
@@ -211,28 +181,53 @@ pub(super) fn PageActions(
                 },
                 {lucide_icon(LdMenu)}
             }
-            button {
-                r#type: "button",
-                class: if mode_menu_open { "rton-mode-pill is-open" } else { "rton-mode-pill" },
-                title: "{mode_selector_label}: {active_mode_label}",
-                aria_label: "{mode_selector_label}: {active_mode_label}",
-                aria_haspopup: "listbox",
-                aria_expanded: mode_menu_open,
-                onmounted: move |event| mode_control_mounted.set(Some(event)),
-                onclick: move |_| {
-                    if mode_menu_position.peek().is_some() {
-                        close_mode_menu(mode_menu_position, mode_menu_closing);
-                    } else {
-                        let mounted = mode_control_mounted.peek().clone();
-                        spawn(async move {
+            div { class: "rton-mode-control",
+                button {
+                    r#type: "button",
+                    class: if mode_menu_open { "rton-mode-pill is-open" } else { "rton-mode-pill" },
+                    title: "{mode_selector_label}: {active_mode_label}",
+                    aria_label: "{mode_selector_label}: {active_mode_label}",
+                    aria_haspopup: "listbox",
+                    aria_expanded: mode_menu_open,
+                    onclick: move |_| {
+                        if *mode_menu_visible.peek() {
+                            close_mode_menu(mode_menu_visible, mode_menu_closing);
+                        } else {
                             mode_menu_closing.set(false);
-                            mode_menu_position.set(Some(calculate_mode_menu_position(mounted).await));
-                        });
+                            mode_menu_visible.set(true);
+                        }
+                    },
+                    span { class: "rton-mode-mark", aria_hidden: "true", {mode_mark(Some(selector_mode))} }
+                    span { class: "rton-mode-label", "{active_mode_label}" }
+                    span { class: "rton-mode-caret", aria_hidden: "true", {lucide_icon(LdChevronDown)} }
+                }
+                if mode_menu_visible_snapshot {
+                    div {
+                        class: if mode_menu_closing_snapshot { "rton-mode-menu-backdrop closing" } else { "rton-mode-menu-backdrop" },
+                        onmousedown: move |_| close_mode_menu(mode_menu_visible, mode_menu_closing)
                     }
-                },
-                span { class: "rton-mode-mark", aria_hidden: "true", {mode_mark(Some(selector_mode))} }
-                span { class: "rton-mode-label", "{active_mode_label}" }
-                span { class: "rton-mode-caret", aria_hidden: "true", {lucide_icon(LdChevronDown)} }
+                    div {
+                        class: if mode_menu_closing_snapshot { "rton-mode-menu closing" } else { "rton-mode-menu" },
+                        role: "listbox",
+                        aria_label: "{mode_selector_label}",
+                        onmousedown: move |event| event.stop_propagation(),
+                        for mode in EDITOR_MODES {
+                            button {
+                                key: "{mode.label()}",
+                                r#type: "button",
+                                class: if selector_mode == mode { "active" } else { "" },
+                                role: "option",
+                                aria_selected: selector_mode == mode,
+                                onclick: move |_| {
+                                    close_mode_menu(mode_menu_visible, mode_menu_closing);
+                                    on_switch_mode.call(mode);
+                                },
+                                span { class: "rton-mode-menu-mark", {mode_mark(Some(mode))} }
+                                span { "{mode.label()}" }
+                            }
+                        }
+                    }
+                }
             }
             div { class: "rton-document-pill", title: "{active_file_label}",
                 span { class: "rton-document-dot" }
@@ -256,34 +251,6 @@ pub(super) fn PageActions(
             ActionGroups { context: action_toolbar_context.clone() }
         }
 
-        if let Some(position) = mode_menu_position_snapshot {
-            div {
-                class: if mode_menu_closing_snapshot { "rton-mode-menu-backdrop closing" } else { "rton-mode-menu-backdrop" },
-                onmousedown: move |_| close_mode_menu(mode_menu_position, mode_menu_closing)
-            }
-            div {
-                class: if mode_menu_closing_snapshot { "rton-mode-menu closing" } else { "rton-mode-menu" },
-                role: "listbox",
-                aria_label: "{mode_selector_label}",
-                style: "left: {position.left}px; top: {position.top}px; width: {position.width}px",
-                onmousedown: move |event| event.stop_propagation(),
-                for mode in EDITOR_MODES {
-                    button {
-                        key: "{mode.label()}",
-                        r#type: "button",
-                        class: if selector_mode == mode { "active" } else { "" },
-                        role: "option",
-                        aria_selected: selector_mode == mode,
-                        onclick: move |_| {
-                            close_mode_menu(mode_menu_position, mode_menu_closing);
-                            on_switch_mode.call(mode);
-                        },
-                        span { class: "rton-mode-menu-mark", {mode_mark(Some(mode))} }
-                        span { "{mode.label()}" }
-                    }
-                }
-            }
-        }
     }
 }
 

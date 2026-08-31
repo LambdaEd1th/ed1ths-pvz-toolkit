@@ -44,9 +44,6 @@ pub fn SelectControl(
     #[props(default = String::new())] title: String,
 ) -> Element {
     let mut open = use_signal(|| false);
-    let mut size = use_signal(move || [if compact { 92.0_f64 } else { 148.0_f64 }, 30.0_f64]);
-    let mut anchor = use_signal(|| [8.0_f64, 46.0_f64]);
-    let mut mounted = use_signal(|| None::<MountedEvent>);
     let selected = options
         .iter()
         .find(|option| option.value == value)
@@ -57,13 +54,6 @@ pub fn SelectControl(
     } else {
         "pam-select"
     };
-    let [anchor_x, anchor_y] = *anchor.read();
-    let [width, height] = *size.read();
-    let menu_style = format!(
-        "--select-x:{anchor_x}px;--select-y:{}px;--select-width:{}px",
-        anchor_y + height + 6.0,
-        width.max(if compact { 92.0 } else { 148.0 })
-    );
     let select_button = rsx! {
         button {
             r#type: "button",
@@ -72,26 +62,11 @@ pub fn SelectControl(
             disabled,
             aria_haspopup: "listbox",
             aria_expanded: *open.read(),
-            onmounted: move |event| mounted.set(Some(event)),
-            onresize: move |event| {
-                if let Ok(box_size) = event.get_content_box_size() {
-                    size.set([box_size.width, box_size.height]);
-                }
-            },
             onclick: move |_| {
                 if disabled {
                     return;
                 }
-                let mounted = mounted.peek().clone();
-                spawn(async move {
-                    if let Some(event) = mounted
-                        && let Ok(rect) = event.get_client_rect().await
-                    {
-                        anchor.set([rect.origin.x, rect.origin.y]);
-                        size.set([rect.width(), rect.height()]);
-                    }
-                    open.toggle();
-                });
+                open.toggle();
             },
             span { class: "pam-select-value", "{selected}" }
             span { class: "pam-select-caret", {icon(LdChevronDown)} }
@@ -110,7 +85,6 @@ pub fn SelectControl(
                 }
                 div {
                     class: "pam-select-menu",
-                    style: "{menu_style}",
                     role: "listbox",
                     for option in options {
                         {
