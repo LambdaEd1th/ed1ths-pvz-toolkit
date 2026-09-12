@@ -1,7 +1,7 @@
-const runtimeVersion = "20260723-worker-runtime-3";
+const runtimeVersion = "20260913-image-assets-export-1";
 const ready = (async () => {
     const runtime = await import(
-        "./pkg/pam_editor_worker.js?v=20260723-worker-runtime-3"
+        "./pkg/pam_editor_worker.js?v=20260913-image-assets-export-1"
     );
     await runtime.default({
         module_or_path: new URL(

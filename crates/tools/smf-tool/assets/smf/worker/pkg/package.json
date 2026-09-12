@@ -2,7 +2,7 @@
   "name": "smf_worker",
   "type": "module",
   "description": "Private SMF processing worker for Ed1th's PvZ Toolkit",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "license": "AGPL-3.0-or-later",
   "repository": {
     "type": "git",

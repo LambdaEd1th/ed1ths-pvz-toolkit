@@ -39,6 +39,7 @@ use toolkit_ui::{
 };
 
 const RSB_PAGE_CSS: Asset = asset!("/assets/rsb/page.css");
+const RSB_RESOURCES_CSS: Asset = asset!("/assets/rsb/resources.css");
 const RSB_PREVIEW_POINTER_CAPTURE: &str = r#"
 const canvas = document.querySelector(".rsb-preview-modal-canvas");
 if (canvas && canvas.dataset.pointerCaptureReady !== "true") {
@@ -833,6 +834,93 @@ fn enter_directory(directory: Vec<String>, mut navigation: NavigationSignals) {
     navigation.selection.set(None);
     navigation.query.set(String::new());
     navigation.request_scroll(0.0);
+}
+
+#[allow(clippy::too_many_arguments)]
+fn locate_resource_file(
+    target: crate::resources::ResourceLocation,
+    archive: Signal<Option<Arc<ArchiveDocument>>>,
+    mut packet: Signal<Option<Arc<PacketDocument>>>,
+    edits: Signal<PacketEdits>,
+    mut navigation: NavigationSignals,
+    preview_signals: PreviewSignals,
+    ptx_infos: Signal<Vec<RsbPtxInfo>>,
+    mut inspector_visible: Signal<bool>,
+    status: Signal<AppStatus>,
+) {
+    let Some(document) = archive() else {
+        return;
+    };
+    let identity = document.identity();
+    let snapshot = navigation.snapshot();
+    let edited = edits
+        .read()
+        .get(&target.packet_index)
+        .map(|edit| edit.document.clone());
+    set_status(
+        status,
+        AppStatus::new("正在定位资源文件…", StatusTone::Neutral),
+    );
+    processing::begin_request();
+    spawn(async move {
+        let result = match edited {
+            Some(packet) => Ok(packet),
+            None => processing::load_packet(document.clone(), target.packet_index)
+                .await
+                .map(Arc::new),
+        };
+        // A slow decompression must never replace another tab's active packet.
+        if archive().as_ref().map(|archive| archive.identity()) != Some(identity) {
+            return;
+        }
+        match result {
+            Ok(loaded) => {
+                let Some(index) = loaded.files.iter().position(|file| {
+                    crate::resources::normalize_path(&file.path)
+                        == crate::resources::normalize_path(&target.path)
+                }) else {
+                    set_status(
+                        status,
+                        AppStatus::new(
+                            "索引对应的文件不存在；请重新扫描资源清单",
+                            StatusTone::Warning,
+                        ),
+                    );
+                    return;
+                };
+                let mut directory =
+                    crate::domain::archive_path_components(&loaded.files[index].path);
+                directory.pop();
+                navigation.push_history(snapshot);
+                packet.set(Some(loaded.clone()));
+                navigation.location.set(BrowserLocation::Packet {
+                    packet_index: target.packet_index,
+                    directory,
+                });
+                navigation.query.set(String::new());
+                navigation.request_scroll(0.0);
+                select_item(
+                    RowSelection::File(index),
+                    Some(archive_with_ptx_infos(document, &ptx_infos.read())),
+                    Some(loaded),
+                    navigation.selection,
+                    preview_signals,
+                );
+                inspector_visible.set(true);
+                set_status(
+                    status,
+                    AppStatus::new(
+                        format!("已定位 {} / {}", target.packet_name, target.path),
+                        StatusTone::Success,
+                    ),
+                );
+            }
+            Err(error) => set_status(
+                status,
+                AppStatus::new(format!("定位失败：{error}"), StatusTone::Error),
+            ),
+        }
+    });
 }
 
 fn go_up(mut navigation: NavigationSignals) {
@@ -3381,6 +3469,7 @@ pub fn RsbArchivePage(
     let mut dragging = use_signal(|| false);
     let mut tree_visible = use_signal(|| false);
     let mut inspector_visible = use_signal(|| false);
+    let mut resources_visible = use_signal(|| false);
     let mut ptx_preview = use_signal(|| None::<PtxPreviewState>);
     let mut detail_preview = use_signal(|| None::<PtxPreviewState>);
     let mut preview_open = use_signal(|| false);
@@ -3429,6 +3518,29 @@ pub fn RsbArchivePage(
         context_menu,
         preview_context_menu,
     };
+    let mut open_busy = use_signal(|| false);
+    toolkit_ui::use_tool_open(toolkit_ui::ToolKind::Rsb, open_busy, move |files| {
+        open_busy.set(true);
+        spawn(async move {
+            for file in files {
+                match crate::processing::open_memory(file.name, file.bytes.as_ref().clone()).await {
+                    Ok(document) => open_archive_tab(
+                        document,
+                        archive_tabs,
+                        active_archive_tab,
+                        next_archive_tab,
+                        session_signals,
+                        transient_signals,
+                    ),
+                    Err(error) => set_status(
+                        status,
+                        AppStatus::new(format!("打开失败：{error}"), StatusTone::Error),
+                    ),
+                }
+            }
+            open_busy.set(false);
+        });
+    });
 
     use_effect(move || {
         if selection().is_none() {
@@ -3518,6 +3630,7 @@ pub fn RsbArchivePage(
 
     rsx! {
         document::Stylesheet { href: RSB_PAGE_CSS }
+        document::Stylesheet { href: RSB_RESOURCES_CSS }
         div {
             class: if dragging() { "rsb-page-host is-dragging" } else { "rsb-page-host" },
             ondragenter: move |event| {
@@ -3602,6 +3715,14 @@ pub fn RsbArchivePage(
                     can_go_up: !matches!(location_snapshot, BrowserLocation::Archive),
                     tree_visible: tree_visible(),
                     inspector_visible: inspector_visible(),
+                    resources_visible: resources_visible(),
+                    on_toggle_resources: move |_| {
+                        resources_visible.toggle();
+                        selection.set(None);
+                        tree_visible.set(false);
+                        inspector_visible.set(false);
+                        context_menu.set(None);
+                    },
                     on_open: move |document| open_archive_tab(
                         document,
                         archive_tabs,
@@ -3824,10 +3945,29 @@ pub fn RsbArchivePage(
 
                 WorkspaceCard { class: "rsb-browser-card", aria_label: "RSB Archive",
                     if let Some(document) = archive_snapshot.as_ref() {
+                        crate::resource_explorer::ResourceExplorer {
+                            key: "{document.identity()}",
+                            archive: document.clone(),
+                            edits: packet_edits.read().clone(),
+                            removed: removed_packets.read().clone(),
+                            active: resources_visible(),
+                            on_close: move |_| resources_visible.set(false),
+                            on_locate: move |target| {
+                                resources_visible.set(false);
+                                locate_resource_file(target, archive, packet, packet_edits, navigation, preview_signals, ptx_infos, inspector_visible, status);
+                            },
+                        }
                         AddressBar {
                             archive: document.clone(),
                             packet: packet_snapshot.clone(),
                             location: location_snapshot.clone(),
+                            on_resources: move |_| {
+                                resources_visible.set(true);
+                                selection.set(None);
+                                tree_visible.set(false);
+                                inspector_visible.set(false);
+                                context_menu.set(None);
+                            },
                             on_archive: move |_| {
                                 location.set(BrowserLocation::Archive);
                                 selection.set(None);
@@ -4554,6 +4694,8 @@ fn ArchiveToolbar(
     can_go_up: bool,
     tree_visible: bool,
     inspector_visible: bool,
+    resources_visible: bool,
+    on_toggle_resources: EventHandler<()>,
     on_open: EventHandler<ArchiveDocument>,
     on_error: EventHandler<String>,
     on_up: EventHandler<()>,
@@ -4574,6 +4716,14 @@ fn ArchiveToolbar(
 ) -> Element {
     rsx! {
         div { class: "ui-island ui-tool-page-actions rsb-page-actions",
+            button {
+                r#type: "button",
+                class: if resources_visible { "rsb-tool-button is-active" } else { "rsb-tool-button" },
+                disabled: !has_archive,
+                aria_pressed: resources_visible,
+                onclick: move |_| on_toggle_resources.call(()),
+                "资源管理器"
+            }
             button {
                 r#type: "button",
                 class: if tree_visible { "rsb-tool-button rsb-tool-button--icon is-active" } else { "rsb-tool-button rsb-tool-button--icon" },
@@ -5006,6 +5156,7 @@ fn AddressBar(
     on_archive: EventHandler<()>,
     on_directory: EventHandler<Vec<String>>,
     on_query: EventHandler<String>,
+    on_resources: EventHandler<()>,
 ) -> Element {
     let packet_name = packet.as_ref().map(|value| value.record.info.name.clone());
     let directory = match &location {
@@ -5041,6 +5192,7 @@ fn AddressBar(
                     }
                 }
             }
+            button { class: "rsb-tool-button rsb-resource-entry", onclick: move |_| on_resources.call(()), "资源管理器" }
             label { class: "rsb-search",
                 Glyph { name: "search" }
                 input {

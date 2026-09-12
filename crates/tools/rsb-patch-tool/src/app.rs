@@ -158,6 +158,13 @@ pub fn RsbPatchPage() -> Element {
         busy,
         status,
     };
+    toolkit_ui::use_tool_open(toolkit_ui::ToolKind::RsbPatch, busy, move |files| {
+        let files = files
+            .into_iter()
+            .map(toolkit_ui::ToolFile::into_file_data)
+            .collect();
+        open_patch_files(files, signals);
+    });
     let tabs_snapshot = tabs();
     let active_id = active_tab_id();
     let active_tab = active_id

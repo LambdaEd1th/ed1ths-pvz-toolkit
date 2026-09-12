@@ -1,0 +1,12 @@
+{
+  "name": "toolkit-ui-regressions",
+  "private": true,
+  "scripts": {
+    "test": "node typography.cjs && node tooltips.cjs",
+    "test:resources": "node resource-actions.cjs",
+    "test:pam-images": "node pam-images.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

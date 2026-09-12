@@ -120,11 +120,11 @@ fn load_archive(
     let mut archive = Rsb::open(reader).map_err(|error| error.to_string())?;
     let header = archive.header.clone();
     let mut warnings = Vec::new();
-    let resource_count = match archive.read_file_list() {
-        Ok(resources) => resources.len(),
+    let file_index = match archive.read_file_list() {
+        Ok(resources) => resources,
         Err(error) => {
             warnings.push(format!("资源路径索引未能读取：{error}"));
-            0
+            Vec::new()
         }
     };
     let infos = archive.read_rsg_info().map_err(|error| error.to_string())?;
@@ -135,7 +135,8 @@ fn load_archive(
         display_name,
         byte_len,
         header,
-        resource_count,
+        resource_count: file_index.len(),
+        file_index: Arc::new(file_index),
         packets: Arc::new(packets),
         ptx_infos: Arc::new(ptx_infos),
         warnings: Arc::new(warnings),

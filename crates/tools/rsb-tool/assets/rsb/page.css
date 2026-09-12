@@ -36,10 +36,7 @@
   flex: 0 0 auto;
 }
 
-.rsb-page-host button,
-.rsb-page-host label,
-.rsb-page-host input,
-.rsb-page-host select {
+:where(.rsb-page-host) :where(button, label, input, select) {
   font: inherit;
 }
 
