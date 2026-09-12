@@ -5,7 +5,9 @@ mod selector;
 mod view;
 
 use dioxus::prelude::*;
-use dioxus_free_icons::icons::ld_icons::{LdFolderOpen, LdMenu, LdPanelRight, LdX};
+use dioxus_free_icons::icons::ld_icons::{
+    LdFolderOpen, LdMenu, LdPanelRight, LdSlidersHorizontal, LdX,
+};
 
 use crate::actions::{clear_tabs, set_resource_sheet_open};
 #[cfg(target_arch = "wasm32")]
@@ -110,11 +112,20 @@ fn action_group_content(id: &str) -> Element {
 }
 
 #[component]
-pub fn PlaybackDock() -> Element {
+pub fn PlaybackDock(#[props(default)] compact: bool) -> Element {
+    let context = use_context::<AppContext>();
+    let locale = context.preferences.read().locale;
     rsx! {
-        div { class: "pam-playback-dock",
+        div { class: if compact { "pam-playback-dock pam-playback-dock--editor" } else { "pam-playback-dock" },
             PlaybackGroup {}
-            SpeedGroup {}
+            if compact {
+                details { class: "pam-playback-settings",
+                    summary { title: tr(locale, "playback_settings"), {icon(LdSlidersHorizontal)} {tr(locale, "playback_settings")} }
+                    SpeedGroup {}
+                }
+            } else {
+                SpeedGroup {}
+            }
         }
     }
 }

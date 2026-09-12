@@ -31,6 +31,10 @@
         }
     };
 
+    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
+    const themeChanged = (event) => send({ type: "theme", dark: event.matches });
+    systemTheme.addEventListener("change", themeChanged);
+
     const errorMessage = (error) =>
         error instanceof Error ? error.message : String(error);
 
@@ -292,6 +296,7 @@
         },
         destroy() {
             destroyed = true;
+            systemTheme.removeEventListener("change", themeChanged);
             resizeObserver?.disconnect();
             if (windowResizeHandler) {
                 window.removeEventListener("resize", windowResizeHandler);

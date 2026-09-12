@@ -5,6 +5,7 @@ mod primitives;
 mod stage;
 mod status;
 mod tabs;
+mod workspace;
 
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{LdImage, LdShapes};
@@ -24,6 +25,7 @@ use tabs::TabStrip;
 // Keep token definitions ahead of page component overrides.
 const TOKENS_CSS: Asset = asset!("/assets/pam/tokens.css");
 const PAGE_CSS: Asset = asset!("/assets/pam/page.css");
+const EDITOR_CSS: Asset = asset!("/assets/pam/editor.css");
 #[cfg(target_arch = "wasm32")]
 pub(crate) const APP_ASSETS: Asset = asset!("/assets/pam", AssetOptions::folder());
 
@@ -33,6 +35,7 @@ pub fn PamPage() -> Element {
     let preferences = context.preferences.read().clone();
     let locale = preferences.locale;
     let tab = context.active_tab_snapshot();
+    let mut inspector_open = use_signal(|| false);
     let images_sheet_open = *context.images_sheet_open.read();
     let sprites_sheet_open = *context.sprites_sheet_open.read();
     let theme_class = match preferences.theme {
@@ -44,6 +47,7 @@ pub fn PamPage() -> Element {
     rsx! {
         document::Stylesheet { href: TOKENS_CSS }
         document::Stylesheet { href: PAGE_CSS }
+        document::Stylesheet { href: EDITOR_CSS }
         div {
             class: "pam-page-host {theme_class}",
             onmouseup: move |_| finish_pointer_gestures(context),
@@ -55,13 +59,28 @@ pub fn PamPage() -> Element {
                 }
 
                 TabStrip {}
-                editor::EditorPanel {}
+                workspace::EditorToolbar { properties_open: inspector_open(), on_properties: move |_| inspector_open.toggle() }
 
-                WorkspaceCard { class: "pam-preview-card", aria_label: tr(locale, "animations"),
-                    div { class: "pam-stage-frame", Stage {} }
-                    div { class: "pam-preview-controls",
-                        PlaybackDock {}
-                        InlineStatus {}
+                div { class: if inspector_open() { "pam-editor-workspace is-inspector-open" } else { "pam-editor-workspace" },
+                    div { class: "pam-editor-center",
+                        WorkspaceCard { class: "pam-preview-card pam-editor-canvas", aria_label: tr(locale, "stage"),
+                            if let Some(tab) = tab.as_ref() {
+                                header { class: "pam-editor-canvas-heading",
+                                    span { {tr(locale, "stage")} }
+                                    span { "{tab.document.pam.size[0]} × {tab.document.pam.size[1]} · {tab.document.pam.frame_rate} FPS" }
+                                }
+                            }
+                            div { class: "pam-stage-frame", Stage {} }
+                            div { class: "pam-editor-canvas-status", InlineStatus {} }
+                        }
+                        if tab.is_some() {
+                            workspace::EditorTimeline {}
+                        } else {
+                            div { class: "pam-preview-controls", PlaybackDock {} }
+                        }
+                    }
+                    if tab.is_some() {
+                        workspace::EditorInspector { on_close: move |_| inspector_open.set(false) }
                     }
                 }
 

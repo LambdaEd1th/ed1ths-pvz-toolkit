@@ -47,10 +47,12 @@ impl Runtime {
         let width = width.max(1);
         let height = height.max(1);
         self.scale_factor = scale_factor.max(1.0);
-        self.canvas.set_size(width, height);
         if self.config.width == width && self.config.height == height {
             return;
         }
+        // Assigning even the same HTML canvas size clears its drawing buffer.
+        // Window resize and ResizeObserver can report the same dimensions twice.
+        self.canvas.set_size(width, height);
         self.config.width = width;
         self.config.height = height;
         self.surface.configure(&self.device, &self.config);
