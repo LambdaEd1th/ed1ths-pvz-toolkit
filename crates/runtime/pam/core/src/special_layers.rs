@@ -80,7 +80,6 @@ fn source_stem(source_name: &str) -> String {
         ".yml",
         ".toml",
         ".pam",
-        ".fla",
     ] {
         if lower.ends_with(extension) {
             return file[..file.len() - extension.len()].to_string();

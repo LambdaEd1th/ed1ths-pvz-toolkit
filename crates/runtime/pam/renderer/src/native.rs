@@ -83,7 +83,7 @@ impl NativeStageRenderer {
         .map_err(|_| RendererError::NoAdapter)?;
         let (device, queue) =
             pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor {
-                label: Some("pam-viewer native device"),
+                label: Some("pam-editor native device"),
                 required_features: wgpu::Features::empty(),
                 required_limits: wgpu::Limits::default(),
                 experimental_features: wgpu::ExperimentalFeatures::disabled(),

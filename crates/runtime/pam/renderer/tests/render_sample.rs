@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use pam_viewer_core::SpriteKey;
-use pam_viewer_formats::InputFile;
+use pam_editor_core::SpriteKey;
+use pam_editor_formats::InputFile;
 
 fn workspace_root() -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -37,7 +37,7 @@ fn sample_files(name: &str) -> Vec<InputFile> {
 #[test]
 fn sunflower_frames_render_with_visible_and_changing_pixels() {
     let loaded =
-        pam_viewer_formats::load_pam_document(&sample_files("sunflower")).expect("load sunflower");
+        pam_editor_formats::load_pam_document(&sample_files("sunflower")).expect("load sunflower");
     let document = Arc::new(loaded.document);
     let frame_count = document
         .pam
@@ -47,13 +47,13 @@ fn sunflower_frames_render_with_visible_and_changing_pixels() {
         .frame
         .len();
     let frames = (0..frame_count.min(6)).collect::<Vec<_>>();
-    let rendered = pollster::block_on(pam_viewer_renderer::render_offscreen_frames(
+    let rendered = pollster::block_on(pam_editor_renderer::render_offscreen_frames(
         document.clone(),
         SpriteKey::Main,
         &frames,
         &vec![true; document.pam.image.len()],
         &vec![true; document.pam.sprite.len()],
-        pam_viewer_renderer::ExportTarget {
+        pam_editor_renderer::ExportTarget {
             size: [390, 390],
             scale: 1.0,
         },
@@ -70,13 +70,13 @@ fn sunflower_frames_render_with_visible_and_changing_pixels() {
     assert_eq!(rendered.len(), frames.len());
     assert_ne!(rendered[0], rendered[1], "animation frames must differ");
 
-    let expanded = pollster::block_on(pam_viewer_renderer::render_offscreen_frames(
+    let expanded = pollster::block_on(pam_editor_renderer::render_offscreen_frames(
         document.clone(),
         SpriteKey::Main,
         &[frames[0]],
         &vec![true; document.pam.image.len()],
         &vec![true; document.pam.sprite.len()],
-        pam_viewer_renderer::ExportTarget {
+        pam_editor_renderer::ExportTarget {
             size: [800, 600],
             scale: 1.0,
         },
@@ -98,6 +98,6 @@ fn sunflower_frames_render_with_visible_and_changing_pixels() {
 
     let output = workspace_root().join("target/test-artifacts/sunflower.png");
     std::fs::create_dir_all(output.parent().unwrap()).expect("artifact directory");
-    let png = pam_viewer_formats::encode_png(&rendered[0], 390, 390).expect("encode PNG");
+    let png = pam_editor_formats::encode_png(&rendered[0], 390, 390).expect("encode PNG");
     std::fs::write(output, png).expect("write render artifact");
 }

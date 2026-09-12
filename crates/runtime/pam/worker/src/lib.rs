@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 
-use pam_viewer_core::{
+use pam_editor_core::{
     ExportKind, ExportRequest, LoadedPamPayload, PamDocument, PamDocumentPayload, WorkerRequest,
     WorkerResponse,
 };
-use pam_viewer_formats::{InputFile, TextFormat};
+use pam_editor_formats::{InputFile, TextFormat};
 
 static DOCUMENTS: OnceLock<Mutex<HashMap<u64, Arc<PamDocument>>>> = OnceLock::new();
 static EXPORTS: OnceLock<Mutex<HashMap<u64, Arc<AtomicBool>>>> = OnceLock::new();
@@ -78,7 +78,7 @@ async fn perform_single_request(request: WorkerRequest) -> WorkerResponse {
                 .into_iter()
                 .map(|file| InputFile::new(file.path, Arc::<[u8]>::from(file.bytes)))
                 .collect::<Vec<_>>();
-            pam_viewer_formats::load_pam_document(&files)
+            pam_editor_formats::load_pam_document(&files)
                 .map_err(|error| error.to_string())
                 .map(|loaded| {
                     let document = Arc::new(loaded.document);
@@ -86,6 +86,7 @@ async fn perform_single_request(request: WorkerRequest) -> WorkerResponse {
                         document: PamDocumentPayload::from(document.as_ref()),
                         loaded_images: loaded.loaded_images,
                         missing_images: loaded.missing_images,
+                        original_pam_bytes: loaded.original_pam_bytes.unwrap_or_default(),
                     };
                     with_documents(|documents| {
                         documents.insert(document_id, document);
@@ -155,21 +156,17 @@ async fn export_document(
 
     ensure_not_cancelled(cancelled)?;
     match request.kind {
-        ExportKind::Json => pam_viewer_core::encode_json(&document.pam)
+        ExportKind::Json => pam_editor_core::encode_json(&document.pam)
             .map(String::into_bytes)
             .map_err(|error| error.to_string()),
-        ExportKind::Yaml => pam_viewer_formats::encode_text(&document.pam, TextFormat::Yaml)
+        ExportKind::Yaml => pam_editor_formats::encode_text(&document.pam, TextFormat::Yaml)
             .map(String::into_bytes)
             .map_err(|error| error.to_string()),
-        ExportKind::Toml => pam_viewer_formats::encode_text(&document.pam, TextFormat::Toml)
+        ExportKind::Toml => pam_editor_formats::encode_text(&document.pam, TextFormat::Toml)
             .map(String::into_bytes)
             .map_err(|error| error.to_string()),
         ExportKind::Pam => {
-            pam_viewer_core::encode_pam_bytes(&document.pam).map_err(|error| error.to_string())
-        }
-        ExportKind::Fla => {
-            pam_viewer_formats::export_fla_with_cancel(&document, 1200, Some(cancelled))
-                .map_err(|error| error.to_string())
+            pam_editor_core::encode_pam_bytes(&document.pam).map_err(|error| error.to_string())
         }
         ExportKind::Png | ExportKind::Apng | ExportKind::Webp => {
             export_frames(document, &request, cancelled).await
@@ -194,13 +191,13 @@ async fn export_frames(
     }
     let width = request.size[0].max(1);
     let height = request.size[1].max(1);
-    let target = pam_viewer_renderer::ExportTarget {
+    let target = pam_editor_renderer::ExportTarget {
         size: [width, height],
         scale: request.render_scale as f32,
     };
     match request.kind {
         ExportKind::Png => {
-            let rendered = pam_viewer_renderer::render_offscreen_frames_with_cancel(
+            let rendered = pam_editor_renderer::render_offscreen_frames_with_cancel(
                 document,
                 request.sprite,
                 &frames,
@@ -211,12 +208,12 @@ async fn export_frames(
             )
             .await
             .map_err(|error| error.to_string())?;
-            pam_viewer_formats::encode_png(&rendered[0], width, height)
+            pam_editor_formats::encode_png(&rendered[0], width, height)
                 .map_err(|error| error.to_string())
         }
         ExportKind::Apng => {
             let mut encoder =
-                pam_viewer_formats::ApngEncoder::new(width, height, request.fps, frames.len())
+                pam_editor_formats::ApngEncoder::new(width, height, request.fps, frames.len())
                     .map_err(|error| error.to_string())?;
             {
                 let mut consume = |frame: Vec<u8>| {
@@ -224,7 +221,7 @@ async fn export_frames(
                         .write_frame(&frame, Some(cancelled))
                         .map_err(|error| error.to_string())
                 };
-                pam_viewer_renderer::render_offscreen_frames_into_with_cancel(
+                pam_editor_renderer::render_offscreen_frames_into_with_cancel(
                     document,
                     request.sprite,
                     &frames,
@@ -241,7 +238,7 @@ async fn export_frames(
         }
         ExportKind::Webp => {
             const FRAME_BATCH_SIZE: usize = 8;
-            let mut encoder = pam_viewer_formats::AnimatedWebpEncoder::new(
+            let mut encoder = pam_editor_formats::AnimatedWebpEncoder::new(
                 width,
                 height,
                 request.fps,
@@ -260,7 +257,7 @@ async fn export_frames(
                     }
                     Ok(())
                 };
-                pam_viewer_renderer::render_offscreen_frames_into_with_cancel(
+                pam_editor_renderer::render_offscreen_frames_into_with_cancel(
                     document,
                     request.sprite,
                     &frames,
@@ -315,7 +312,7 @@ mod wasm {
 
 #[cfg(test)]
 mod tests {
-    use pam_viewer_core::{ExportRequest, PamInfo, SpriteKey};
+    use pam_editor_core::{ExportRequest, PamInfo, SpriteKey};
 
     use super::*;
 
@@ -380,6 +377,43 @@ mod tests {
             export_request(document_id, ExportKind::Json),
         )));
         assert!(matches!(missing, WorkerResponse::Error { .. }));
+    }
+
+    #[test]
+    fn replacing_a_document_exports_edited_pam_bytes() {
+        let document_id = 0xED17;
+        let mut payload = document_payload();
+        pollster::block_on(perform_worker_request(WorkerRequest::RegisterDocument {
+            document_id,
+            document: payload.clone(),
+        }));
+        payload.pam.size = [320.0, 240.0];
+        payload.pam.frame_rate = 24;
+        payload.pam.main_sprite = Some(pam_editor_core::SpriteInfo {
+            name: Some("edited".into()),
+            frame_rate: Some(24.0),
+            work_area: Some([0, 1]),
+            frame: vec![pam_editor_core::FrameInfo {
+                label: Some("start".into()),
+                stop: true,
+                ..Default::default()
+            }],
+        });
+        let expected = payload.pam.clone();
+        pollster::block_on(perform_worker_request(WorkerRequest::RegisterDocument {
+            document_id,
+            document: payload,
+        }));
+        let result = pollster::block_on(perform_worker_request(WorkerRequest::Export(
+            export_request(document_id, ExportKind::Pam),
+        )));
+        let WorkerResponse::Exported { bytes } = result else {
+            panic!("{result:?}");
+        };
+        assert_eq!(pam_editor_core::decode_pam_bytes(&bytes).unwrap(), expected);
+        pollster::block_on(perform_worker_request(WorkerRequest::ReleaseDocument {
+            document_id,
+        }));
     }
 
     #[test]

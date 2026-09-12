@@ -282,7 +282,7 @@ fn validate_frame(frame: &[u8], width: u32, height: u32) -> Result<()> {
 
 fn extract_image_chunks(still_webp: &[u8]) -> Result<Vec<u8>> {
     if still_webp.len() < 20 || &still_webp[..4] != b"RIFF" || &still_webp[8..12] != b"WEBP" {
-        return Err(FormatError::Fla("invalid lossless WebP frame".into()));
+        return Err(FormatError::Animation("invalid lossless WebP frame".into()));
     }
     let mut offset = 12;
     let mut output = Vec::new();
@@ -292,7 +292,7 @@ fn extract_image_chunks(still_webp: &[u8]) -> Result<Vec<u8>> {
             u32::from_le_bytes(still_webp[offset + 4..offset + 8].try_into().unwrap()) as usize;
         let chunk_end = offset + 8 + size + (size & 1);
         if chunk_end > still_webp.len() {
-            return Err(FormatError::Fla("truncated WebP frame".into()));
+            return Err(FormatError::Animation("truncated WebP frame".into()));
         }
         if matches!(kind, b"ALPH" | b"VP8 " | b"VP8L") {
             output.extend_from_slice(&still_webp[offset..chunk_end]);
@@ -300,7 +300,9 @@ fn extract_image_chunks(still_webp: &[u8]) -> Result<Vec<u8>> {
         offset = chunk_end;
     }
     if output.is_empty() {
-        return Err(FormatError::Fla("WebP frame has no image chunk".into()));
+        return Err(FormatError::Animation(
+            "WebP frame has no image chunk".into(),
+        ));
     }
     Ok(output)
 }

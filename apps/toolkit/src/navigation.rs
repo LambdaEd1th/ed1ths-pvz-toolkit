@@ -38,7 +38,7 @@ impl AppRoute {
             Self::CompiledText => "Compiled Text".to_string(),
             Self::CryptData => "Crypt-Data".to_string(),
             Self::Rton => "RTON Editor".to_string(),
-            Self::Pam => "PAM Viewer".to_string(),
+            Self::Pam => "PAM Editor".to_string(),
             Self::Particle => "Particle Editor".to_string(),
             Self::Reanim => "REANIM Editor".to_string(),
             Self::Wem => "WEM Audio".to_string(),

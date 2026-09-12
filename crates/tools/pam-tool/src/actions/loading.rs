@@ -1,9 +1,9 @@
 use dioxus::prelude::*;
 use dioxus_html::FileData;
-use pam_viewer_core::{WorkerInputFile, WorkerRequest, WorkerResponse};
+use pam_editor_core::{WorkerInputFile, WorkerRequest, WorkerResponse};
 
 use crate::i18n::tr;
-use crate::state::{AppContext, Locale, Status, Tone, ViewerTab};
+use crate::state::{AppContext, EditorTab, Locale, Status, Tone};
 
 pub async fn input_files_from_dioxus(files: Vec<FileData>) -> Result<Vec<WorkerInputFile>, String> {
     #[cfg(target_arch = "wasm32")]
@@ -73,7 +73,7 @@ pub fn load_inputs(mut context: AppContext, files: Vec<WorkerInputFile>) {
         .await;
         match response {
             Ok(WorkerResponse::Loaded { loaded }) => {
-                let tab = match ViewerTab::new(id, *loaded, &context.preferences.read()) {
+                let tab = match EditorTab::new(id, *loaded, &context.preferences.read()) {
                     Ok(tab) => tab,
                     Err(error) => {
                         release_document(id);

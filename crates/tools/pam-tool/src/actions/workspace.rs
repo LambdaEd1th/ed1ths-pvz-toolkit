@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
-use pam_viewer_core::SpriteKey;
+use pam_editor_core::SpriteKey;
 
-use crate::state::{AppContext, Status, ViewerTab};
+use crate::state::{AppContext, EditorTab, Status};
 
 pub fn activate_tab(mut context: AppContext, id: u64) {
     if context.tabs.read().iter().any(|tab| tab.id == id) {
@@ -11,6 +11,19 @@ pub fn activate_tab(mut context: AppContext, id: u64) {
 }
 
 pub fn close_tab(mut context: AppContext, id: u64) {
+    if context
+        .tabs
+        .read()
+        .iter()
+        .any(|tab| tab.id == id && tab.is_dirty())
+    {
+        context.pending_close.set(Some(Some(id)));
+        return;
+    }
+    close_tab_confirmed(context, id);
+}
+
+pub fn close_tab_confirmed(mut context: AppContext, id: u64) {
     let active = *context.active_tab.read();
     let mut tabs = context.tabs.write();
     let Some(index) = tabs.iter().position(|tab| tab.id == id) else {
@@ -35,6 +48,14 @@ pub fn close_tab(mut context: AppContext, id: u64) {
 }
 
 pub fn clear_tabs(mut context: AppContext) {
+    if context.tabs.read().iter().any(EditorTab::is_dirty) {
+        context.pending_close.set(Some(None));
+        return;
+    }
+    clear_tabs_confirmed(context);
+}
+
+pub fn clear_tabs_confirmed(mut context: AppContext) {
     let thumbnail_urls = context
         .tabs
         .read()
@@ -149,7 +170,7 @@ pub fn set_export_scale(context: AppContext, scale: Option<u32>) {
     });
 }
 
-fn export_scale_for(tab: &ViewerTab) -> Option<u32> {
+fn export_scale_for(tab: &EditorTab) -> Option<u32> {
     let [width, height] = tab.document.pam.size;
     if width <= 0.0 || height <= 0.0 {
         return None;

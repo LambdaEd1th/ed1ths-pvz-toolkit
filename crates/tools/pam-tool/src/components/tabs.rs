@@ -24,7 +24,7 @@ pub fn TabStrip() -> Element {
                 for tab in tabs {
                     {
                         let id = tab.id;
-                        let name = tab.display_name();
+                        let name = format!("{}{}", tab.display_name(), if tab.is_dirty() { " •" } else { "" });
                         let class_name = match (active == Some(id), dragged == Some(id)) {
                             (true, true) => {
                                 "pam-tab active dragging ui-document-tab is-active is-dragging"

@@ -1,5 +1,5 @@
 {
-  "name": "pam_viewer_renderer",
+  "name": "pam_editor_renderer",
   "type": "module",
   "version": "0.1.4",
   "license": "AGPL-3.0-or-later",
@@ -8,12 +8,12 @@
     "url": "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit"
   },
   "files": [
-    "pam_viewer_renderer_bg.wasm",
-    "pam_viewer_renderer.js",
-    "pam_viewer_renderer.d.ts"
+    "pam_editor_renderer_bg.wasm",
+    "pam_editor_renderer.js",
+    "pam_editor_renderer.d.ts"
   ],
-  "main": "pam_viewer_renderer.js",
-  "types": "pam_viewer_renderer.d.ts",
+  "main": "pam_editor_renderer.js",
+  "types": "pam_editor_renderer.d.ts",
   "sideEffects": [
     "./snippets/*"
   ]

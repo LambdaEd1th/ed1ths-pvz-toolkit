@@ -1,5 +1,5 @@
 [package]
-name = "pam_viewer_core"
+name = "pam_editor_core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

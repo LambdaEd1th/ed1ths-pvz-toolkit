@@ -1,3 +1,4 @@
+mod editor;
 mod page_actions;
 mod panels;
 mod primitives;
@@ -54,6 +55,7 @@ pub fn PamPage() -> Element {
                 }
 
                 TabStrip {}
+                editor::EditorPanel {}
 
                 WorkspaceCard { class: "pam-preview-card", aria_label: tr(locale, "animations"),
                     div { class: "pam-stage-frame", Stage {} }
@@ -87,17 +89,20 @@ pub fn PamPage() -> Element {
                     }
                 }
                 ExportOverlay {}
+                editor::CloseConfirmation {}
             }
         }
     }
 }
 
 fn finish_pointer_gestures(mut context: AppContext) {
+    crate::actions::finish_edit_gesture(context);
     context.stage_drag.set(None);
     context.dragged_tab.set(None);
 }
 
 fn cancel_pointer_gestures(mut context: AppContext) {
+    crate::actions::finish_edit_gesture(context);
     context.stage_drag.set(None);
     context.dragged_tab.set(None);
 }

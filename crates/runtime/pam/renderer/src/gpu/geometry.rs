@@ -1,4 +1,4 @@
-use pam_viewer_core::{Color, DrawCommand, ImageAsset, Matrix, PamDocument, Rectangle};
+use pam_editor_core::{Color, DrawCommand, ImageAsset, Matrix, PamDocument, Rectangle};
 
 use crate::StageScene;
 use crate::color::linear_rgb_from_srgb8;
@@ -39,7 +39,7 @@ pub(super) fn draw_commands_to_quads(
         .iter()
         .filter_map(|command| {
             let asset = images.get(command.image_index)?.as_ref()?;
-            let matrix = pam_viewer_core::multiply_matrix(camera, command.matrix);
+            let matrix = pam_editor_core::multiply_matrix(camera, command.matrix);
             Some(RenderQuad {
                 instance: GpuInstance {
                     matrix: [matrix[0], matrix[1], matrix[2], matrix[3]],
@@ -193,7 +193,7 @@ fn push_solid_quad(
 mod tests {
     use std::sync::Arc;
 
-    use pam_viewer_core::{PamDocument, PamInfo};
+    use pam_editor_core::{PamDocument, PamInfo};
 
     use super::*;
 

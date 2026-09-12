@@ -7,15 +7,17 @@ wasm-pack build "$repo_root/crates/runtime/pam/worker" \
   --target web \
   --release \
   --out-dir "$repo_root/crates/tools/pam-tool/assets/pam/worker/pkg" \
-  --out-name pam_viewer_worker \
+  --out-name pam_editor_worker \
   --locked
+rm "$repo_root/crates/tools/pam-tool/assets/pam/worker/pkg/.gitignore"
 
 wasm-pack build "$repo_root/crates/runtime/pam/renderer" \
   --target web \
   --release \
   --out-dir "$repo_root/crates/tools/pam-tool/assets/pam/renderer/pkg" \
-  --out-name pam_viewer_renderer \
+  --out-name pam_editor_renderer \
   --locked
+rm "$repo_root/crates/tools/pam-tool/assets/pam/renderer/pkg/.gitignore"
 
 wasm-pack build "$repo_root/crates/runtime/rsb/worker" \
   --target web \

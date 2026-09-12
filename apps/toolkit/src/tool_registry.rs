@@ -87,7 +87,7 @@ pub(crate) const TOOLS: [ToolDescriptor; 14] = [
     ToolDescriptor {
         route: AppRoute::Pam,
         slug: "pam",
-        label: "PAM Viewer",
+        label: "PAM Editor",
         glyph: "▶",
         nav_glyph: "▶",
         tags: ["WGPU Preview", "Timeline", "Export"],

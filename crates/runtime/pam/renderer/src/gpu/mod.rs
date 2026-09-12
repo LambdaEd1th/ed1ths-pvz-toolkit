@@ -75,11 +75,11 @@ pub struct GpuRenderer {
 impl GpuRenderer {
     pub fn new(device: &wgpu::Device, queue: &wgpu::Queue, format: wgpu::TextureFormat) -> Self {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("pam-viewer shader"),
+            label: Some("pam-editor shader"),
             source: wgpu::ShaderSource::Wgsl(include_str!("../shader.wgsl").into()),
         });
         let view_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("pam-viewer view uniform"),
+            label: Some("pam-editor view uniform"),
             contents: bytemuck::bytes_of(&ViewUniform {
                 viewport: [1.0, 1.0],
                 padding: [0.0; 2],
@@ -90,7 +90,7 @@ impl GpuRenderer {
         let instance_buffer = create_instance_buffer(device, INITIAL_INSTANCE_CAPACITY);
         let scene_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: Some("pam-viewer scene layout"),
+                label: Some("pam-editor scene layout"),
                 entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
                     visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
@@ -106,7 +106,7 @@ impl GpuRenderer {
             create_scene_bind_group(device, &scene_bind_group_layout, &view_buffer);
         let texture_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: Some("pam-viewer texture layout"),
+                label: Some("pam-editor texture layout"),
                 entries: &[
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
@@ -127,7 +127,7 @@ impl GpuRenderer {
                 ],
             });
         let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-            label: Some("pam-viewer image sampler"),
+            label: Some("pam-editor image sampler"),
             address_mode_u: wgpu::AddressMode::ClampToEdge,
             address_mode_v: wgpu::AddressMode::ClampToEdge,
             mag_filter: wgpu::FilterMode::Linear,
@@ -136,7 +136,7 @@ impl GpuRenderer {
             ..Default::default()
         });
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("pam-viewer pipeline layout"),
+            label: Some("pam-editor pipeline layout"),
             bind_group_layouts: &[
                 Some(&scene_bind_group_layout),
                 Some(&texture_bind_group_layout),
@@ -149,7 +149,7 @@ impl GpuRenderer {
             &shader,
             format,
             wgpu::BlendState::PREMULTIPLIED_ALPHA_BLENDING,
-            "pam-viewer normal pipeline",
+            "pam-editor normal pipeline",
         );
         let additive_pipeline = create_pipeline(
             device,
@@ -157,7 +157,7 @@ impl GpuRenderer {
             &shader,
             format,
             additive_blend(),
-            "pam-viewer additive pipeline",
+            "pam-editor additive pipeline",
         );
         let white = upload_texture(
             device,
@@ -167,7 +167,7 @@ impl GpuRenderer {
             1,
             1,
             &[255, 255, 255, 255],
-            "pam-viewer white texture",
+            "pam-editor white texture",
         );
         Self {
             device: device.clone(),
@@ -204,7 +204,7 @@ impl GpuRenderer {
                             &self.texture_bind_group_layout,
                             &self.sampler,
                             asset,
-                            &format!("pam-viewer image {index}"),
+                            &format!("pam-editor image {index}"),
                         )
                     })
                 })
@@ -266,11 +266,11 @@ impl GpuRenderer {
         let mut encoder = self
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("pam-viewer frame encoder"),
+                label: Some("pam-editor frame encoder"),
             });
         {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("pam-viewer frame pass"),
+                label: Some("pam-editor frame pass"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: target.view,
                     depth_slice: None,

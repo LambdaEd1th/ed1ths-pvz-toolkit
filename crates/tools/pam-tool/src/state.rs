@@ -2,11 +2,11 @@ mod preferences;
 mod workspace;
 
 pub use preferences::{Locale, Preferences, Theme};
-pub use workspace::ViewerTab;
+pub use workspace::EditorTab;
 
 use dioxus::prelude::*;
 #[cfg(not(target_arch = "wasm32"))]
-use pam_viewer_renderer::SharedStage;
+use pam_editor_renderer::SharedStage;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Tone {
@@ -44,7 +44,7 @@ pub struct ExportProgress {
 
 #[derive(Clone, Copy)]
 pub struct AppContext {
-    pub tabs: Signal<Vec<ViewerTab>>,
+    pub tabs: Signal<Vec<EditorTab>>,
     pub active_tab: Signal<Option<u64>>,
     pub next_tab_id: Signal<u64>,
     pub preferences: Signal<Preferences>,
@@ -57,6 +57,7 @@ pub struct AppContext {
     pub stage_drag: Signal<Option<StageDrag>>,
     pub stage_size: Signal<[f64; 2]>,
     pub pointer_coord: Signal<Option<[f32; 2]>>,
+    pub pending_close: Signal<Option<Option<u64>>>,
     #[cfg(not(target_arch = "wasm32"))]
     pub stage: Signal<SharedStage>,
 }
@@ -92,6 +93,7 @@ impl AppContext {
             stage_drag: Signal::new(None),
             stage_size: Signal::new([1.0, 1.0]),
             pointer_coord: Signal::new(None),
+            pending_close: Signal::new(None),
             #[cfg(not(target_arch = "wasm32"))]
             stage: Signal::new(stage),
         }
@@ -113,12 +115,12 @@ impl AppContext {
         self.status.set(status);
     }
 
-    pub fn active_tab_snapshot(&self) -> Option<ViewerTab> {
+    pub fn active_tab_snapshot(&self) -> Option<EditorTab> {
         self.active_tab_index()
             .and_then(|index| self.tabs.read().get(index).cloned())
     }
 
-    pub fn update_active_tab(&self, update: impl FnOnce(&mut ViewerTab)) {
+    pub fn update_active_tab(&self, update: impl FnOnce(&mut EditorTab)) {
         let Some(index) = self.active_tab_index() else {
             return;
         };

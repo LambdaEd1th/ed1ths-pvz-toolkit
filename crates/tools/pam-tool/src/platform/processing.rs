@@ -1,4 +1,4 @@
-use pam_viewer_core::{WorkerRequest, WorkerResponse};
+use pam_editor_core::{WorkerRequest, WorkerResponse};
 
 #[cfg(not(target_arch = "wasm32"))]
 use std::panic::{AssertUnwindSafe, catch_unwind};
@@ -224,7 +224,7 @@ pub async fn perform(request: WorkerRequest) -> Result<WorkerResponse, String> {
     let (sender, receiver) = futures_channel::oneshot::channel();
     processing_pool().spawn(move || {
         let response = catch_unwind(AssertUnwindSafe(|| {
-            pollster::block_on(pam_viewer_worker::perform_worker_request(request))
+            pollster::block_on(pam_editor_worker::perform_worker_request(request))
         }))
         .unwrap_or_else(|_| WorkerResponse::Error {
             message: "Native processing task panicked".to_string(),
@@ -257,7 +257,7 @@ fn processing_pool() -> &'static rayon::ThreadPool {
 #[cfg(not(target_arch = "wasm32"))]
 pub async fn read_folder(
     root: std::path::PathBuf,
-) -> Result<Vec<pam_viewer_core::WorkerInputFile>, String> {
+) -> Result<Vec<pam_editor_core::WorkerInputFile>, String> {
     let (sender, receiver) = futures_channel::oneshot::channel();
     processing_pool().spawn(move || {
         let _ = sender.send(crate::platform::input_files_in_folder(&root));

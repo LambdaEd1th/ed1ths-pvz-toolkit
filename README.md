@@ -3,11 +3,22 @@
 A single cross-platform app for inspecting and editing Plants vs. Zombies
 resources, backed by reusable, format-focused Rust libraries.
 
-The app combines archive workspaces, the RTON editor, PAM viewer/exporter,
+The app combines archive workspaces, the RTON editor, PAM editor/exporter,
 Compiled Text editor, WEM audio converter/player, experimental BNK SoundBank
 browser, and NEWTON manifest editor behind one MoeSekai-inspired home page.
 More format tools can be added without turning the public libraries into an
 aggregate SDK.
+
+PAM Editor edits the native PAM document: create an animation, select a sprite
+and frame, insert hold frames, edit labels and stop markers, and add/remove
+instances or adjust their affine transforms and RGBA values. Editing an inherited
+instance creates a keyframe on the selected frame. Frame-event JSON exposes
+commands, clipping and the remaining PAM event fields. Changes support undo/redo
+and unsaved-document protection. Save PAM writes the edited document; an unchanged
+binary input retains its original bytes. Numeric edits follow PAM's fixed-point
+precision. JSON/YAML/TOML and PNG/APNG/WebP exports remain available; PAM's former
+FLA/XFL import/export is removed. This is a frame-based editor; curve-based tween
+authoring and drawing new artwork are not implemented.
 
 ## Project layout
 

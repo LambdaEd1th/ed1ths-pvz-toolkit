@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{
     LdCheckCheck, LdImage, LdPlay, LdRotateCcw, LdShapes, LdSquare,
 };
-use pam_viewer_core::SpriteKey;
+use pam_editor_core::SpriteKey;
 use regex::{Regex, RegexBuilder};
 
 use crate::actions::{
@@ -10,7 +10,7 @@ use crate::actions::{
     set_all_sprites_visible, set_image_visible, set_sprite_visible,
 };
 use crate::i18n::tr;
-use crate::state::{AppContext, ViewerTab};
+use crate::state::{AppContext, EditorTab};
 
 use super::primitives::icon;
 
@@ -92,7 +92,7 @@ pub fn ImagePanel() -> Element {
                                     span {
                                         class: "pam-item-name",
                                         title: "{definition.name}",
-                                            "{pam_viewer_core::parse_image_file_name(&definition.name)}"
+                                            "{pam_editor_core::parse_image_file_name(&definition.name)}"
                                     }
                                     span { class: "pam-item-meta", "{dimensions}" }
                                     FilterCheckbox {
@@ -255,7 +255,7 @@ fn PanelHeader(title: String, actions: Element, children: Element) -> Element {
     }
 }
 
-fn sprite_thumbnail(tab: &ViewerTab, index: usize) -> Option<String> {
+fn sprite_thumbnail(tab: &EditorTab, index: usize) -> Option<String> {
     let sprite = tab.document.pam.sprite.get(index)?;
     if sprite.frame.len() != 1 {
         return None;

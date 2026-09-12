@@ -1,10 +1,10 @@
-use pam_viewer_core::ImageAsset;
+use pam_editor_core::ImageAsset;
 
 use super::{GpuInstance, GpuTexture};
 
 pub(super) fn create_instance_buffer(device: &wgpu::Device, capacity: usize) -> wgpu::Buffer {
     device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("pam-viewer instance buffer"),
+        label: Some("pam-editor instance buffer"),
         size: (capacity * std::mem::size_of::<GpuInstance>()) as u64,
         usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
@@ -17,7 +17,7 @@ pub(super) fn create_scene_bind_group(
     view: &wgpu::Buffer,
 ) -> wgpu::BindGroup {
     device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("pam-viewer scene bind group"),
+        label: Some("pam-editor scene bind group"),
         layout,
         entries: &[wgpu::BindGroupEntry {
             binding: 0,

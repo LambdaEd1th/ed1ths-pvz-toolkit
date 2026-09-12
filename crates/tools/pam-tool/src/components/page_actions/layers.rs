@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 
 use crate::actions::{select_exclusive_special_layer, set_ground_swatch_visible};
 use crate::i18n::tr;
-use crate::state::{AppContext, Locale, ViewerTab};
+use crate::state::{AppContext, EditorTab, Locale};
 
 use super::super::primitives::{SelectControl, SelectOption, SwitchControl};
 use super::FieldLabel;
@@ -62,7 +62,7 @@ pub(super) fn LayerGroup() -> Element {
     }
 }
 
-fn special_layer_options(tab: &ViewerTab, indices: &[usize], locale: Locale) -> Vec<SelectOption> {
+fn special_layer_options(tab: &EditorTab, indices: &[usize], locale: Locale) -> Vec<SelectOption> {
     let mut options = vec![SelectOption::new("none", tr(locale, "none"))];
     options.extend(indices.iter().filter_map(|index| {
         tab.document.pam.sprite.get(*index).map(|sprite| {
@@ -78,7 +78,7 @@ fn special_layer_options(tab: &ViewerTab, indices: &[usize], locale: Locale) -> 
     options
 }
 
-fn selected_special_layer(tab: &ViewerTab, indices: &[usize]) -> String {
+fn selected_special_layer(tab: &EditorTab, indices: &[usize]) -> String {
     indices
         .iter()
         .find(|index| tab.sprite_filter.get(**index).copied().unwrap_or(false))

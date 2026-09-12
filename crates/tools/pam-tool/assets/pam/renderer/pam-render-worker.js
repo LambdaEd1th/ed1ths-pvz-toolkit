@@ -6,11 +6,11 @@ let runtimePromise = null;
 function runtimeReady() {
     runtimePromise ??= (async () => {
         const runtime = await import(
-            "./pkg/pam_viewer_renderer.js?v=20260813-render-worker-6"
+            "./pkg/pam_editor_renderer.js?v=20260813-render-worker-6"
         );
         await runtime.default({
             module_or_path: new URL(
-                `./pkg/pam_viewer_renderer_bg.wasm?v=${runtimeVersion}`,
+                `./pkg/pam_editor_renderer_bg.wasm?v=${runtimeVersion}`,
                 import.meta.url,
             ),
         });

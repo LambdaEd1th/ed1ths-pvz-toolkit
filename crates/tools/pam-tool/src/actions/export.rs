@@ -1,13 +1,13 @@
 use dioxus::dioxus_core::spawn_forever;
 use dioxus::prelude::*;
-use pam_viewer_core::{
+use pam_editor_core::{
     ExportRequest, PamDocumentPayload, SpriteKey, WorkerRequest, WorkerResponse,
 };
 
-pub use pam_viewer_core::ExportKind;
+pub use pam_editor_core::ExportKind;
 
 use crate::i18n::tr;
-use crate::state::{AppContext, ExportProgress, Status, Tone, ViewerTab};
+use crate::state::{AppContext, EditorTab, ExportProgress, Status, Tone};
 
 pub fn start_export(mut context: AppContext, kind: ExportKind) {
     if context.export.read().is_some() {
@@ -53,7 +53,7 @@ pub fn start_export(mut context: AppContext, kind: ExportKind) {
 
 async fn export_tab(
     mut context: AppContext,
-    tab: &ViewerTab,
+    tab: &EditorTab,
     kind: ExportKind,
     target: &crate::platform::SaveTarget,
 ) -> Result<bool, String> {
@@ -86,10 +86,18 @@ async fn export_tab(
         progress.progress = 1.0;
     }
     crate::platform::save_to_target(target, &bytes)?;
+    if matches!(kind, ExportKind::Pam) {
+        let mut tabs = context.tabs.write();
+        if let Some(live) = tabs.iter_mut().find(|live| live.id == tab.id) {
+            live.saved_pam = tab.document.pam.clone();
+            live.never_saved = false;
+            live.original_pam_bytes = Some(std::sync::Arc::from(bytes));
+        }
+    }
     Ok(true)
 }
 
-fn export_name(tab: &ViewerTab, kind: ExportKind) -> String {
+fn export_name(tab: &EditorTab, kind: ExportKind) -> String {
     let base = strip_animation_extension(&tab.display_name());
     let sprite_name = match tab.active_sprite {
         SpriteKey::Main => "main".into(),
@@ -106,14 +114,30 @@ fn export_name(tab: &ViewerTab, kind: ExportKind) -> String {
         ExportKind::Yaml => format!("{base}.pam.yaml"),
         ExportKind::Toml => format!("{base}.pam.toml"),
         ExportKind::Pam => format!("{base}.pam"),
-        ExportKind::Fla => format!("{base}.fla"),
         ExportKind::Png => format!("{base}_{sprite_name}.png"),
         ExportKind::Apng => format!("{base}_{sprite_name}.apng"),
         ExportKind::Webp => format!("{base}_{sprite_name}.webp"),
     }
 }
 
-async fn export_bytes(tab: &ViewerTab, request: ExportRequest) -> Result<Vec<u8>, String> {
+async fn export_bytes(tab: &EditorTab, request: ExportRequest) -> Result<Vec<u8>, String> {
+    if matches!(request.kind, ExportKind::Pam)
+        && tab.document.pam == tab.saved_pam
+        && let Some(bytes) = &tab.original_pam_bytes
+    {
+        return Ok(bytes.to_vec());
+    }
+    // The worker may still hold the originally loaded document. Register the
+    // captured export snapshot before every export, including rendered formats.
+    match crate::platform::processing::perform(WorkerRequest::RegisterDocument {
+        document_id: tab.processing_id,
+        document: PamDocumentPayload::from(tab.document.as_ref()),
+    })
+    .await?
+    {
+        WorkerResponse::Registered => {}
+        _ => return Err("Unexpected document registration response".into()),
+    }
     let response =
         crate::platform::processing::perform(WorkerRequest::Export(request.clone())).await;
     let response = match response {
@@ -154,7 +178,6 @@ fn strip_animation_extension(name: &str) -> String {
         ".yml",
         ".toml",
         ".pam",
-        ".fla",
     ] {
         if lower.ends_with(extension) {
             return name[..name.len() - extension.len()].to_string();

@@ -1,5 +1,5 @@
 [package]
-name = "pam_viewer_renderer"
+name = "pam_editor_renderer"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -19,7 +19,7 @@ web-host = []
 [dependencies]
 bytemuck.workspace = true
 futures-channel.workspace = true
-pam_viewer_core.workspace = true
+pam_editor_core.workspace = true
 parking_lot.workspace = true
 serde.workspace = true
 thiserror.workspace = true
@@ -46,5 +46,5 @@ web-sys = { workspace = true, features = [
 ] }
 
 [dev-dependencies]
-pam_viewer_formats.workspace = true
+pam_editor_formats.workspace = true
 pollster.workspace = true

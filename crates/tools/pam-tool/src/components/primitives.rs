@@ -168,3 +168,61 @@ pub fn NumberControl(
         }
     }
 }
+
+#[component]
+pub fn IntegerControl(
+    value: i32,
+    onchange: EventHandler<i32>,
+    #[props(default = i32::MIN)] min: i32,
+    #[props(default = i32::MAX)] max: i32,
+    #[props(default = false)] disabled: bool,
+    #[props(default = String::new())] title: String,
+) -> Element {
+    rsx! {
+        input {
+            class: "pam-number-input",
+            r#type: "number",
+            min,
+            max,
+            value,
+            disabled,
+            title: "{title}",
+            onchange: move |event| {
+                if let Ok(value) = event.value().parse::<i32>() {
+                    onchange.call(value.clamp(min, max));
+                }
+            },
+        }
+    }
+}
+
+#[component]
+pub fn FloatControl(
+    value: f64,
+    onchange: EventHandler<f64>,
+    #[props(default = f64::NEG_INFINITY)] min: f64,
+    #[props(default = f64::INFINITY)] max: f64,
+    #[props(default = 0.01)] step: f64,
+    #[props(default = false)] disabled: bool,
+    #[props(default = String::new())] title: String,
+) -> Element {
+    rsx! {
+        input {
+            class: "pam-number-input pam-float-input",
+            r#type: "number",
+            min: if min.is_finite() { min.to_string() } else { String::new() },
+            max: if max.is_finite() { max.to_string() } else { String::new() },
+            step,
+            value,
+            disabled,
+            title: "{title}",
+            onchange: move |event| {
+                if let Ok(value) = event.value().parse::<f64>()
+                    && value.is_finite()
+                {
+                    onchange.call(value.clamp(min, max));
+                }
+            },
+        }
+    }
+}

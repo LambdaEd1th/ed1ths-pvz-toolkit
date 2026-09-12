@@ -1,7 +1,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 use std::sync::atomic::{AtomicU8, Ordering};
 
-use pam_viewer_core::WorkerInputFile;
+use pam_editor_core::WorkerInputFile;
 
 use crate::state::{Locale, Preferences};
 
@@ -41,7 +41,7 @@ pub mod web_renderer;
 pub mod native_renderer;
 
 #[cfg(target_arch = "wasm32")]
-const SETTINGS_KEY: &str = "pam-viewer-settings-v2";
+const SETTINGS_KEY: &str = "pam-editor-settings-v2";
 
 #[cfg(not(target_arch = "wasm32"))]
 static NATIVE_SYSTEM_APPEARANCE: AtomicU8 = AtomicU8::new(0);
@@ -407,7 +407,7 @@ fn save_preference_text(text: &str) {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn preference_path() -> Option<std::path::PathBuf> {
-    directories::ProjectDirs::from("io", "LambdaEd1th", "pam-viewer")
+    directories::ProjectDirs::from("io", "LambdaEd1th", "pam-editor")
         .map(|directories| directories.config_dir().join("settings.json"))
 }
 

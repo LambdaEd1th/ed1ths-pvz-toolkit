@@ -5,7 +5,7 @@ use std::sync::Arc;
 use dioxus::desktop::tao::event::{Event, WindowEvent};
 use dioxus::desktop::tao::window::{Theme as WindowTheme, Window};
 use dioxus::prelude::*;
-use pam_viewer_renderer::{NativeStageRenderer, NativeViewport, SharedStage};
+use pam_editor_renderer::{NativeStageRenderer, NativeViewport, SharedStage};
 
 use crate::state::Theme;
 
