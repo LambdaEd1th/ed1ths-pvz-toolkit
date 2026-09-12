@@ -434,7 +434,7 @@
 }
 
 .rsb-context-menu button,
-.rsb-context-file-item {
+.rsb-context-menu .rsb-context-file-item {
   position: relative;
   display: flex;
   width: 100%;
@@ -1547,12 +1547,14 @@
 
 .rsb-preview-card,
 .rsb-preview-modal-canvas {
-  background-color: #eef2f1;
+  --rsb-checker-base: #eef2f1;
+  --rsb-checker-tile: rgba(125, 145, 142, 0.14);
+  background-color: var(--rsb-checker-base);
   background-image:
-    linear-gradient(45deg, rgba(125, 145, 142, 0.14) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(125, 145, 142, 0.14) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(125, 145, 142, 0.14) 75%),
-    linear-gradient(-45deg, transparent 75%, rgba(125, 145, 142, 0.14) 75%);
+    linear-gradient(45deg, var(--rsb-checker-tile) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--rsb-checker-tile) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--rsb-checker-tile) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--rsb-checker-tile) 75%);
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
   background-size: 16px 16px;
 }
@@ -1561,12 +1563,18 @@
 .tk-theme-dark .rsb-preview-modal-canvas,
 .dark-theme .rsb-preview-card,
 .dark-theme .rsb-preview-modal-canvas {
-  background-color: #1a2221;
-  background-image:
-    linear-gradient(45deg, rgba(198, 215, 212, 0.08) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(198, 215, 212, 0.08) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(198, 215, 212, 0.08) 75%),
-    linear-gradient(-45deg, transparent 75%, rgba(198, 215, 212, 0.08) 75%);
+  --rsb-checker-base: #1a2221;
+  --rsb-checker-tile: rgba(198, 215, 212, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  .tk-theme-system .rsb-preview-card,
+  .tk-theme-system .rsb-preview-modal-canvas,
+  .system-theme .rsb-preview-card,
+  .system-theme .rsb-preview-modal-canvas {
+    --rsb-checker-base: #1a2221;
+    --rsb-checker-tile: rgba(198, 215, 212, 0.08);
+  }
 }
 
 .rsb-preview-card img {
