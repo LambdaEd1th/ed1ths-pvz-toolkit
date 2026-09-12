@@ -29,11 +29,11 @@ export interface InitOutput {
     readonly rendererhandle_start: (a: number, b: number, c: number, d: number, e: number) => number;
     readonly rendererhandle_start_offscreen: (a: number, b: number, c: number, d: number, e: number) => number;
     readonly rendererhandle_start_webgl: (a: number, b: number, c: number, d: number, e: number) => number;
-    readonly __wasm_bindgen_func_elem_1597: (a: number, b: number, c: number, d: number) => void;
-    readonly __wasm_bindgen_func_elem_1597_12: (a: number, b: number, c: number, d: number) => void;
-    readonly __wasm_bindgen_func_elem_1597_13: (a: number, b: number, c: number, d: number) => void;
-    readonly __wasm_bindgen_func_elem_9975: (a: number, b: number, c: number, d: number) => void;
-    readonly __wasm_bindgen_func_elem_9977: (a: number, b: number, c: number, d: number) => void;
+    readonly __wasm_bindgen_func_elem_1713: (a: number, b: number, c: number, d: number) => void;
+    readonly __wasm_bindgen_func_elem_1713_12: (a: number, b: number, c: number, d: number) => void;
+    readonly __wasm_bindgen_func_elem_1713_13: (a: number, b: number, c: number, d: number) => void;
+    readonly __wasm_bindgen_func_elem_9967: (a: number, b: number, c: number, d: number) => void;
+    readonly __wasm_bindgen_func_elem_9969: (a: number, b: number, c: number, d: number) => void;
     readonly __wasm_bindgen_func_elem_1016: (a: number, b: number) => void;
     readonly __wbindgen_export: (a: number, b: number) => number;
     readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
