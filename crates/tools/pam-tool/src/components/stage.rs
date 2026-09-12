@@ -84,6 +84,7 @@ enum NativeStageMessage {
 #[serde(tag = "type", rename_all = "snake_case")]
 enum WebStageMessage {
     Ready { backend: String },
+    Theme { dark: bool },
     Error { message: String },
 }
 
@@ -220,6 +221,7 @@ pub fn Stage() -> Element {
 fn StageCanvas() -> Element {
     let context = use_context::<AppContext>();
     let mut renderer_generation = use_signal(|| 0_u64);
+    let mut system_dark = use_signal(crate::platform::system_is_dark);
     let sent_scene = use_hook(|| Rc::new(RefCell::new(None::<(u64, Option<(u64, u64)>)>)));
 
     let start_host = move |_| {
@@ -239,6 +241,7 @@ fn StageCanvas() -> Element {
                         let next = renderer_generation.read().wrapping_add(1).max(1);
                         renderer_generation.set(next);
                     }
+                    WebStageMessage::Theme { dark } => system_dark.set(dark),
                     WebStageMessage::Error { message } => {
                         context.set_status(crate::state::Status::new(
                             message,
@@ -257,7 +260,7 @@ fn StageCanvas() -> Element {
         let dark_background = match preferences.theme {
             crate::state::Theme::Dark => true,
             crate::state::Theme::Light => false,
-            crate::state::Theme::System => crate::platform::system_is_dark(),
+            crate::state::Theme::System => *system_dark.read(),
         };
         drop(preferences);
         let tab = context.active_tab_snapshot();

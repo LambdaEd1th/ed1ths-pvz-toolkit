@@ -12,7 +12,7 @@ pub fn CloseConfirmation() -> Element {
         return rsx! {};
     };
     rsx! { div { class: "pam-editor-confirm", role: "alertdialog", aria_modal: "true", aria_label: tr(locale, "discard_question"),
-        div { class: "pam-editor-panel",
+        div { class: "pam-editor-confirm-card",
             p { {tr(locale, "discard_question")} }
             button { class: "pam-button", onclick: move |_| context.pending_close.set(None), {tr(locale, "cancel")} }
             button { class: "pam-button", onclick: move |_| {
@@ -24,100 +24,29 @@ pub fn CloseConfirmation() -> Element {
 }
 
 #[component]
-pub fn EditorPanel() -> Element {
-    let context = use_context::<AppContext>();
-    let locale = context.preferences.read().locale;
-    let Some(tab) = context.active_tab_snapshot() else {
-        return rsx! {
-            section { class: "pam-editor-panel",
-                button { class: "pam-button", onclick: move |_| new_document(context), {tr(locale, "new_animation")} }
-            }
-        };
-    };
-    let sprite = match tab.active_sprite {
-        SpriteKey::Main => tab.document.pam.main_sprite.as_ref(),
-        SpriteKey::Sprite(i) => tab.document.pam.sprite.get(i),
-    };
-    let dirty = tab.is_dirty();
-    rsx! {
-        section { class: "pam-editor-panel", aria_label: tr(locale, "editor"),
-            div { class: "pam-editor-toolbar",
-                strong { "PAM Editor" }
-                button { class: "pam-button", onclick: move |_| new_document(context), {tr(locale, "new_animation")} }
-                span { if dirty { {tr(locale, "unsaved")} } else { {tr(locale, "saved")} } }
-                button { class: "pam-button", disabled: tab.undo_stack.is_empty(), onclick: move |_| undo(context), {tr(locale, "undo")} }
-                button { class: "pam-button", disabled: tab.redo_stack.is_empty(), onclick: move |_| redo(context), {tr(locale, "redo")} }
-                button { class: "pam-button", disabled: context.export.read().is_some(), onclick: move |_| start_export(context, ExportKind::Pam), {tr(locale, "save_pam")} }
-            }
-            div { class: "pam-editor-fields",
-                NumberField { label: tr(locale, "document_fps"), value: tab.document.pam.frame_rate as f64, onchange: move |v: f64| {
-                    if (1.0..=255.0).contains(&v) { edit_document(context, move |pam, _, _| pam.frame_rate = v.round() as i32); }
-                } }
-                for axis in 0..2 {
-                    NumberField { label: if axis == 0 { tr(locale, "width") } else { tr(locale, "height") }, value: tab.document.pam.size[axis], onchange: move |v: f64| {
-                        if v > 0.0 { edit_document(context, move |pam, _, _| pam.size[axis] = v); }
-                    } }
-                }
-                button { class: "pam-button", onclick: move |_| add_sprite(context), {tr(locale, "add_sprite")} }
-            }
-            if let Some(sprite) = sprite {
-                div { class: "pam-editor-fields",
-                    if tab.document.pam.version >= 4 {
-                        label { {tr(locale, "sprite_name")}
-                            input { value: sprite.name.clone().unwrap_or_default(), onchange: move |e| {
-                                let name = e.value();
-                                edit_document(context, move |pam, key, _| { if let Some(s) = active_sprite_mut(pam, key) { s.name = Some(name); } });
-                            } }
-                        }
-                        NumberField { label: tr(locale, "sprite_fps"), value: sprite.frame_rate.unwrap_or(30.0), onchange: move |v: f64| {
-                            if v > 0.0 { edit_document(context, move |pam, key, _| { if let Some(s) = active_sprite_mut(pam, key) { s.frame_rate = Some(v); } }); }
-                        } }
-                    }
-                    button { class: "pam-button", onclick: move |_| add_frame(context, false), {tr(locale, "add_frame")} }
-                    button { class: "pam-button", disabled: sprite.frame.len() < 2, onclick: move |_| delete_current_frame(context), {tr(locale, "delete_frame")} }
-                }
-                div { class: "pam-editor-timeline", role: "group", aria_label: tr(locale, "timeline"),
-                    for (index, frame) in sprite.frame.iter().enumerate() {
-                        button { key: "{index}", class: if tab.current_frame == index { "pam-button active" } else { "pam-button" },
-                            aria_pressed: tab.current_frame == index,
-                            title: frame.label.clone().unwrap_or_default(),
-                            onclick: move |_| set_frame(context, index), "{index}"
-                            if !frame.change.is_empty() || !frame.append.is_empty() { " ◆" }
-                        }
-                    }
-                }
-                if let Some(frame) = sprite.frame.get(tab.current_frame) {
-                    InstancePanel {}
-                    div { class: "pam-editor-fields",
-                        label { {tr(locale, "label")}
-                            input { value: frame.label.clone().unwrap_or_default(), onchange: move |e| {
-                                let text = e.value();
-                                edit_document(context, move |pam, key, f| { if let Some(frame) = active_sprite_mut(pam, key).and_then(|s| s.frame.get_mut(f)) { frame.label = (!text.is_empty()).then_some(text); } });
-                            } }
-                        }
-                        label { input { r#type: "checkbox", checked: frame.stop, onchange: move |e| {
-                            let stop = e.checked();
-                            edit_document(context, move |pam, key, f| { if let Some(frame) = active_sprite_mut(pam, key).and_then(|s| s.frame.get_mut(f)) { frame.stop = stop; } });
-                        } } {tr(locale, "stop_frame")} }
-                    }
-                    for identity in [format!("{}-{}-{}-{:?}", tab.id, tab.document_revision, tab.current_frame, tab.active_sprite)] {
-                        FrameSource { key: "{identity}", frame: frame.clone() }
-                    }
-                }
-            }
-        }
-    }
-}
-
-#[component]
-fn NumberField(label: String, value: f64, onchange: EventHandler<f64>) -> Element {
-    rsx! { label { "{label}" input { r#type: "number", step: "any", value: "{value}", onchange: move |e| {
+pub(super) fn NumberField(label: String, value: f64, onchange: EventHandler<f64>) -> Element {
+    let display = field_number(value);
+    rsx! { label { "{label}" input { r#type: "number", step: "any", value: "{display}", title: "{value}", onchange: move |e| {
         if let Ok(value) = e.value().parse::<f64>() && value.is_finite() { onchange.call(value); }
     } } } }
 }
 
+// Display compact values without modifying the underlying PAM until the user edits a field.
+fn field_number(value: f64) -> String {
+    if value == 0.0 {
+        "0".into()
+    } else if value.abs() < 0.0001 || value.abs() >= 1_000_000.0 {
+        format!("{value:.4e}")
+    } else {
+        format!("{value:.4}")
+            .trim_end_matches('0')
+            .trim_end_matches('.')
+            .into()
+    }
+}
+
 #[component]
-fn InstancePanel() -> Element {
+pub(super) fn InstancePanel() -> Element {
     let context = use_context::<AppContext>();
     let locale = context.preferences.read().locale;
     let mut selected = use_signal(|| None::<i32>);
@@ -137,20 +66,32 @@ fn InstancePanel() -> Element {
         .find(|layer| Some(layer.index) == selected())
         .or(layers.first())
         .cloned();
-    rsx! { div { class: "pam-editor-instances",
+    rsx! { details { class: "pam-editor-section pam-editor-instances", open: true,
+        summary { {tr(locale, "instance_settings")} }
         div { class: "pam-editor-fields",
             label { {tr(locale, "instances")}
                 select { value: layer.as_ref().map(|l| l.index.to_string()).unwrap_or_default(),
                     onchange: move |e| selected.set(e.value().parse().ok()),
                     for layer in &layers {
-                        option { value: "{layer.index}", "#{layer.index} · {layer.resource}" }
+                        {
+                            let name = if layer.is_sprite {
+                                tab.document.pam.sprite.get(layer.resource).and_then(|s| s.name.clone())
+                            } else {
+                                tab.document.pam.image.get(layer.resource).map(|image| image.name.split('|').next().unwrap_or(&image.name).to_string())
+                            }.unwrap_or_else(|| layer.resource.to_string());
+                            rsx! { option { value: "{layer.index}", "#{layer.index} · {name}" } }
+                        }
                     }
                 }
             }
+        }
+        details { class: "pam-instance-add",
+            summary { {tr(locale, "add_instance")} }
+            div { class: "pam-editor-fields",
             label { {tr(locale, "resources")}
                 select { value: "{resource}", onchange: move |e| { if let Ok(v) = e.value().parse() { resource.set(v); } },
                     for (index, image) in tab.document.pam.image.iter().enumerate() {
-                        option { value: "{index}", "{image.name}" }
+                        option { value: "{index}", "{image.name.split('|').next().unwrap_or(&image.name)}" }
                     }
                     for (index, sprite) in tab.document.pam.sprite.iter().enumerate() {
                         if tab.active_sprite != SpriteKey::Sprite(index) {
@@ -173,9 +114,11 @@ fn InstancePanel() -> Element {
                     }
                 });
             }, {tr(locale, "add_instance")} }
+            }
         }
         if let Some(layer) = layer.clone() {
-            div { class: "pam-editor-fields",
+            h4 { class: "pam-editor-subheading", {tr(locale, "transform")} }
+            div { class: "pam-editor-fields pam-editor-matrix",
                 for component in 0..6 {
                     NumberField { label: ["A", "B", "C", "D", "X", "Y"][component], value: layer.transform[component] as f64,
                         onchange: {
@@ -194,6 +137,9 @@ fn InstancePanel() -> Element {
                         },
                     }
                 }
+            }
+            h4 { class: "pam-editor-subheading", {tr(locale, "color_multiplier")} }
+            div { class: "pam-editor-fields pam-editor-color",
                 for channel in 0..4 {
                     NumberField { label: ["R", "G", "B", "Alpha"][channel], value: [layer.color.r, layer.color.g, layer.color.b, layer.color.a][channel] as f64,
                         onchange: {
@@ -212,7 +158,9 @@ fn InstancePanel() -> Element {
                         },
                     }
                 }
-                button { class: "pam-button", onclick: move |_| {
+            }
+            div {
+                button { class: "pam-editor-text-button is-danger", onclick: move |_| {
                     let index = layer.index;
                     edit_document(context, move |pam, key, frame_index| {
                         if let Some(sprite) = active_sprite_mut(pam, key) {
@@ -258,6 +206,14 @@ fn instance_keyframe<'a>(
 mod tests {
     use super::*;
     use pam_editor_core::{Color, LayerSnapshot, MovesInfo, Rectangle};
+
+    #[test]
+    fn property_numbers_are_compact_without_hiding_small_values() {
+        assert_eq!(field_number(390.0), "390");
+        assert_eq!(field_number(0.6509804129600525), "0.651");
+        assert_eq!(field_number(-0.0), "0");
+        assert_eq!(field_number(0.000001), "1.0000e-6");
+    }
 
     fn layer() -> LayerSnapshot {
         LayerSnapshot {
@@ -311,11 +267,11 @@ mod tests {
 }
 
 #[component]
-fn FrameSource(frame: FrameInfo) -> Element {
+pub(super) fn FrameSource(frame: FrameInfo) -> Element {
     let context = use_context::<AppContext>();
     let locale = context.preferences.read().locale;
     let mut source = use_signal(|| serde_json::to_string_pretty(&frame).unwrap_or_default());
-    rsx! { details { class: "pam-editor-source",
+    rsx! { details { class: "pam-editor-section pam-editor-source",
         summary { {tr(locale, "frame_source")} }
         p { {tr(locale, "frame_source_hint")} }
         textarea { aria_label: tr(locale, "frame_source"), value: "{source}", oninput: move |e| source.set(e.value()) }
