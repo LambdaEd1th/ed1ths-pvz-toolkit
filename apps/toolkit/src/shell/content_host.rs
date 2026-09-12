@@ -31,6 +31,69 @@ pub(crate) fn ContentHost(
     let mut rton_open_request = use_signal(|| None::<RtonOpenRequest>);
     let mut next_wem_open_request_id = use_signal(|| 1_u64);
     let mut wem_open_request = use_signal(|| None::<WemOpenRequest>);
+    let mut tool_request = use_signal(|| None::<toolkit_ui::ToolOpenRequest>);
+    let mut next_tool_request = use_signal(|| 1_u64);
+    use_context_provider(|| toolkit_ui::ToolOpenBus(tool_request));
+    use_context_provider(|| {
+        toolkit_ui::ToolOpenHandler(EventHandler::new(
+            move |(kind, files): (toolkit_ui::ToolKind, Vec<toolkit_ui::ToolFile>)| {
+                use toolkit_ui::ToolKind;
+                let id = next_tool_request();
+                next_tool_request.set(id.wrapping_add(1).max(1));
+                let target = match kind {
+                    ToolKind::Rsb => AppRoute::Rsb,
+                    ToolKind::RsbPatch => AppRoute::RsbPatch,
+                    ToolKind::Pak => AppRoute::Pak,
+                    ToolKind::Dzip => AppRoute::Dzip,
+                    ToolKind::Smf => AppRoute::Smf,
+                    ToolKind::CompiledText => AppRoute::CompiledText,
+                    ToolKind::CryptData => AppRoute::CryptData,
+                    ToolKind::Rton => AppRoute::Rton,
+                    ToolKind::Pam => AppRoute::Pam,
+                    ToolKind::Particle => AppRoute::Particle,
+                    ToolKind::Reanim => AppRoute::Reanim,
+                    ToolKind::Wem => AppRoute::Wem,
+                    ToolKind::Bnk => AppRoute::Bnk,
+                    ToolKind::Newton => AppRoute::Newton,
+                };
+                if let Some(file) = files.first() {
+                    match kind {
+                        ToolKind::Rton => {
+                            let id = next_rton_open_request_id();
+                            next_rton_open_request_id.set(id.wrapping_add(1).max(1));
+                            rton_open_request.set(Some(RtonOpenRequest::new(
+                                id,
+                                file.name.clone(),
+                                file.bytes.as_slice().into(),
+                            )));
+                        }
+                        ToolKind::Newton => {
+                            let id = next_newton_open_request_id();
+                            next_newton_open_request_id.set(id.wrapping_add(1).max(1));
+                            newton_open_request.set(Some(NewtonOpenRequest::new(
+                                id,
+                                file.name.clone(),
+                                file.bytes.as_slice().into(),
+                            )));
+                        }
+                        ToolKind::Wem => {
+                            let id = next_wem_open_request_id();
+                            next_wem_open_request_id.set(id.wrapping_add(1).max(1));
+                            wem_open_request.set(Some(WemOpenRequest::new(
+                                id,
+                                file.name.clone(),
+                                file.bytes.as_slice().into(),
+                            )));
+                        }
+                        _ => {
+                            tool_request.set(Some(toolkit_ui::ToolOpenRequest { id, kind, files }))
+                        }
+                    }
+                    navigate(route, sidebar_open, compact, target);
+                }
+            },
+        ))
+    });
     let active_route = route();
     rsx! {
         div {

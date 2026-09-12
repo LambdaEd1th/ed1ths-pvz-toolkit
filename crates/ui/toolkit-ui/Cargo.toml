@@ -12,6 +12,10 @@ path = "src/lib.rs"
 
 [dependencies]
 dioxus = { workspace = true, features = ["lib"] }
+dioxus-html = { workspace = true, features = ["serialize"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+pollster.workspace = true

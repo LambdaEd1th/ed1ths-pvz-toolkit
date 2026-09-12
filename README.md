@@ -91,6 +91,80 @@ operation status. PTX entries can be decoded from their archive metadata and
 previewed without extracting them first. None of the tools creates a second app
 navigation shell.
 
+Tool-drawer actions share typography tokens in `crates/ui/toolkit-ui/assets/tokens.css`.
+Text buttons, file-input labels, and generated icon captions use the same font,
+size, weight, spacing, and line height. Broad control resets must use zero-
+specificity `:where(...)` selectors, so they cannot override component typography.
+Do not repair a reset conflict with a one-off button font override.
+
+Hover hints share an application-owned tooltip layer. Native `title` strings are
+normalized to `data-ui-tooltip`, retaining icon captions and accessible names.
+Hints close on pointer exit, activation, Escape, scrolling, focus loss, window
+changes, hidden/removed targets, and overlays; pending delayed hints are cancelled
+too. The same lifecycle tests run on Chromium and WebKit.
+
+The PAM editor's **Export all Sprites** button (left of **Save PAM**) exports the
+document's loaded image assets as `<name>_sprites.zip`. PNGs retain their original
+pixel dimensions and alpha, independently of timeline transforms, display scale,
+and visibility filters. Image names are normalized and made safe, collisions get
+numbered suffixes, and unavailable images are listed in `_missing-images.txt`.
+Asset export does not change the PAM's saved/dirty state. Check the real download
+flow against a served Web build with `UI_TEST_URL=http://127.0.0.1:8097 npm run
+test:pam-images` in `scripts/ui-tests`.
+
+The browser regression check runs in CI on Chromium and WebKit, using the real
+tool styles in multiple load orders, light/dark themes, and desktop/mobile widths:
+
+```sh
+cd scripts/ui-tests
+npm ci
+npx playwright install chromium webkit
+npm test
+```
+
+The RSB address bar also opens a read-only **Resource Explorer**. It discovers
+v3/v4 embedded resource descriptions and packaged `RESOURCES.RTON` / `.NEWTON`
+manifests, or accepts an imported RTON, NEWTON, or resource-description JSON.
+Logical paths form a file-manager-style directory tree, with breadcrumbs,
+back/forward/up navigation, virtualized list/icon views, and an optional details
+pane. Search covers the current folder and its descendants; group, type, and
+mapping-state filters retain the matching folder hierarchy. Resource variants
+remain distinct even when they share a path. Directory labels preserve manifest
+path casing (preferring a lowercase source spelling when manifests disagree),
+while matching and navigation remain case-insensitive. Physical file names are
+not renamed. Logical IDs can be located in
+the existing physical file browser. Atlas children resolve through their parent texture
+and expose their crop rectangle; they are not presented as independent files.
+Missing, ambiguous, program-generated, and unlisted resources are distinguished.
+Matching uses complete paths, subgroup context, and file extensions, never
+basename-only guesses. Pending file edits and removals are reflected in the
+mapping; importing a manifest does not modify the archive or rewrite its IDs.
+All discovered RTON, NEWTON and embedded manifests are merged together. Matching
+definitions complement missing fields and retain every source; unique entries
+and conflicting definitions are preserved rather than replaced by load order.
+NEWTON's omitted zero atlas coordinates are interpreted as zero when crop sizes
+are present. The footer lists all merged manifests.
+
+Resource actions support checkbox selection, Ctrl/Cmd toggling, Shift ranges,
+and select-all. Exporting a folder includes all descendants. Single selections
+save directly; batches use a ZIP with logical paths, collision-safe variant
+names, and an error report for skipped resources (512 MiB per batch). Ordinary
+files preserve their original bytes; atlas children are cropped to transparent
+PNGs at full resolution. Double-click an image to preview it at fit/100–400%
+zoom, or double-click a supported file to open its existing Toolkit workspace.
+The **Open with** menu also supports ambiguous extensions such as JSON/XML.
+Opening a PAM automatically resolves image IDs, prefers the matching group,
+locale, resolution and dimensions, crops its atlas children, and passes all
+images to the PAM editor in memory. Equally ranked matches and missing images
+are reported instead of guessed. Each batch reuses a bounded RSG/atlas cache.
+
+Optional real-sample browser coverage (after building and serving the Web app):
+
+```sh
+RSB_RESOURCE_REAL_SAMPLE=/path/to/main.rsb UI_TEST_URL=http://127.0.0.1:8097 \
+  npm --prefix scripts/ui-tests run test:resources
+```
+
 Public libraries are intentionally independent:
 
 ```toml

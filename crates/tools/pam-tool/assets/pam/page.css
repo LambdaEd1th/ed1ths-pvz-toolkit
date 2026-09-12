@@ -29,9 +29,7 @@ html.native-wgpu-host .pam-stage {
   backdrop-filter: none;
 }
 
-.pam-page-host button,
-.pam-page-host input,
-.pam-page-host select {
+:where(.pam-page-host) :where(button, input, select) {
   font: inherit;
 }
 

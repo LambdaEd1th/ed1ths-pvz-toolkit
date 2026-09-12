@@ -5,6 +5,11 @@ mod loader;
 mod platform;
 mod preview;
 mod processing;
+mod resource_actions;
+mod resource_browser;
+mod resource_explorer;
+mod resource_operations;
+mod resources;
 mod view_model;
 mod virtual_scroll;
 

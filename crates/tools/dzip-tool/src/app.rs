@@ -328,6 +328,13 @@ pub fn DzipArchivePage() -> Element {
         busy,
         status,
     };
+    toolkit_ui::use_tool_open(toolkit_ui::ToolKind::Dzip, busy, move |files| {
+        let files = files
+            .into_iter()
+            .map(toolkit_ui::ToolFile::into_file_data)
+            .collect();
+        load_archive_files(files, signals, next_tab_id);
+    });
     let tabs_snapshot = tabs();
     let active_id_snapshot = active_tab_id();
     let active_tab_snapshot = active_id_snapshot

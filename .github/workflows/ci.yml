@@ -18,6 +18,32 @@ env:
   WASM_PACK_VERSION: 0.15.0
 
 jobs:
+  ui-typography:
+    name: UI Regressions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/ui-tests/package-lock.json
+
+      - name: Install UI test dependencies
+        working-directory: scripts/ui-tests
+        run: npm ci
+
+      - name: Install browser engines
+        working-directory: scripts/ui-tests
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Check typography and tooltip lifecycle
+        working-directory: scripts/ui-tests
+        run: npm test
+
   rust:
     name: Rust
     runs-on: ubuntu-latest

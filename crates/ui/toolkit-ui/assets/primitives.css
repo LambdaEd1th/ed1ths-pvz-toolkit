@@ -1,3 +1,11 @@
+/*
+ * Resets must have zero specificity: a page-host + element selector would
+ * override a component's class-based font-size/font-weight via font: inherit.
+ */
+:where(.ui-tool-surface) :where(button, input, select, textarea, label) {
+  font: inherit;
+}
+
 .ui-island {
   border: 1px solid var(--tk-island-border);
   background: var(--tk-island-glass);
@@ -575,6 +583,22 @@
   -webkit-backdrop-filter: none;
 }
 
+/*
+ * One typography contract for text buttons, icon captions, file-input labels,
+ * and future actions. Keep this independent of the icon-class list below;
+ * that list only controls icon layout and generated captions.
+ */
+.ui-tool-page-toolbar .ui-tool-drawer-body > .ui-tool-page-actions :where(
+    button, label, [role="button"]
+  ) {
+  font-family: var(--tk-font-ui);
+  font-size: var(--tk-toolbar-font-size);
+  font-weight: var(--tk-toolbar-font-weight);
+  line-height: var(--tk-toolbar-line-height);
+  letter-spacing: var(--tk-toolbar-letter-spacing);
+  font-style: normal;
+}
+
 .ui-tool-drawer-body > .ui-tool-page-actions :is(
     .rton-page-icon-button,
     .pam-page-icon-button,
@@ -612,10 +636,8 @@
   overflow: hidden;
   color: currentColor;
   content: attr(title);
-  font-size: 11px;
-  font-weight: 650;
-  letter-spacing: 0;
-  line-height: 1;
+  font: inherit;
+  letter-spacing: inherit;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -630,9 +652,48 @@
     .rsp-icon-button,
     .bnk-icon-button,
     .newton-icon-button
-  )[title=""]::after {
+  )[title=""]:not([data-ui-tooltip])::after {
   display: none;
 }
+
+/* Keep persistent icon captions when the shared tooltip manager suppresses title. */
+.ui-tool-drawer-body > .ui-tool-page-actions :is(
+    .rton-page-icon-button, .pam-page-icon-button, .pam-icon-button,
+    .rsb-tool-button--icon, .pak-icon-button, .dzip-icon-button,
+    .rsp-icon-button, .bnk-icon-button, .newton-icon-button
+  )[data-ui-tooltip]::after {
+  content: attr(data-ui-tooltip);
+}
+
+.ui-tooltip {
+  position: fixed;
+  inset: auto;
+  z-index: 2147483647;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(360px, calc(100vw - 16px));
+  max-height: min(360px, calc(100vh - 16px));
+  margin: 0;
+  padding: 7px 10px;
+  overflow: hidden;
+  border: 1px solid var(--tk-border);
+  border-radius: 8px;
+  background: var(--tk-surface-opaque);
+  color: var(--tk-ink);
+  box-shadow: var(--tk-shadow-control);
+  font-family: var(--tk-font-ui);
+  font-size: 12px;
+  font-weight: 450;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-align: start;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ui-tooltip[hidden] { display: none; }
 
 .ui-tool-drawer-body :is(
     .dzip-toolbar-divider,

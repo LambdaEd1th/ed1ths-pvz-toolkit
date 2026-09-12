@@ -8,6 +8,8 @@ use pam_editor_core::{
 };
 use pam_editor_formats::{InputFile, TextFormat};
 
+mod images_export;
+
 static DOCUMENTS: OnceLock<Mutex<HashMap<u64, Arc<PamDocument>>>> = OnceLock::new();
 static EXPORTS: OnceLock<Mutex<HashMap<u64, Arc<AtomicBool>>>> = OnceLock::new();
 
@@ -168,6 +170,7 @@ async fn export_document(
         ExportKind::Pam => {
             pam_editor_core::encode_pam_bytes(&document.pam).map_err(|error| error.to_string())
         }
+        ExportKind::ImagesZip => images_export::export_images(&document, cancelled).await,
         ExportKind::Png | ExportKind::Apng | ExportKind::Webp => {
             export_frames(document, &request, cancelled).await
         }

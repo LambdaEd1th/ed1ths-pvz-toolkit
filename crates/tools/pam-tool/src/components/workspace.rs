@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{
-    LdPlus, LdRedo2, LdSave, LdSlidersHorizontal, LdTrash2, LdUndo2, LdX,
+    LdImages, LdPlus, LdRedo2, LdSave, LdSlidersHorizontal, LdTrash2, LdUndo2, LdX,
 };
 
 use crate::actions::*;
@@ -20,7 +20,6 @@ pub fn EditorToolbar(on_properties: EventHandler<()>, properties_open: bool) -> 
     rsx! {
         header { class: "pam-editor-toolbar",
             div { class: "pam-editor-identity",
-                strong { "PAM Editor" }
                 if tab.is_some() {
                     span { class: if dirty { "pam-save-state is-dirty" } else { "pam-save-state" },
                         span { class: "pam-save-state-dot" }
@@ -43,6 +42,12 @@ pub fn EditorToolbar(on_properties: EventHandler<()>, properties_open: bool) -> 
                     button { class: "pam-icon-button pam-editor-inspector-toggle", title: tr(locale, "properties"), aria_label: tr(locale, "properties"),
                         aria_pressed: properties_open,
                         onclick: move |_| on_properties.call(()), {icon(LdSlidersHorizontal)}
+                    }
+                    button { class: "pam-button pam-editor-export-sprites",
+                        title: tr(locale, "export_all_sprites_hint"), aria_label: tr(locale, "export_all_sprites"),
+                        disabled: context.export.read().is_some() || !(0..tab.document.pam.image.len()).any(|index| tab.document.images.get(index).is_some_and(Option::is_some)),
+                        onclick: move |_| start_export(context, ExportKind::ImagesZip),
+                        {icon(LdImages)} span { {tr(locale, "export_all_sprites")} }
                     }
                     button { class: "pam-button primary pam-editor-save", disabled: context.export.read().is_some(),
                         onclick: move |_| start_export(context, ExportKind::Pam), {icon(LdSave)} {tr(locale, "save_pam")}

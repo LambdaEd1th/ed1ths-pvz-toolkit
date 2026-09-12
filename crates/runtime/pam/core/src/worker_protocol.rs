@@ -180,6 +180,8 @@ pub enum ExportKind {
     Yaml,
     Toml,
     Pam,
+    /// All loaded PAM image assets, not rendered animation frames.
+    ImagesZip,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

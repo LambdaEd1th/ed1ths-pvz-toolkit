@@ -24,7 +24,6 @@
 }
 
 .pam-editor-identity { gap: 12px; }
-.pam-editor-identity strong { color: var(--color-text-strong); font-size: 12px; letter-spacing: -0.02em; }
 .pam-editor-command-group { gap: 4px; }
 .pam-editor-divider { height: 18px; width: 1px; margin: 0 4px; background: var(--color-border); }
 .pam-save-state { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; color: var(--color-text-subtle); }
@@ -33,6 +32,7 @@
 .pam-save-state.is-dirty .pam-save-state-dot { background: currentColor; }
 .pam-editor-command-group .pam-icon-button { width: 30px; height: 30px; min-height: 30px; border-radius: 8px; }
 .pam-editor-command-group .pam-editor-save { min-height: 30px; margin-left: 6px; padding: 0 12px; gap: 6px; border-radius: 8px; font-size: 11px; }
+.pam-editor-command-group .pam-editor-export-sprites { min-height: 30px; padding: 0 10px; gap: 6px; border-radius: 8px; font-size: 11px; }
 .pam-editor-command-group .pam-icon { width: 14px; height: 14px; }
 .pam-page-host .pam-editor-inspector-toggle { display: none; }
 
@@ -178,6 +178,8 @@
   .pam-editor-identity { gap: 7px; }
   .pam-save-state { font-size: 9px; }
   .pam-editor-toolbar { gap: 5px; }
+  .pam-editor-command-group .pam-editor-export-sprites { width: 30px; padding: 0; justify-content: center; }
+  .pam-editor-export-sprites > span { display: none; }
   .pam-editor-command-group { gap: 1px; }
   .pam-editor-divider { margin: 0 2px; }
   .pam-timeline-legend { display: none; }

@@ -18,6 +18,7 @@ pub struct ArchiveDocument {
     pub byte_len: u64,
     pub header: RsbHeader,
     pub resource_count: usize,
+    pub file_index: Arc<Vec<rsb_archive::FileListInfo>>,
     pub packets: Arc<Vec<PacketRecord>>,
     pub ptx_infos: Arc<Vec<RsbPtxInfo>>,
     pub warnings: Arc<Vec<String>>,

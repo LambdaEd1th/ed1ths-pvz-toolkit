@@ -36,6 +36,64 @@ pub struct ProcessedPreview {
     pub url: String,
 }
 
+pub async fn load_embedded_manifest(
+    archive: Arc<ArchiveDocument>,
+) -> Result<crate::resources::ManifestData, String> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let (sender, receiver) = futures_channel::oneshot::channel();
+        archive_pool().spawn(move || {
+            let _ = sender.send(crate::resources::embedded_manifest(&archive));
+        });
+        receiver
+            .await
+            .map_err(|_| "资源描述后台任务意外终止".to_string())?
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        crate::resources::embedded_manifest(&archive)
+    }
+}
+
+pub async fn parse_resource_manifest(
+    file: crate::editing::AddedFile,
+) -> Result<crate::resources::ManifestData, String> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let (sender, receiver) = futures_channel::oneshot::channel();
+        archive_pool().spawn(move || {
+            let _ = sender.send(crate::resources::parse_manifest(&file.name, &file.data));
+        });
+        receiver
+            .await
+            .map_err(|_| "资源清单解码后台任务意外终止".to_string())?
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        crate::resources::parse_manifest(&file.name, &file.data)
+    }
+}
+
+pub async fn build_resource_catalog(
+    manifest: Arc<crate::resources::ManifestData>,
+    files: Arc<Vec<crate::resources::ResourceLocation>>,
+) -> Result<crate::resources::ResourceCatalog, String> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let (sender, receiver) = futures_channel::oneshot::channel();
+        archive_pool().spawn(move || {
+            let _ = sender.send(crate::resources::build_catalog(&manifest, &files));
+        });
+        receiver
+            .await
+            .map_err(|_| "资源映射后台任务意外终止，请重新扫描".to_string())
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        Ok(crate::resources::build_catalog(&manifest, &files))
+    }
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 pub async fn open_native(path: std::path::PathBuf) -> Result<ArchiveDocument, String> {
     let (sender, receiver) = futures_channel::oneshot::channel();
@@ -70,6 +128,7 @@ thread_local! {
     static WORKER: RefCell<Option<WorkerClient>> = const { RefCell::new(None) };
     static ENCODE_WORKER: RefCell<Option<WorkerClient>> = const { RefCell::new(None) };
     static EXPORT_WORKER: RefCell<Option<WorkerClient>> = const { RefCell::new(None) };
+    static MANIFEST_WORKER: RefCell<Option<WorkerClient>> = const { RefCell::new(None) };
     static GENERATION: std::cell::Cell<u64> = const { std::cell::Cell::new(0) };
 }
 
@@ -177,8 +236,42 @@ pub async fn load_packet(
     archive: Arc<ArchiveDocument>,
     packet_index: usize,
 ) -> Result<PacketDocument, String> {
+    load_packet_impl(archive, packet_index, false).await
+}
+
+pub async fn load_manifest_packet(
+    archive: Arc<ArchiveDocument>,
+    packet_index: usize,
+) -> Result<PacketDocument, String> {
+    // Background indexing must not be cancelled by an interactive PTX preview.
+    load_packet_impl(archive, packet_index, true).await
+}
+
+pub async fn open_memory(name: String, bytes: Vec<u8>) -> Result<ArchiveDocument, String> {
     #[cfg(not(target_arch = "wasm32"))]
     {
+        let (sender, receiver) = futures_channel::oneshot::channel();
+        preview_pool().spawn(move || {
+            let _ = sender.send(crate::loader::open_memory(name, bytes));
+        });
+        receiver
+            .await
+            .map_err(|_| "归档加载任务意外终止".to_string())?
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        crate::loader::open_memory(name, bytes)
+    }
+}
+
+async fn load_packet_impl(
+    archive: Arc<ArchiveDocument>,
+    packet_index: usize,
+    manifest: bool,
+) -> Result<PacketDocument, String> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let _ = manifest;
         let (sender, receiver) = futures_channel::oneshot::channel();
         preview_pool().spawn(move || {
             let _ = sender.send(archive.load_packet(packet_index));
@@ -196,7 +289,7 @@ pub async fn load_packet(
         let request = request
             .serialize(&serializer)
             .map_err(|error| error.to_string())?;
-        let promise = WORKER.with(|slot| {
+        let unpack = |slot: &RefCell<Option<WorkerClient>>| {
             let mut slot = slot.borrow_mut();
             if slot.is_none() {
                 *slot = Some(WorkerClient::new()?);
@@ -204,7 +297,12 @@ pub async fn load_packet(
             slot.as_mut()
                 .expect("RSB preview worker was initialized")
                 .request("unpack", request)
-        })?;
+        };
+        let promise = if manifest {
+            MANIFEST_WORKER.with(unpack)
+        } else {
+            WORKER.with(unpack)
+        }?;
         let response = decode_web_response::<PacketResponse>(promise).await?;
         let files = response
             .files

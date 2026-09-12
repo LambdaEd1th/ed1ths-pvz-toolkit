@@ -377,6 +377,13 @@ pub fn BnkArchivePage(on_open_wem: Option<EventHandler<BnkWemOpenRequest>>) -> E
     let mut dragging = use_signal(|| false);
     let mut status = use_signal(AppStatus::default);
 
+    toolkit_ui::use_tool_open(toolkit_ui::ToolKind::Bnk, busy, move |files| {
+        let files = files
+            .into_iter()
+            .map(toolkit_ui::ToolFile::into_file_data)
+            .collect();
+        load_bank_files(files, tabs, active_tab_id, next_tab_id, busy, status);
+    });
     let tabs_snapshot = tabs();
     let active_id_snapshot = active_tab_id();
     let active_tab_snapshot = active_id_snapshot

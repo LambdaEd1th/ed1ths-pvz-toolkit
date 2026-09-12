@@ -1,7 +1,12 @@
 :root {
   color-scheme: light;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+  --tk-font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
     "Noto Sans", "Liberation Sans", Arial, sans-serif;
+  --tk-toolbar-font-size: 11px;
+  --tk-toolbar-font-weight: 650;
+  --tk-toolbar-line-height: 1;
+  --tk-toolbar-letter-spacing: 0;
+  font-family: var(--tk-font-ui);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --tk-accent: #33ccbb;

@@ -16,6 +16,17 @@ pub fn start_export(mut context: AppContext, kind: ExportKind) {
     let Some(tab) = context.active_tab_snapshot() else {
         return;
     };
+    let image_count = tab.document.pam.image.len();
+    let loaded_images = (0..image_count)
+        .filter(|&index| tab.document.images.get(index).is_some_and(Option::is_some))
+        .count();
+    if kind == ExportKind::ImagesZip && loaded_images == 0 {
+        context.set_status(Status::new(
+            tr(context.preferences.read().locale, "export_images_empty"),
+            Tone::Warning,
+        ));
+        return;
+    }
     let name = export_name(&tab, kind);
     let target = match crate::platform::pick_save_target(&name) {
         Ok(Some(target)) => target,
@@ -29,7 +40,11 @@ pub fn start_export(mut context: AppContext, kind: ExportKind) {
     context.export.set(Some(ExportProgress {
         operation_id: tab.id,
         document_id: tab.processing_id,
-        title: format!("{kind:?}"),
+        title: if kind == ExportKind::ImagesZip {
+            tr(context.preferences.read().locale, "export_all_sprites").into()
+        } else {
+            format!("{kind:?}")
+        },
         detail: tr(context.preferences.read().locale, "exporting").into(),
         progress: 0.05,
         cancel_requested: false,
@@ -40,6 +55,24 @@ pub fn start_export(mut context: AppContext, kind: ExportKind) {
     spawn_forever(async move {
         let result = export_tab(context, &tab, kind, &target).await;
         match result {
+            Ok(true) if kind == ExportKind::ImagesZip => {
+                let locale = context.preferences.read().locale;
+                let mut message = format!(
+                    "{} ({loaded_images}/{image_count})",
+                    tr(locale, "export_images_complete")
+                );
+                let missing = loaded_images < image_count;
+                if missing {
+                    message.push_str(&format!(
+                        " · {}: _missing-images.txt",
+                        tr(locale, "export_images_missing")
+                    ));
+                }
+                context.set_status(Status::new(
+                    message,
+                    if missing { Tone::Warning } else { Tone::Ok },
+                ));
+            }
             Ok(saved) if saved => context.set_status(Status::new(
                 tr(context.preferences.read().locale, "export_complete"),
                 Tone::Ok,
@@ -114,6 +147,7 @@ fn export_name(tab: &EditorTab, kind: ExportKind) -> String {
         ExportKind::Yaml => format!("{base}.pam.yaml"),
         ExportKind::Toml => format!("{base}.pam.toml"),
         ExportKind::Pam => format!("{base}.pam"),
+        ExportKind::ImagesZip => format!("{base}_sprites.zip"),
         ExportKind::Png => format!("{base}_{sprite_name}.png"),
         ExportKind::Apng => format!("{base}_{sprite_name}.apng"),
         ExportKind::Webp => format!("{base}_{sprite_name}.webp"),

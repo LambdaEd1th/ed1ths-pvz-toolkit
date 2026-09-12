@@ -433,6 +433,7 @@ mod tests {
                 ..Default::default()
             },
             resource_count: 0,
+            file_index: Arc::new(Vec::new()),
             packets: Arc::new(records.clone()),
             ptx_infos: Arc::new(vec![RsbPtxInfo::default(); 2]),
             warnings: Arc::new(Vec::new()),

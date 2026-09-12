@@ -62,7 +62,7 @@ struct PreviewAssetInner {
 }
 
 impl PreviewAsset {
-    fn new(url: String) -> Self {
+    pub(crate) fn new(url: String) -> Self {
         Self(Arc::new(PreviewAssetInner {
             url: Arc::from(url),
         }))

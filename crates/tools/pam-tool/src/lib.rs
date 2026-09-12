@@ -28,6 +28,18 @@ pub fn PamTool(
     let theme = pam_theme(appearance);
     let mut context = use_hook(move || AppContext::new(theme));
     use_context_provider(|| context);
+    let open_busy = use_signal(|| false);
+    toolkit_ui::use_tool_open(toolkit_ui::ToolKind::Pam, open_busy, move |files| {
+        actions::load_inputs(
+            context,
+            files
+                .into_iter()
+                .map(|file| {
+                    pam_editor_core::WorkerInputFile::new(file.name, file.bytes.as_ref().clone())
+                })
+                .collect(),
+        );
+    });
     use_effect(use_reactive(&active, move |active| {
         if !active {
             context.playing.set(false);

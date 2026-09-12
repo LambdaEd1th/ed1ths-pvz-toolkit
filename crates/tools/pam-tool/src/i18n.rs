@@ -54,6 +54,24 @@ pub fn tr(locale: Locale, key: &str) -> &'static str {
         (_, "redo") => "Redo",
         (Locale::ZhCn, "save_pam") => "保存 PAM",
         (_, "save_pam") => "Save PAM",
+        (Locale::ZhCn, "export_all_sprites") => "导出所有 Sprites",
+        (_, "export_all_sprites") => "Export all Sprites",
+        (Locale::ZhCn, "export_all_sprites_hint") => {
+            "将 PAM 使用的全部已加载图片素材导出为 PNG ZIP，不受可见性筛选影响"
+        }
+        (_, "export_all_sprites_hint") => {
+            "Export all loaded PAM image assets as a PNG ZIP, regardless of visibility filters"
+        }
+        (Locale::ZhCn, "export_images_empty") => {
+            "没有已加载的图片素材，请先载入 PAM 对应的 PNG 图片"
+        }
+        (_, "export_images_empty") => {
+            "No image assets are loaded. Load the PNG images used by this PAM first."
+        }
+        (Locale::ZhCn, "export_images_complete") => "已导出 PNG 素材",
+        (_, "export_images_complete") => "PNG assets exported",
+        (Locale::ZhCn, "export_images_missing") => "缺失图片清单",
+        (_, "export_images_missing") => "Missing image list",
         (Locale::ZhCn, "document_fps") => "文档帧率",
         (_, "document_fps") => "Document FPS",
         (Locale::ZhCn, "width") => "宽度",
