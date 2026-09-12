@@ -241,7 +241,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "PAM" }
                                     div {
-                                        h3 { "PAM Viewer" }
+                                        h3 { "PAM Editor" }
                                         code { "pam-codec" }
                                     }
                                 }

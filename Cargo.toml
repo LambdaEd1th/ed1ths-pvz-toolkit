@@ -96,11 +96,11 @@ wem-tool = { path = "crates/tools/wem-tool" }
 
 # Private application runtime crates and shared UI.
 compiled_text_worker = { path = "crates/runtime/compiled-text/worker" }
-pam_viewer_core = { path = "crates/runtime/pam/core" }
-pam_viewer_formats = { path = "crates/runtime/pam/formats" }
-pam_viewer_native_window = { path = "crates/runtime/pam/native-window" }
-pam_viewer_renderer = { path = "crates/runtime/pam/renderer", default-features = false }
-pam_viewer_worker = { path = "crates/runtime/pam/worker" }
+pam_editor_core = { path = "crates/runtime/pam/core" }
+pam_editor_formats = { path = "crates/runtime/pam/formats" }
+pam_editor_native_window = { path = "crates/runtime/pam/native-window" }
+pam_editor_renderer = { path = "crates/runtime/pam/renderer", default-features = false }
+pam_editor_worker = { path = "crates/runtime/pam/worker" }
 rsb_patch_worker = { path = "crates/runtime/rsb-patch/worker" }
 rsb_preview_worker = { path = "crates/runtime/rsb/worker" }
 rton_editor_core = { path = "crates/runtime/rton/core" }
@@ -134,7 +134,7 @@ image = { version = "0.25.10", default-features = false, features = [
     "png",
     "webp",
 ] }
-js-sys = "0.3.104"
+js-sys = "0.3.105"
 log = { version = "0.4.34", features = ["std"] }
 memmap2 = "0.9.11"
 objc2 = "0.6.4"
@@ -169,11 +169,11 @@ symphonia = { version = "0.6.1", default-features = false, features = [
     "vorbis",
 ] }
 thiserror = "2.0.20"
-toml = "1.1.4"
+toml = "1.1.6"
 unic-langid = "0.9.6"
-wasm-bindgen = "0.2.127"
-wasm-bindgen-futures = "0.4.77"
-web-sys = "0.3.104"
+wasm-bindgen = "0.2.128"
+wasm-bindgen-futures = "0.4.78"
+web-sys = "0.3.105"
 wgpu = { version = "30.0.1", features = ["webgl"] }
 zip = { version = "8.6.0", default-features = false, features = [
     "deflate-flate2-zlib-rs",

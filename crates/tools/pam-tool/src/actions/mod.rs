@@ -1,3 +1,4 @@
+mod editor;
 mod export;
 mod loading;
 mod playback;
@@ -5,6 +6,10 @@ mod preferences;
 mod visibility;
 mod workspace;
 
+pub use editor::{
+    active_sprite_mut, add_frame, add_sprite, delete_current_frame, edit_document,
+    edit_document_gesture, finish_edit_gesture, new_document, redo, undo,
+};
 pub use export::{ExportKind, start_export};
 pub use loading::input_files_from_dioxus;
 #[cfg(not(target_arch = "wasm32"))]
@@ -22,6 +27,7 @@ pub use visibility::{
     set_all_sprites_visible, set_ground_swatch_visible, set_image_visible, set_sprite_visible,
 };
 pub use workspace::{
-    activate_sprite, activate_tab, clear_tabs, close_tab, reorder_tab, reset_view, select_label,
-    set_export_dimension, set_export_scale,
+    activate_sprite, activate_tab, clear_tabs, clear_tabs_confirmed, close_tab,
+    close_tab_confirmed, reorder_tab, reset_view, select_label, set_export_dimension,
+    set_export_scale,
 };

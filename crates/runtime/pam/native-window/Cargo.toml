@@ -1,5 +1,5 @@
 [package]
-name = "pam_viewer_native_window"
+name = "pam_editor_native_window"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

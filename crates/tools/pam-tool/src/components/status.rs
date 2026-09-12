@@ -76,7 +76,7 @@ pub fn ExportOverlay() -> Element {
                             let operation_id = progress.operation_id;
                             spawn(async move {
                                 let _ = crate::platform::processing::perform(
-                                    pam_viewer_core::WorkerRequest::CancelExport {
+                                    pam_editor_core::WorkerRequest::CancelExport {
                                         document_id,
                                         operation_id,
                                     },

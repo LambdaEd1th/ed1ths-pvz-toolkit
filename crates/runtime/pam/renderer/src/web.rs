@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use futures_util::future::{Either, select};
-use pam_viewer_core::{RenderScenePayload, RenderViewPayload};
+use pam_editor_core::{RenderScenePayload, RenderViewPayload};
 use wasm_bindgen::prelude::*;
 
 use crate::color::srgb_view_format;
@@ -281,7 +281,7 @@ async fn create_runtime(
         .map_err(|_| RendererError::NoAdapter)?;
     let (device, queue) = adapter
         .request_device(&wgpu::DeviceDescriptor {
-            label: Some("pam-viewer web device"),
+            label: Some("pam-editor web device"),
             required_features: wgpu::Features::empty(),
             required_limits: wgpu::Limits::downlevel_webgl2_defaults()
                 .using_resolution(adapter.limits()),

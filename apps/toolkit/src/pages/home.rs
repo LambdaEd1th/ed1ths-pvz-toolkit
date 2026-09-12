@@ -75,7 +75,7 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Pam),
                                 span { class: "tk-button-icon", aria_hidden: "true", "▶" }
-                                {open_tool_label(i18n, "PAM Viewer")}
+                                {open_tool_label(i18n, "PAM Editor")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use futures_channel::oneshot;
-use pam_viewer_core::{PamDocument, SpriteKey};
+use pam_editor_core::{PamDocument, SpriteKey};
 
 use crate::{RendererError, Result, StageScene};
 
@@ -89,7 +89,7 @@ pub async fn render_offscreen_frames_into_with_cancel(
         .map_err(|_| RendererError::NoAdapter)?;
     let (device, queue) = adapter
         .request_device(&wgpu::DeviceDescriptor {
-            label: Some("pam-viewer export device"),
+            label: Some("pam-editor export device"),
             required_features: wgpu::Features::empty(),
             required_limits: wgpu::Limits::downlevel_webgl2_defaults()
                 .using_resolution(adapter.limits()),
@@ -192,7 +192,7 @@ struct ReadbackTarget {
 impl ReadbackTarget {
     fn new(device: &wgpu::Device, width: u32, height: u32, padded: u32, index: usize) -> Self {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some(&format!("pam-viewer export target {index}")),
+            label: Some(&format!("pam-editor export target {index}")),
             size: wgpu::Extent3d {
                 width,
                 height,
@@ -207,7 +207,7 @@ impl ReadbackTarget {
         });
         let view = texture.create_view(&Default::default());
         let buffer = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some(&format!("pam-viewer export readback {index}")),
+            label: Some(&format!("pam-editor export readback {index}")),
             size: padded as u64 * height as u64,
             usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
             mapped_at_creation: false,
@@ -235,7 +235,7 @@ fn begin_readback(
     slot: usize,
 ) -> PendingReadback {
     let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("pam-viewer export copy"),
+        label: Some("pam-editor export copy"),
     });
     encoder.copy_texture_to_buffer(
         wgpu::TexelCopyTextureInfo {

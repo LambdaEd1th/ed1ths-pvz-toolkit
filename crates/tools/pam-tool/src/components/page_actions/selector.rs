@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use pam_viewer_core::SpriteKey;
+use pam_editor_core::SpriteKey;
 
 use crate::actions::{activate_sprite, select_label};
 use crate::i18n::tr;

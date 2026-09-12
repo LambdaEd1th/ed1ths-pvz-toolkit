@@ -36,7 +36,7 @@ pub enum RendererError {
     #[error("animation frame consumer failed: {0}")]
     FrameConsumer(String),
     #[error("animation render failed: {0}")]
-    Core(#[from] pam_viewer_core::CoreError),
+    Core(#[from] pam_editor_core::CoreError),
     #[error("web canvas is unavailable: {0}")]
     WebCanvas(String),
     #[error("native surface is unavailable: {0}")]

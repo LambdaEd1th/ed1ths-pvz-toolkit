@@ -166,6 +166,8 @@ pub struct LoadedPamPayload {
     pub document: PamDocumentPayload,
     pub loaded_images: usize,
     pub missing_images: Vec<String>,
+    #[serde(default, with = "serde_bytes")]
+    pub original_pam_bytes: Vec<u8>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -174,7 +176,6 @@ pub enum ExportKind {
     Png,
     Apng,
     Webp,
-    Fla,
     Json,
     Yaml,
     Toml,

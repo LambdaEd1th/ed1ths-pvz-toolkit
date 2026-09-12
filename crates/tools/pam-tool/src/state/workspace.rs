@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
-use pam_viewer_core::{
-    FrameLabel, LoadedPamPayload, PamDocument, SpecialLayerIndices, SpriteInfo, SpriteKey,
+use pam_editor_core::{
+    FrameLabel, LoadedPamPayload, PamDocument, PamInfo, SpecialLayerIndices, SpriteInfo, SpriteKey,
 };
 #[cfg(target_arch = "wasm32")]
-use pam_viewer_core::{RenderDocumentGeometryPayload, RenderViewPayload};
+use pam_editor_core::{RenderDocumentGeometryPayload, RenderViewPayload};
 #[cfg(not(target_arch = "wasm32"))]
-use pam_viewer_renderer::StageScene;
+use pam_editor_renderer::StageScene;
 
 use super::Preferences;
 
@@ -17,7 +17,7 @@ pub struct FrameRange {
 }
 
 #[derive(Clone, Debug)]
-pub struct ViewerTab {
+pub struct EditorTab {
     pub id: u64,
     pub processing_id: u64,
     pub document: Arc<PamDocument>,
@@ -37,6 +37,17 @@ pub struct ViewerTab {
     pub selected_label: Option<usize>,
     pub loaded_images: usize,
     pub image_thumbnails: Vec<Option<String>>,
+    pub selected_image: Option<usize>,
+    /// Monotonically increasing document generation used by both render hosts.
+    pub document_revision: u64,
+    /// The semantic state represented by the last successful PAM load/save.
+    pub saved_pam: PamInfo,
+    pub never_saved: bool,
+    /// Original bytes are retained so an untouched PAM can be saved byte-for-byte.
+    pub original_pam_bytes: Option<Arc<[u8]>>,
+    pub undo_stack: Vec<PamInfo>,
+    pub redo_stack: Vec<PamInfo>,
+    pub pending_edit: Option<PamInfo>,
 }
 
 fn apply_default_sprite_visibility(
@@ -55,7 +66,7 @@ fn apply_default_sprite_visibility(
     }
 }
 
-impl ViewerTab {
+impl EditorTab {
     pub fn new(
         id: u64,
         loaded: LoadedPamPayload,
@@ -67,6 +78,9 @@ impl ViewerTab {
                 .into_document()
                 .map_err(|error| error.to_string())?,
         );
+        let saved_pam = document.pam.clone();
+        let original_pam_bytes = (!loaded.original_pam_bytes.is_empty())
+            .then(|| Arc::<[u8]>::from(loaded.original_pam_bytes));
         let active_sprite = if document.pam.main_sprite.is_some() {
             SpriteKey::Main
         } else {
@@ -76,7 +90,7 @@ impl ViewerTab {
             .map(|sprite| sprite.frame.len())
             .unwrap_or(0);
         let special_layers =
-            pam_viewer_core::special_layer_indices(&document.pam, &document.source_name);
+            pam_editor_core::special_layer_indices(&document.pam, &document.source_name);
         let mut sprite_filter = vec![true; document.pam.sprite.len()];
         apply_default_sprite_visibility(&mut sprite_filter, &special_layers);
         let bounds = document.stage_bounds();
@@ -135,6 +149,14 @@ impl ViewerTab {
             selected_label: None,
             loaded_images: loaded.loaded_images,
             image_thumbnails,
+            selected_image: (image_count > 0).then_some(0),
+            document_revision: 0,
+            never_saved: false,
+            saved_pam,
+            original_pam_bytes,
+            undo_stack: Vec::new(),
+            redo_stack: Vec::new(),
+            pending_edit: None,
         })
     }
 
@@ -157,7 +179,7 @@ impl ViewerTab {
 
     pub fn labels(&self) -> Vec<FrameLabel> {
         self.active_sprite_info()
-            .map(pam_viewer_core::parse_frame_labels)
+            .map(pam_editor_core::parse_frame_labels)
             .unwrap_or_default()
     }
 
@@ -165,6 +187,10 @@ impl ViewerTab {
         self.active_sprite_info()
             .map(|sprite| sprite.frame.len())
             .unwrap_or(0)
+    }
+
+    pub fn is_dirty(&self) -> bool {
+        self.never_saved || self.document.pam != self.saved_pam
     }
 
     #[cfg(target_arch = "wasm32")]
@@ -189,7 +215,7 @@ impl ViewerTab {
     pub fn stage_scene(&self, boundary: bool, dark_background: bool) -> StageScene {
         StageScene {
             document: Some(self.document.clone()),
-            document_revision: 0,
+            document_revision: self.document_revision,
             sprite: self.active_sprite,
             frame: self.current_frame,
             image_filter: self.image_filter.clone(),

@@ -53,7 +53,7 @@ pub fn encode_pam_bytes(pam: &PamInfo) -> Result<Vec<u8>> {
 }
 
 /// JSON is intentionally serialized and deserialized directly through pam-codec's
-/// serde definitions. There is no second compatibility schema in pam-viewer.
+/// serde definitions. There is no second compatibility schema in pam-editor.
 pub fn decode_json(text: &str) -> Result<PamInfo> {
     Ok(serde_json::from_str(text)?)
 }

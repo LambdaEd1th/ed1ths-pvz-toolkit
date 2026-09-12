@@ -18,7 +18,7 @@ fn pam_theme(appearance: Appearance) -> Theme {
     }
 }
 
-/// Mount the PAM viewer/exporter inside the Toolkit shell.
+/// Mount the PAM editor/exporter inside the Toolkit shell.
 #[component]
 pub fn PamTool(
     #[props(default = true)] active: bool,

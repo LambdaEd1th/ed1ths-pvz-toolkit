@@ -145,12 +145,12 @@
     const startMain = async (forceWebgl = false) => {
         if (destroyed) return false;
         const runtime = await import(
-            `${absoluteAsset("renderer/pkg/pam_viewer_renderer.js")}?v=${version}`
+            `${absoluteAsset("renderer/pkg/pam_editor_renderer.js")}?v=${version}`
         );
         if (destroyed) return false;
         await runtime.default({
             module_or_path:
-                `${absoluteAsset("renderer/pkg/pam_viewer_renderer_bg.wasm")}?v=${version}`,
+                `${absoluteAsset("renderer/pkg/pam_editor_renderer_bg.wasm")}?v=${version}`,
         });
         if (destroyed) return false;
         const candidateHandle = new runtime.RendererHandle();

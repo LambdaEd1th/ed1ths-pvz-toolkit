@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use pam_viewer_core::{PamDocument, Rect, RenderViewPayload, SpriteKey};
+use pam_editor_core::{PamDocument, Rect, RenderViewPayload, SpriteKey};
 use parking_lot::RwLock;
 
 #[derive(Clone, Debug)]
@@ -134,7 +134,7 @@ impl SharedStage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pam_viewer_core::PamInfo;
+    use pam_editor_core::PamInfo;
 
     fn document(name: &str) -> Arc<PamDocument> {
         Arc::new(
@@ -193,7 +193,7 @@ mod tests {
         };
 
         scene.apply_view(RenderViewPayload {
-            document_geometry: Some(pam_viewer_core::RenderDocumentGeometryPayload {
+            document_geometry: Some(pam_editor_core::RenderDocumentGeometryPayload {
                 position: [12.0, 18.0],
                 size: [96.0, 128.0],
             }),

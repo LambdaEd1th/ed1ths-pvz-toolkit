@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use pam_viewer_core::{
+use pam_editor_core::{
     AddsInfo, FrameInfo, ImageAsset, ImageInfo, MovesInfo, PamInfo, SpriteInfo, SpriteKey,
     compile_animation, decode_json, encode_json, parse_frame_labels,
 };

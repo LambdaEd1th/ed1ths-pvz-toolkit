@@ -1,5 +1,5 @@
 use js_sys::{Function, Reflect};
-use pam_viewer_core::{RenderScenePayload, RenderViewPayload};
+use pam_editor_core::{RenderScenePayload, RenderViewPayload};
 use serde::Serialize;
 use wasm_bindgen::{JsCast, JsValue};
 

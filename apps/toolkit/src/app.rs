@@ -79,12 +79,12 @@ pub(crate) fn launch() {
                 {
                     use dioxus::desktop::tao::platform::macos::WindowExtMacOS;
 
-                    pam_viewer_native_window::install_safe_reopen_handler();
+                    pam_editor_native_window::install_safe_reopen_handler();
                     // SAFETY: Dioxus/Tao owns this NSWindow for the duration of
                     // the callback and returns its live native pointer here.
                     unsafe {
-                        pam_viewer_native_window::fit_window_to_visible_frame(_window.ns_window());
-                        pam_viewer_native_window::make_opaque(_window.ns_window());
+                        pam_editor_native_window::fit_window_to_visible_frame(_window.ns_window());
+                        pam_editor_native_window::make_opaque(_window.ns_window());
                     }
                 }
             });

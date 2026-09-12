@@ -2,7 +2,6 @@
 use std::cell::RefCell;
 #[cfg(target_arch = "wasm32")]
 use std::rc::Rc;
-use std::sync::Arc;
 
 use dioxus::prelude::*;
 #[cfg(target_arch = "wasm32")]
@@ -10,15 +9,15 @@ use dioxus::web::WebEventExt;
 use dioxus_free_icons::icons::ld_icons::LdFolderOpen;
 use dioxus_html::HasFileData;
 use dioxus_html::input_data::MouseButton;
-use pam_viewer_core::Rect;
+use pam_editor_core::Rect;
 #[cfg(target_arch = "wasm32")]
-use pam_viewer_core::{RenderDocumentPayload, RenderScenePayload, RenderViewPayload};
+use pam_editor_core::{RenderDocumentPayload, RenderScenePayload, RenderViewPayload};
 use serde::Deserialize;
 use toolkit_ui::DropIndicator;
 
 use crate::actions::{input_files_from_dioxus, load_inputs};
 use crate::i18n::tr;
-use crate::state::{AppContext, BoundaryEdge, StageDrag, ViewerTab};
+use crate::state::{AppContext, BoundaryEdge, EditorTab, StageDrag};
 
 use super::page_actions::LoadButton;
 use super::primitives::icon;
@@ -152,11 +151,13 @@ pub fn Stage() -> Element {
                 }
             },
             onpointerup: move |event| {
+                crate::actions::finish_edit_gesture(context);
                 context.stage_drag.set(None);
                 let point = [event.element_coordinates().x, event.element_coordinates().y];
                 hovered_edge.set(boundary_at(context, point));
             },
             onpointercancel: move |_| {
+                crate::actions::finish_edit_gesture(context);
                 context.stage_drag.set(None);
                 context.pointer_coord.set(None);
                 hovered_edge.set(None);
@@ -206,7 +207,6 @@ pub fn Stage() -> Element {
                         span { "JSON" }
                         span { "YAML" }
                         span { "TOML" }
-                        span { "FLA / XFL" }
                     }
                     LoadButton { large: true }
                 }
@@ -220,7 +220,7 @@ pub fn Stage() -> Element {
 fn StageCanvas() -> Element {
     let context = use_context::<AppContext>();
     let mut renderer_generation = use_signal(|| 0_u64);
-    let sent_scene = use_hook(|| Rc::new(RefCell::new(None::<(u64, Option<u64>)>)));
+    let sent_scene = use_hook(|| Rc::new(RefCell::new(None::<(u64, Option<(u64, u64)>)>)));
 
     let start_host = move |_| {
         let asset_root = serde_json::to_string(&super::APP_ASSETS.to_string())
@@ -261,7 +261,10 @@ fn StageCanvas() -> Element {
         };
         drop(preferences);
         let tab = context.active_tab_snapshot();
-        let identity = (generation, tab.as_ref().map(|tab| tab.id));
+        let identity = (
+            generation,
+            tab.as_ref().map(|tab| (tab.id, tab.document_revision)),
+        );
         let full_scene = sent_scene.borrow().as_ref() != Some(&identity);
         let view = tab
             .as_ref()
@@ -335,7 +338,7 @@ fn StageCanvas() -> Element {
                             context
                                 .stage_size
                                 .set([f64::from(width.max(1.0)), f64::from(height.max(1.0))]);
-                            renderer.set_viewport(pam_viewer_renderer::NativeViewport {
+                            renderer.set_viewport(pam_editor_renderer::NativeViewport {
                                 x,
                                 y,
                                 width,
@@ -373,11 +376,11 @@ fn camera_fit(bounds: Rect, viewport: [f64; 2]) -> f64 {
         .max(0.0001)
 }
 
-fn camera_scale(tab: &ViewerTab, viewport: [f64; 2]) -> f64 {
+fn camera_scale(tab: &EditorTab, viewport: [f64; 2]) -> f64 {
     camera_fit(tab.document.stage_bounds(), viewport) * tab.zoom as f64
 }
 
-fn screen_to_world(tab: &ViewerTab, viewport: [f64; 2], point: [f64; 2]) -> [f64; 2] {
+fn screen_to_world(tab: &EditorTab, viewport: [f64; 2], point: [f64; 2]) -> [f64; 2] {
     let scale = camera_scale(tab, viewport);
     [
         (point[0] - viewport[0] / 2.0) / scale - tab.pan[0] as f64,
@@ -397,7 +400,7 @@ fn update_pointer_coordinate(mut context: AppContext, point: [f64; 2]) {
     ]));
 }
 
-fn zoom_at(context: AppContext, tab: &ViewerTab, point: [f64; 2], delta: f64) {
+fn zoom_at(context: AppContext, tab: &EditorTab, point: [f64; 2], delta: f64) {
     let viewport = *context.stage_size.read();
     let world = screen_to_world(tab, viewport, point);
     let factor = (-delta * 0.0015).exp().clamp(0.8, 1.25) as f32;
@@ -488,10 +491,11 @@ fn resize_boundary(
     locked_scale: f64,
 ) {
     let (position, size) = resized_boundary(edge, original_size, original_position, delta);
+    crate::actions::edit_document_gesture(context, move |pam, _, _| {
+        pam.position = position;
+        pam.size = size;
+    });
     context.update_active_tab(|tab| {
-        let document = Arc::make_mut(&mut tab.document);
-        document.pam.position = position;
-        document.pam.size = size;
         if let Some(scale) = tab.export_scale {
             tab.export_size = [
                 (size[0] * scale as f64).round().max(1.0) as u32,

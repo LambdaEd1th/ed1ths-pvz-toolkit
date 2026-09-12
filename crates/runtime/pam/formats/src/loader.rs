@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use image::ImageReader;
-use pam_viewer_core::{ImageAsset, PamDocument, PamInfo, parse_image_file_name};
+use pam_editor_core::{ImageAsset, PamDocument, PamInfo, parse_image_file_name};
 
 use crate::{FormatError, Result, TextFormat, decode_text};
 
@@ -30,6 +30,8 @@ pub struct LoadedPam {
     pub document: PamDocument,
     pub loaded_images: usize,
     pub missing_images: Vec<String>,
+    /// Original binary source used for byte-exact no-op saves.
+    pub original_pam_bytes: Option<Vec<u8>>,
 }
 
 pub fn load_pam_document(files: &[InputFile]) -> Result<LoadedPam> {
@@ -37,25 +39,21 @@ pub fn load_pam_document(files: &[InputFile]) -> Result<LoadedPam> {
         return Err(FormatError::AnimationNotFound);
     }
 
-    // FLA/XFL is handled by the dedicated importer before ordinary PAM sources.
-    if files.iter().any(|file| ends_with(&file.path, ".fla"))
-        || files
-            .iter()
-            .any(|file| file.path.to_ascii_lowercase().ends_with("domdocument.xml"))
-    {
-        return crate::fla::import_animation(files);
-    }
-
     let source = find_source(files).ok_or(FormatError::AnimationNotFound)?;
     let pam = decode_source(source)?;
-    build_document(source.path.clone(), pam, files, None)
+    let original_pam_bytes = source
+        .path
+        .to_ascii_lowercase()
+        .ends_with(".pam")
+        .then(|| source.bytes.to_vec());
+    build_document(source.path.clone(), pam, files, original_pam_bytes)
 }
 
-pub(crate) fn build_document(
+fn build_document(
     source_name: String,
     pam: PamInfo,
     files: &[InputFile],
-    embedded_images: Option<&HashMap<String, Arc<[u8]>>>,
+    original_pam_bytes: Option<Vec<u8>>,
 ) -> Result<LoadedPam> {
     let mut png_files = HashMap::<String, Arc<[u8]>>::new();
     for file in files {
@@ -65,7 +63,7 @@ pub(crate) fn build_document(
         }
     }
 
-    let load_image = |definition: &pam_viewer_core::ImageInfo| {
+    let load_image = |definition: &pam_editor_core::ImageInfo| {
         let base_name = parse_image_file_name(&definition.name);
         let alternate = definition
             .name
@@ -73,18 +71,9 @@ pub(crate) fn build_document(
             .map(|(_, alternate)| alternate.to_string());
         let candidates = [Some(base_name), alternate];
         let bytes = candidates.iter().flatten().find_map(|candidate| {
-            embedded_images
-                .and_then(|images| {
-                    images
-                        .get(candidate)
-                        .or_else(|| images.get(&candidate.to_ascii_uppercase()))
-                        .cloned()
-                })
-                .or_else(|| {
-                    png_files
-                        .get(&format!("{candidate}.png").to_ascii_uppercase())
-                        .cloned()
-                })
+            png_files
+                .get(&format!("{candidate}.png").to_ascii_uppercase())
+                .cloned()
         });
         let Some(bytes) = bytes else {
             return (None, Some(definition.name.clone()));
@@ -114,6 +103,7 @@ pub(crate) fn build_document(
         document,
         loaded_images,
         missing_images,
+        original_pam_bytes,
     })
 }
 
@@ -142,7 +132,7 @@ fn decode_source(file: &InputFile) -> Result<PamInfo> {
     } else if lower.ends_with(".toml") {
         decode_text(std::str::from_utf8(&file.bytes)?, TextFormat::Toml)
     } else {
-        Ok(pam_viewer_core::decode_pam_bytes(&file.bytes)?)
+        Ok(pam_editor_core::decode_pam_bytes(&file.bytes)?)
     }
 }
 
