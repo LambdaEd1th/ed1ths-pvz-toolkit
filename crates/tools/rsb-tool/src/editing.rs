@@ -1,7 +1,7 @@
 use crate::domain::{ArchiveDocument, PacketDocument, PacketRecord};
 use rsb_archive::{
     RsbArchiveEdit, RsbPtxInfo, RsgHeader, RsgInfo, RsgPacketAddition, RsgPacketEdit,
-    RsgPacketGroup, UnpackedFile, pack_rsg, rebuild_rsb, unpack_rsg,
+    RsgPacketGroup, UnpackedFile, pack_rsg, unpack_rsg,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Cursor;
@@ -282,12 +282,12 @@ pub fn archive_edit(
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn rebuild_archive(
     archive: &ArchiveDocument,
     edit: &RsbArchiveEdit,
 ) -> Result<Vec<u8>, String> {
-    let source = archive.source_bytes()?;
-    rebuild_rsb(&source, edit).map_err(|error| error.to_string())
+    crate::archive_save::rebuild_native(archive, edit)
 }
 
 pub fn edited_packet_record(archive_record: &PacketRecord, edits: &PacketEdits) -> PacketRecord {
@@ -439,6 +439,7 @@ mod tests {
             warnings: Arc::new(Vec::new()),
             channel_order_mode: crate::domain::ArchiveChannelOrderMode::Auto,
             source: ArchiveSource::Memory(Arc::new(Vec::new())),
+            metadata_override: None,
         };
         let later = PacketDocument::new(records[1].clone(), Vec::new(), Vec::new());
         let mut edits = PacketEdits::new();

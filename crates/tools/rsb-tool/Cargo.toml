@@ -44,6 +44,8 @@ web-sys = { workspace = true, features = [
     "Blob",
     "BlobPropertyBag",
     "Document",
+    "File",
+    "FileReader",
     "HtmlAnchorElement",
     "MessageEvent",
     "Url",

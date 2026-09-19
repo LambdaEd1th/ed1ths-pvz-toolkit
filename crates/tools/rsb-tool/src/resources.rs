@@ -227,7 +227,10 @@ pub fn is_manifest_path(path: &str) -> bool {
 }
 
 pub fn embedded_manifest(archive: &ArchiveDocument) -> Result<ManifestData, String> {
-    let header = &archive.header;
+    let metadata = archive.metadata_bytes()?;
+    let metadata_len = metadata.len();
+    let mut reader = Rsb::open(Cursor::new(metadata)).map_err(|error| error.to_string())?;
+    let header = reader.header.clone();
     let [structure, detail, strings] = [
         header.part1_begin_offset,
         header.part2_begin_offset,
@@ -242,13 +245,11 @@ pub fn embedded_manifest(archive: &ArchiveDocument) -> Result<ManifestData, Stri
         || detail > strings
         || strings as usize >= length
         || length > MAX_MANIFEST_BYTES
-        || length as u64 > archive.byte_len
+        || length > metadata_len
     {
         return Err("内嵌资源描述的区段范围无效或超过 128 MiB 限制".into());
     }
     // Keep all parser seeks within the metadata, never the packet payloads.
-    let bytes = archive.source.read_range(0, length)?;
-    let mut reader = Rsb::open(Cursor::new(bytes)).map_err(|error| error.to_string())?;
     let description = reader
         .read_resources_description("")
         .map_err(|error| error.to_string())?;
@@ -365,7 +366,7 @@ pub fn parse_manifest(name: &str, bytes: &[u8]) -> Result<ManifestData, String> 
     parse_manifest_json(name, value)
 }
 
-fn parse_manifest_json(name: &str, value: Value) -> Result<ManifestData, String> {
+pub(crate) fn parse_manifest_json(name: &str, value: Value) -> Result<ManifestData, String> {
     // Also accept the v3 description.json shape emitted by the RSB codec.
     if value["groups"].is_object() {
         let description: ResourcesDescription = serde_json::from_value(value)
@@ -471,9 +472,6 @@ fn parse_manifest_json(name: &str, value: Value) -> Result<ManifestData, String>
                 source: name.into(),
             });
         }
-    }
-    if output.resources.is_empty() {
-        return Err("资源清单中没有可读取的资源条目".into());
     }
     Ok(output)
 }
@@ -1141,6 +1139,7 @@ mod tests {
             warnings: Arc::new(Vec::new()),
             channel_order_mode: ArchiveChannelOrderMode::Auto,
             source: ArchiveSource::Memory(Arc::new(Vec::new())),
+            metadata_override: None,
         };
         assert_eq!(
             physical_files(&archive, &PacketEdits::new(), &RemovedPackets::new())[0].packet_index,

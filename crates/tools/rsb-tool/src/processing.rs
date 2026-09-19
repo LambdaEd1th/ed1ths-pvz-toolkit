@@ -1,4 +1,5 @@
 use crate::domain::{ArchiveDocument, PacketDocument};
+#[cfg(not(target_arch = "wasm32"))]
 use crate::editing;
 #[cfg(target_arch = "wasm32")]
 use rsb_archive::{Part1Extra, UnpackedFile};
@@ -105,6 +106,7 @@ pub async fn open_native(path: std::path::PathBuf) -> Result<ArchiveDocument, St
         .map_err(|_| "RSB 索引后台任务意外终止".to_string())?
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub async fn source_bytes(archive: Arc<ArchiveDocument>) -> Result<Vec<u8>, String> {
     #[cfg(not(target_arch = "wasm32"))]
     {
@@ -115,11 +117,6 @@ pub async fn source_bytes(archive: Arc<ArchiveDocument>) -> Result<Vec<u8>, Stri
         receiver
             .await
             .map_err(|_| "RSB 读取后台任务意外终止".to_string())?
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    {
-        archive.source_bytes()
     }
 }
 
@@ -247,6 +244,33 @@ pub async fn load_manifest_packet(
     load_packet_impl(archive, packet_index, true).await
 }
 
+pub async fn packet_raw(
+    archive: Arc<ArchiveDocument>,
+    packet_index: usize,
+) -> Result<Vec<u8>, String> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let (sender, receiver) = futures_channel::oneshot::channel();
+        archive_pool().spawn(move || {
+            let _ = sender.send(
+                archive
+                    .read_packet_raw(packet_index)
+                    .map(|(_, bytes)| bytes),
+            );
+        });
+        receiver
+            .await
+            .map_err(|_| "RSG 读取后台任务意外终止".to_string())?
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        archive
+            .read_packet_raw_async(packet_index)
+            .await
+            .map(|(_, bytes)| bytes)
+    }
+}
+
 pub async fn open_memory(name: String, bytes: Vec<u8>) -> Result<ArchiveDocument, String> {
     #[cfg(not(target_arch = "wasm32"))]
     {
@@ -283,7 +307,7 @@ async fn load_packet_impl(
 
     #[cfg(target_arch = "wasm32")]
     {
-        let (record, raw) = archive.read_packet_raw(packet_index)?;
+        let (record, raw) = archive.read_packet_raw_async(packet_index).await?;
         let request = PacketRequest { raw };
         let serializer = serde_wasm_bindgen::Serializer::new();
         let request = request
@@ -321,6 +345,7 @@ async fn load_packet_impl(
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub async fn rebuild_archive(
     archive: Arc<ArchiveDocument>,
     edit: rsb_archive::RsbArchiveEdit,
@@ -334,11 +359,6 @@ pub async fn rebuild_archive(
         receiver
             .await
             .map_err(|_| "RSB 重建任务意外终止".to_string())?
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    {
-        editing::rebuild_archive(&archive, &edit)
     }
 }
 

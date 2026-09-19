@@ -68,12 +68,10 @@ pub async fn pick_rsg_replacement() -> Result<Option<crate::editing::AddedFile>,
     Ok(Some(crate::editing::AddedFile { name, data }))
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SavedArchive {
-    #[cfg(not(target_arch = "wasm32"))]
     Native(std::path::PathBuf),
-    #[cfg(target_arch = "wasm32")]
-    Downloaded,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -143,17 +141,6 @@ fn write_atomic(path: &std::path::Path, bytes: &[u8]) -> Result<(), String> {
     Err(format!("无法为 {} 分配临时保存文件", path.display()))
 }
 
-#[cfg(target_arch = "wasm32")]
-pub async fn save_archive(
-    default_name: &str,
-    bytes: &[u8],
-    _overwrite: Option<&std::path::Path>,
-) -> Result<Option<SavedArchive>, String> {
-    save_bytes(default_name, bytes)
-        .await
-        .map(|saved| saved.then_some(SavedArchive::Downloaded))
-}
-
 #[cfg(not(target_arch = "wasm32"))]
 pub async fn save_bytes(default_name: &str, bytes: &[u8]) -> Result<bool, String> {
     let Some(file) = rfd::AsyncFileDialog::new()
@@ -169,19 +156,23 @@ pub async fn save_bytes(default_name: &str, bytes: &[u8]) -> Result<bool, String
 
 #[cfg(target_arch = "wasm32")]
 pub async fn save_bytes(default_name: &str, bytes: &[u8]) -> Result<bool, String> {
-    use wasm_bindgen::JsCast;
-
-    let window = web_sys::window().ok_or_else(|| "window is unavailable".to_string())?;
-    let document = window
-        .document()
-        .ok_or_else(|| "document is unavailable".to_string())?;
     let array = js_sys::Uint8Array::from(bytes);
     let parts = js_sys::Array::new();
     parts.push(&array);
     let blob =
         web_sys::Blob::new_with_u8_array_sequence(&parts).map_err(|error| format!("{error:?}"))?;
+    save_blob(default_name, &blob)
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn save_blob(default_name: &str, blob: &web_sys::Blob) -> Result<bool, String> {
+    use wasm_bindgen::JsCast;
+    let window = web_sys::window().ok_or_else(|| "window is unavailable".to_string())?;
+    let document = window
+        .document()
+        .ok_or_else(|| "document is unavailable".to_string())?;
     let url =
-        web_sys::Url::create_object_url_with_blob(&blob).map_err(|error| format!("{error:?}"))?;
+        web_sys::Url::create_object_url_with_blob(blob).map_err(|error| format!("{error:?}"))?;
     let anchor = document
         .create_element("a")
         .map_err(|error| format!("{error:?}"))?

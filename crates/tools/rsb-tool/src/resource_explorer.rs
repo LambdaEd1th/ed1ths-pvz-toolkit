@@ -16,7 +16,11 @@ pub fn ResourceExplorer(
     archive: Arc<ArchiveDocument>,
     edits: PacketEdits,
     removed: RemovedPackets,
+    ptx_infos: Vec<rsb_archive::RsbPtxInfo>,
+    dirty: bool,
     active: bool,
+    on_commit: EventHandler<crate::resource_edit::ResourceCommit>,
+    on_save: EventHandler<()>,
     on_close: EventHandler<()>,
     on_locate: EventHandler<ResourceLocation>,
 ) -> Element {
@@ -191,11 +195,20 @@ pub fn ResourceExplorer(
         ("unlisted", "未列入清单", catalog.unlisted),
         ("program", "程序资源", catalog.program),
     ];
+    let read_archive = use_memo(use_reactive(
+        &(archive.clone(), ptx_infos.clone()),
+        |(archive, ptx)| {
+            let mut document = archive.as_ref().clone();
+            document.ptx_infos = Arc::new(ptx);
+            Arc::new(document)
+        },
+    ));
     rsx! {
         section { class: "rsb-resource-explorer", hidden: !active, aria_label: "资源管理器",
             header { class: "rsb-res-heading",
                 div { class: "rsb-res-title", ResourceIcon { kind: "archive" } strong { "资源管理器" } span { "RSB v{archive.header.version} · 逻辑路径" } }
                 div { class: "rsb-res-actions",
+                    button { class: "rsb-tool-button", disabled: !dirty || loading, onclick: move |_| on_save.call(()), "保存 RSB" }
                     ManifestImportButton {
                         on_import: move |file: AddedFile| {
                             let name = file.name.clone();
@@ -267,8 +280,12 @@ pub fn ResourceExplorer(
                 button { class: "rsb-tool-button", disabled: selected.read().targets.is_empty(),
                     onclick: move |_| selected.set(BrowserSelection::default()), "取消选择" }
                 crate::resource_operations::ResourceOperations {
-                    archive: archive.clone(), edits, removed, catalog: catalog.clone(),
+                    archive: read_archive(), edits: edits.clone(), removed: removed.clone(), catalog: catalog.clone(),
                     selected_indices, focused_index, open_request, message,
+                }
+                crate::resource_editor::ResourceEditor {
+                    archive: archive.clone(), edits, removed, ptx_infos, catalog: catalog.clone(), current: current.clone(), disabled: loading,
+                    on_commit: move |commit: crate::resource_edit::ResourceCommit| { message.set(commit.message.clone()); on_commit.call(commit); },
                 }
             }
             div { class: if details() { "rsb-res-body" } else { "rsb-res-body without-details" },
@@ -437,7 +454,7 @@ pub fn ResourceExplorer(
                     p { "未发现资源清单，当前显示包内文件索引。可导入 RESOURCES.RTON、RESOURCES.NEWTON 或 JSON 资源描述。" }
                 } else {
                     details {
-                        summary { "已合并 {data.sources.len()} 份清单 · {data.resources.len()} 个逻辑资源 · 只读映射，不修改 RSB" }
+                        summary { "已合并 {data.sources.len()} 份清单 · {data.resources.len()} 个逻辑资源" if dirty { " · 修改尚未保存" } }
                         for source in &data.sources { p { "{source}" } }
                     }
                 }

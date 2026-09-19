@@ -23,6 +23,8 @@ pub struct ArchiveDocument {
     pub ptx_infos: Arc<Vec<RsbPtxInfo>>,
     pub warnings: Arc<Vec<String>>,
     pub channel_order_mode: ArchiveChannelOrderMode,
+    /// Edited embedded resource description, with the original packet offsets.
+    pub metadata_override: Option<Arc<Vec<u8>>>,
     pub(crate) source: ArchiveSource,
 }
 
@@ -33,6 +35,8 @@ impl PartialEq for ArchiveDocument {
             && Arc::ptr_eq(&self.packets, &other.packets)
             && Arc::ptr_eq(&self.ptx_infos, &other.ptx_infos)
             && self.channel_order_mode == other.channel_order_mode
+            && self.metadata_override.as_ref().map(Arc::as_ptr)
+                == other.metadata_override.as_ref().map(Arc::as_ptr)
     }
 }
 
