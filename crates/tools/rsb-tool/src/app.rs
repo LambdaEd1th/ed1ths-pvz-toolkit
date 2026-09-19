@@ -3,6 +3,8 @@ use crate::domain::{
     RowSelection, file_kind, format_bytes, safe_archive_path,
 };
 use crate::editing::{self, AddedFile, PacketEdits, RemovedPackets};
+#[cfg(target_arch = "wasm32")]
+use crate::loader;
 use crate::preview::{
     ArchiveChannelOrderDetection, ArchiveChannelOrderInference, PreviewCache, PreviewQuality,
     PtxPreview, PtxPreviewState, decode_prepared, detect_archive_channel_order, prepare_png_export,
@@ -16,9 +18,7 @@ use crate::virtual_scroll::{
     TABLE_DEFAULT_VIEWPORT_HEIGHT, measured_table_viewport_height, table_row_top,
     table_virtual_window,
 };
-use crate::{
-    RsbNewtonOpenRequest, RsbRtonOpenRequest, RsbWemOpenRequest, loader, platform, processing,
-};
+use crate::{RsbNewtonOpenRequest, RsbRtonOpenRequest, RsbWemOpenRequest, platform, processing};
 use dioxus::prelude::*;
 use dioxus_html::{
     FileData, HasFileData, ScrollBehavior, geometry::PixelsVector2D, input_data::MouseButton,
@@ -291,7 +291,8 @@ struct ArchiveTabSession {
 
 impl ArchiveTabSession {
     fn has_unsaved_changes(&self) -> bool {
-        !self.packet_edits.is_empty()
+        self.archive.metadata_override.is_some()
+            || !self.packet_edits.is_empty()
             || !self.removed_packets.is_empty()
             || self.ptx_infos.as_slice() != self.archive.ptx_infos.as_slice()
     }
@@ -728,17 +729,20 @@ fn install_editable_archive(
 }
 
 async fn open_file_data(file: FileData) -> Result<ArchiveDocument, String> {
+    #[cfg(target_arch = "wasm32")]
+    {
+        crate::web_file::open(file).await
+    }
     #[cfg(not(target_arch = "wasm32"))]
     {
         let path = file.path();
         if !path.as_os_str().is_empty() && path.is_file() {
             return processing::open_native(path).await;
         }
+        let name = file.name();
+        let bytes = file.read_bytes().await.map_err(|error| error.to_string())?;
+        processing::open_memory(name, bytes.as_ref().to_vec()).await
     }
-
-    let name = file.name();
-    let bytes = file.read_bytes().await.map_err(|error| error.to_string())?;
-    loader::open_memory(name, bytes.as_ref().to_vec())
 }
 
 fn enter_packet(
@@ -1051,16 +1055,21 @@ async fn extract_current(
         let Some(document) = archive() else {
             return;
         };
-        let loaded = edits
+        let Some(record) = editing::packet_record(&document, &edits.read(), index) else {
+            return;
+        };
+        let edited = edits
             .read()
             .get(&index)
-            .map(|edit| edit.document.as_ref().clone())
-            .map(Ok)
-            .unwrap_or_else(|| document.load_packet(index));
-        match loaded {
-            Ok(loaded) => {
-                let name = format!("{}.rsg", loaded.record.info.name);
-                match platform::save_bytes(&name, &loaded.raw).await {
+            .map(|edit| edit.document.raw.clone());
+        let raw = match edited {
+            Some(raw) => Ok(raw.as_ref().clone()),
+            None => processing::packet_raw(document, index).await,
+        };
+        match raw {
+            Ok(raw) => {
+                let name = format!("{}.rsg", record.info.name);
+                match platform::save_bytes(&name, &raw).await {
                     Ok(true) => set_status(
                         status,
                         AppStatus::new(format!("已导出 {name}"), StatusTone::Success),
@@ -2409,7 +2418,40 @@ fn create_folder(
     );
 }
 
-fn replace_selected_rsg(
+// Keep file-backed reads asynchronous. A tab switch while reading cancels the edit.
+async fn packet_for_edit(
+    archive: Signal<Option<Arc<ArchiveDocument>>>,
+    packet: Signal<Option<Arc<PacketDocument>>>,
+    edits: Signal<PacketEdits>,
+    index: usize,
+    status: Signal<AppStatus>,
+) -> Option<(Arc<ArchiveDocument>, Arc<PacketDocument>)> {
+    let document = archive()?;
+    let cached = edits
+        .read()
+        .get(&index)
+        .map(|edit| edit.document.clone())
+        .or_else(|| packet().filter(|packet| packet.record.index == index));
+    if let Some(cached) = cached {
+        return Some((document, cached));
+    }
+    let result = processing::load_packet(document.clone(), index).await;
+    if archive().is_none_or(|current| current.identity() != document.identity()) {
+        return None;
+    }
+    match result {
+        Ok(loaded) => Some((document, Arc::new(loaded))),
+        Err(error) => {
+            set_status(
+                status,
+                AppStatus::new(format!("无法读取 RSG：{error}"), StatusTone::Error),
+            );
+            None
+        }
+    }
+}
+
+async fn replace_selected_rsg(
     imported: AddedFile,
     archive: Signal<Option<Arc<ArchiveDocument>>>,
     mut packet: Signal<Option<Arc<PacketDocument>>>,
@@ -2417,19 +2459,11 @@ fn replace_selected_rsg(
     mut edits: Signal<PacketEdits>,
     status: Signal<AppStatus>,
 ) {
-    let (Some(archive), Some(RowSelection::Packet(packet_index))) = (archive(), selection()) else {
+    let Some(RowSelection::Packet(packet_index)) = selection() else {
         return;
     };
-    let current = edits
-        .read()
-        .get(&packet_index)
-        .map(|edit| edit.document.clone())
-        .or_else(|| archive.load_packet(packet_index).ok().map(Arc::new));
-    let Some(current) = current else {
-        set_status(
-            status,
-            AppStatus::new("替换 RSG 失败：无法读取原数据包", StatusTone::Error),
-        );
+    let Some((_, current)) = packet_for_edit(archive, packet, edits, packet_index, status).await
+    else {
         return;
     };
     let updated = match editing::import_replacement_packet(&current, imported.data) {
@@ -2779,7 +2813,7 @@ fn delete_selected(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn rename_selected(
+async fn rename_selected(
     target: RowSelection,
     value: String,
     archive: Signal<Option<Arc<ArchiveDocument>>>,
@@ -2802,10 +2836,10 @@ fn rename_selected(
             );
             return;
         }
-        let Some(archive) = archive() else {
+        let Some(document) = archive() else {
             return;
         };
-        if editing::visible_packet_records(&archive, &edits.read(), &removed_packets.read())
+        if editing::visible_packet_records(&document, &edits.read(), &removed_packets.read())
             .iter()
             .any(|record| {
                 record.index != packet_index && record.info.name.eq_ignore_ascii_case(value)
@@ -2817,16 +2851,9 @@ fn rename_selected(
             );
             return;
         }
-        let current = edits
-            .read()
-            .get(&packet_index)
-            .map(|edit| edit.document.clone())
-            .or_else(|| archive.load_packet(packet_index).ok().map(Arc::new));
-        let Some(current) = current else {
-            set_status(
-                status,
-                AppStatus::new("重命名失败：无法读取 RSG", StatusTone::Error),
-            );
+        let Some((_, current)) =
+            packet_for_edit(archive, packet, edits, packet_index, status).await
+        else {
             return;
         };
         let flags = current
@@ -3134,7 +3161,7 @@ fn property_draft(
     }
 }
 
-fn apply_properties(
+async fn apply_properties(
     draft: PropertiesDraft,
     archive: Signal<Option<Arc<ArchiveDocument>>>,
     mut packet: Signal<Option<Arc<PacketDocument>>>,
@@ -3145,18 +3172,9 @@ fn apply_properties(
 ) {
     match draft.target {
         PropertiesTarget::Packet(index) => {
-            let Some(archive) = archive() else {
-                return;
-            };
-            let current = packet()
-                .filter(|packet| packet.record.index == index)
-                .or_else(|| edits.read().get(&index).map(|edit| edit.document.clone()))
-                .or_else(|| archive.load_packet(index).ok().map(Arc::new));
-            let Some(current) = current else {
-                set_status(
-                    status,
-                    AppStatus::new("无法读取该 RSG 包", StatusTone::Error),
-                );
+            let Some((archive, current)) =
+                packet_for_edit(archive, packet, edits, index, status).await
+            else {
                 return;
             };
             let name = draft.name_or_path.trim();
@@ -3363,6 +3381,7 @@ fn save_edited_archive(
         && edit.added_packets.is_empty()
         && edit.removed_packets.is_empty()
         && edit.ptx_infos.is_none()
+        && document.metadata_override.is_none()
         && !save_as
     {
         return;
@@ -3370,55 +3389,103 @@ fn save_edited_archive(
     let has_edits = !edit.packets.is_empty()
         || !edit.added_packets.is_empty()
         || !edit.removed_packets.is_empty()
-        || edit.ptx_infos.is_some();
+        || edit.ptx_infos.is_some()
+        || document.metadata_override.is_some();
     let default_name = document.display_name.clone();
     let channel_order_mode = document.channel_order_mode;
+    #[cfg(target_arch = "wasm32")]
+    if !has_edits && let loader::ArchiveSource::WebFile { file, .. } = &document.source {
+        let result = crate::web_file::browser_file(file)
+            .and_then(|file| platform::save_blob(&default_name, file));
+        set_status(
+            status,
+            match result {
+                Ok(_) => AppStatus::new("已导出原始 RSB 归档", StatusTone::Success),
+                Err(error) => AppStatus::new(format!("保存失败：{error}"), StatusTone::Error),
+            },
+        );
+        return;
+    }
     #[cfg(not(target_arch = "wasm32"))]
     let overwrite = (!save_as)
         .then(|| document.source_path().map(std::path::Path::to_path_buf))
         .flatten();
-    #[cfg(target_arch = "wasm32")]
-    let overwrite = None::<std::path::PathBuf>;
     set_status(
         status,
         AppStatus::new("正在重建 RSB 索引与数据包…", StatusTone::Neutral),
     );
+    let original_identity = document.identity();
+    let original_metadata = document.metadata_override.clone();
+    let original_edits = edits.read().clone();
+    let original_removed = removed_packets.read().clone();
+    let original_ptx = ptx_infos.read().clone();
     spawn(async move {
-        let bytes = match if has_edits {
-            processing::rebuild_archive(document, edit).await
-        } else {
-            processing::source_bytes(document).await
-        } {
-            Ok(bytes) => bytes,
-            Err(error) => {
-                set_status(
-                    status,
-                    AppStatus::new(format!("保存失败：{error}"), StatusTone::Error),
-                );
-                return;
+        #[cfg(target_arch = "wasm32")]
+        let loaded: Result<ArchiveDocument, String> = {
+            let result = async {
+                let file = crate::archive_save::browser_file(document, &edit).await?;
+                // Verify the composed archive before offering its download.
+                let loaded = crate::web_file::open(file.clone()).await?;
+                platform::save_blob(&default_name, crate::web_file::browser_file(&file)?)?;
+                Ok::<_, String>(loaded)
+            }
+            .await;
+            match result {
+                Ok(document) => Ok(document),
+                Err(error) => {
+                    set_status(
+                        status,
+                        AppStatus::new(format!("保存失败：{error}"), StatusTone::Error),
+                    );
+                    return;
+                }
             }
         };
-        let saved = match platform::save_archive(&default_name, &bytes, overwrite.as_deref()).await
+        #[cfg(not(target_arch = "wasm32"))]
+        let loaded = {
+            let bytes = match if has_edits {
+                processing::rebuild_archive(document, edit).await
+            } else {
+                processing::source_bytes(document).await
+            } {
+                Ok(bytes) => bytes,
+                Err(error) => {
+                    set_status(
+                        status,
+                        AppStatus::new(format!("保存失败：{error}"), StatusTone::Error),
+                    );
+                    return;
+                }
+            };
+            let saved =
+                match platform::save_archive(&default_name, &bytes, overwrite.as_deref()).await {
+                    Ok(Some(saved)) => saved,
+                    Ok(None) => {
+                        set_status(status, AppStatus::new("已取消保存", StatusTone::Neutral));
+                        return;
+                    }
+                    Err(error) => {
+                        set_status(
+                            status,
+                            AppStatus::new(format!("写入失败：{error}"), StatusTone::Error),
+                        );
+                        return;
+                    }
+                };
+            match saved {
+                platform::SavedArchive::Native(path) => processing::open_native(path).await,
+            }
+        };
+        if archive().is_none_or(|current| {
+            current.identity() != original_identity
+                || current.metadata_override.as_ref().map(Arc::as_ptr)
+                    != original_metadata.as_ref().map(Arc::as_ptr)
+        }) || *edits.peek() != original_edits
+            || *removed_packets.peek() != original_removed
+            || *ptx_infos.peek() != original_ptx
         {
-            Ok(Some(saved)) => saved,
-            Ok(None) => {
-                set_status(status, AppStatus::new("已取消保存", StatusTone::Neutral));
-                return;
-            }
-            Err(error) => {
-                set_status(
-                    status,
-                    AppStatus::new(format!("写入失败：{error}"), StatusTone::Error),
-                );
-                return;
-            }
-        };
-        let loaded = match saved {
-            #[cfg(not(target_arch = "wasm32"))]
-            platform::SavedArchive::Native(path) => processing::open_native(path).await,
-            #[cfg(target_arch = "wasm32")]
-            platform::SavedArchive::Downloaded => loader::open_memory(default_name, bytes),
-        };
+            return; // A newer edit/tab must never be replaced by an older save result.
+        }
         match loaded {
             Ok(mut document) => {
                 document.channel_order_mode = channel_order_mode;
@@ -3457,11 +3524,11 @@ pub fn RsbArchivePage(
     on_open_wem: Option<EventHandler<RsbWemOpenRequest>>,
 ) -> Element {
     let mut archive = use_signal(|| None::<Arc<ArchiveDocument>>);
-    let packet = use_signal(|| None::<Arc<PacketDocument>>);
-    let packet_edits = use_signal(PacketEdits::new);
+    let mut packet = use_signal(|| None::<Arc<PacketDocument>>);
+    let mut packet_edits = use_signal(PacketEdits::new);
     let removed_packets = use_signal(RemovedPackets::new);
     let mut virtual_directories = use_signal(VirtualDirectories::new);
-    let ptx_infos = use_signal(Vec::<RsbPtxInfo>::new);
+    let mut ptx_infos = use_signal(Vec::<RsbPtxInfo>::new);
     let mut location = use_signal(BrowserLocation::default);
     let mut selection = use_signal(|| None::<RowSelection>);
     let mut query = use_signal(String::new);
@@ -3595,7 +3662,10 @@ pub fn RsbArchivePage(
         .as_ref()
         .map(EditDialog::key)
         .unwrap_or("none");
-    let has_unsaved_changes = !packet_edits.read().is_empty()
+    let has_unsaved_changes = archive_snapshot
+        .as_ref()
+        .is_some_and(|doc| doc.metadata_override.is_some())
+        || !packet_edits.read().is_empty()
         || !removed_packets.read().is_empty()
         || archive_snapshot
             .as_ref()
@@ -3831,14 +3901,14 @@ pub fn RsbArchivePage(
                         detail_preview.set(None);
                     },
                     on_replace_rsg: move |file| {
-                        replace_selected_rsg(
+                        spawn(replace_selected_rsg(
                             file,
                             archive,
                             packet,
                             selection,
                             packet_edits,
                             status,
-                        );
+                        ));
                     },
                     on_rename: move |_| {
                         let Some(target) = selection() else {
@@ -3950,7 +4020,32 @@ pub fn RsbArchivePage(
                             archive: document.clone(),
                             edits: packet_edits.read().clone(),
                             removed: removed_packets.read().clone(),
+                            ptx_infos: ptx_infos.read().clone(),
+                            dirty: has_unsaved_changes,
                             active: resources_visible(),
+                            on_save: move |_| save_edited_archive(false, archive, packet, location, selection, query, packet_edits, removed_packets, ptx_infos, status),
+                            on_commit: move |commit: crate::resource_edit::ResourceCommit| {
+                                let Some(current) = archive() else { return; };
+                                if current.identity() != commit.identity
+                                    || current.metadata_override.as_ref().map(Arc::as_ptr) != commit.before_metadata.as_ref().map(Arc::as_ptr)
+                                    || *packet_edits.peek() != commit.before_edits
+                                    || *removed_packets.peek() != commit.before_removed
+                                    || *ptx_infos.peek() != commit.before_ptx {
+                                    status.set(AppStatus::new("归档已发生其他修改，本次资源编辑未应用，请重试", StatusTone::Warning));
+                                    return;
+                                }
+                                if let Some(current_packet) = packet()
+                                    && let Some(edit) = commit.edits.get(&current_packet.record.index) {
+                                    packet.set(Some(edit.document.clone()));
+                                }
+                                let mut document = current.as_ref().clone();
+                                document.metadata_override = commit.metadata;
+                                packet_edits.set(commit.edits);
+                                ptx_infos.set(commit.ptx);
+                                archive.set(Some(Arc::new(document)));
+                                preview_cache.write().clear();
+                                status.set(AppStatus::new(commit.message, StatusTone::Success));
+                            },
                             on_close: move |_| resources_visible.set(false),
                             on_locate: move |target| {
                                 resources_visible.set(false);
@@ -4308,14 +4403,14 @@ pub fn RsbArchivePage(
                         },
                         on_replace_rsg: move |file| {
                             context_menu.set(None);
-                            replace_selected_rsg(
+                            spawn(replace_selected_rsg(
                                 file,
                                 archive,
                                 packet,
                                 selection,
                                 packet_edits,
                                 status,
-                            );
+                            ));
                         },
                         on_rename: move |target| {
                             context_menu.set(None);
@@ -4556,7 +4651,7 @@ pub fn RsbArchivePage(
                                                 .await;
                                             });
                                         }
-                                        EditDialog::Rename { target, value } => rename_selected(
+                                        EditDialog::Rename { target, value } => { spawn(rename_selected(
                                             target,
                                             value,
                                             archive,
@@ -4566,7 +4661,7 @@ pub fn RsbArchivePage(
                                             removed_packets,
                                             virtual_directories,
                                             status,
-                                        ),
+                                        )); },
                                         EditDialog::Delete { target, .. } => delete_selected(
                                             target,
                                             archive,
@@ -4579,7 +4674,7 @@ pub fn RsbArchivePage(
                                             virtual_directories,
                                             status,
                                         ),
-                                        EditDialog::Properties(draft) => apply_properties(
+                                        EditDialog::Properties(draft) => { spawn(apply_properties(
                                             draft,
                                             archive,
                                             packet,
@@ -4587,7 +4682,7 @@ pub fn RsbArchivePage(
                                             removed_packets,
                                             ptx_infos,
                                             status,
-                                        ),
+                                        )); },
                                         EditDialog::ImportFiles(_) => unreachable!(),
                                     }
                                 }

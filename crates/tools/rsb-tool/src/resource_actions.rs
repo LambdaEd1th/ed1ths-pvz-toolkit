@@ -123,7 +123,7 @@ impl ResourceReader {
         }
     }
 
-    async fn resolve(
+    pub(crate) async fn resolve(
         &mut self,
         row: &MappedResource,
     ) -> Result<(Arc<PacketDocument>, usize), String> {

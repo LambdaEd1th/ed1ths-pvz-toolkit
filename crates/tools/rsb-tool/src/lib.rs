@@ -1,17 +1,25 @@
 mod app;
+mod archive_save;
 mod domain;
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod edit_fixture;
 mod editing;
 mod loader;
+mod manifest_edit;
 mod platform;
 mod preview;
 mod processing;
 mod resource_actions;
 mod resource_browser;
+mod resource_edit;
+mod resource_editor;
 mod resource_explorer;
 mod resource_operations;
 mod resources;
 mod view_model;
 mod virtual_scroll;
+#[cfg(target_arch = "wasm32")]
+mod web_file;
 
 use dioxus::prelude::*;
 use std::sync::Arc;

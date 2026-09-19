@@ -1,5 +1,9 @@
-use crate::domain::{ArchiveChannelOrderMode, ArchiveDocument, PacketDocument, PacketRecord};
-use rsb_archive::{Rsb, RsgHeader, RsgInfo, unpack_rsg};
+#[cfg(not(target_arch = "wasm32"))]
+use crate::domain::PacketDocument;
+use crate::domain::{ArchiveChannelOrderMode, ArchiveDocument, PacketRecord};
+#[cfg(not(target_arch = "wasm32"))]
+use rsb_archive::unpack_rsg;
+use rsb_archive::{Rsb, RsgHeader, RsgInfo};
 use std::io::{Cursor, Read, Seek, SeekFrom};
 use std::sync::Arc;
 
@@ -8,6 +12,11 @@ pub enum ArchiveSource {
     #[cfg(not(target_arch = "wasm32"))]
     Native(Arc<std::path::PathBuf>),
     Memory(Arc<Vec<u8>>),
+    #[cfg(target_arch = "wasm32")]
+    WebFile {
+        file: dioxus_html::FileData,
+        metadata: Arc<Vec<u8>>,
+    },
 }
 
 impl ArchiveSource {
@@ -16,6 +25,8 @@ impl ArchiveSource {
             #[cfg(not(target_arch = "wasm32"))]
             Self::Native(path) => Arc::as_ptr(path) as usize,
             Self::Memory(bytes) => Arc::as_ptr(bytes) as usize,
+            #[cfg(target_arch = "wasm32")]
+            Self::WebFile { metadata, .. } => Arc::as_ptr(metadata) as usize,
         }
     }
 
@@ -31,6 +42,8 @@ impl ArchiveSource {
                 let mut reader = Cursor::new(bytes.as_slice());
                 read_packet_records(&mut reader, infos)
             }
+            #[cfg(target_arch = "wasm32")]
+            Self::WebFile { .. } => Err("浏览器文件的数据包头需要异步读取".into()),
         }
     }
 
@@ -49,26 +62,27 @@ impl ArchiveSource {
                     .map_err(|error| error.to_string())?;
                 Ok(output)
             }
-            Self::Memory(bytes) => {
-                let start =
-                    usize::try_from(offset).map_err(|_| "归档偏移无法放入内存地址".to_string())?;
-                let end = start
-                    .checked_add(length)
-                    .ok_or_else(|| "归档范围溢出".to_string())?;
-                bytes
-                    .get(start..end)
-                    .map(<[u8]>::to_vec)
-                    .ok_or_else(|| "归档条目超出文件范围".to_string())
-            }
+            Self::Memory(bytes) => copy_range(bytes, offset, length),
+            #[cfg(target_arch = "wasm32")]
+            Self::WebFile { metadata, .. } => copy_range(metadata, offset, length),
         }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn read_all(&self) -> Result<Vec<u8>, String> {
         match self {
             #[cfg(not(target_arch = "wasm32"))]
             Self::Native(path) => std::fs::read(path.as_ref())
                 .map_err(|error| format!("无法读取 {}：{error}", path.as_ref().display())),
             Self::Memory(bytes) => Ok(bytes.as_ref().clone()),
+        }
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub async fn read_range_async(&self, offset: u64, length: usize) -> Result<Vec<u8>, String> {
+        match self {
+            Self::WebFile { file, .. } => crate::web_file::read_range(file, offset, length).await,
+            Self::Memory(_) => self.read_range(offset, length),
         }
     }
 
@@ -79,6 +93,62 @@ impl ArchiveSource {
             Self::Memory(_) => None,
         }
     }
+}
+
+fn copy_range(bytes: &[u8], offset: u64, length: usize) -> Result<Vec<u8>, String> {
+    let start = usize::try_from(offset).map_err(|_| "归档偏移无法放入内存地址".to_string())?;
+    let end = start
+        .checked_add(length)
+        .ok_or_else(|| "归档范围溢出".to_string())?;
+    bytes
+        .get(start..end)
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| "归档条目超出文件范围".to_string())
+}
+
+/// Validate offsets before allocating a browser metadata buffer or iterating tables.
+#[cfg(any(target_arch = "wasm32", test))]
+pub(crate) fn browser_metadata_length(
+    header: &rsb_archive::RsbHeader,
+    file_size: u64,
+) -> Result<usize, String> {
+    let length = u64::from(header.information_section_size);
+    let minimum = if header.version >= 4 { 112 } else { 108 };
+    if length < minimum || length > file_size || length > 128 * 1024 * 1024 {
+        return Err("RSB 索引区段范围无效或超过 128 MiB 限制".into());
+    }
+    for (name, offset, count, stride, minimum_stride) in [
+        (
+            "资源路径",
+            header.resource_path_section_offset,
+            header.resource_path_section_size,
+            1,
+            1,
+        ),
+        (
+            "RSG",
+            header.rsg_info_begin_offset,
+            header.rsg_number,
+            header.rsg_info_each_length,
+            180,
+        ),
+        (
+            "PTX",
+            header.ptx_info_begin_offset,
+            header.ptx_number,
+            header.ptx_info_each_length,
+            16,
+        ),
+    ] {
+        if count == 0 {
+            continue;
+        }
+        let end = u64::from(offset) + u64::from(count) * u64::from(stride);
+        if stride < minimum_stride || u64::from(offset) < minimum || end > length {
+            return Err(format!("{name} 索引超出 RSB 元数据范围或记录长度无效"));
+        }
+    }
+    Ok(length as usize)
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -117,6 +187,17 @@ fn load_archive(
     byte_len: u64,
     source: ArchiveSource,
 ) -> Result<ArchiveDocument, String> {
+    let (mut document, infos) = read_archive_index(reader, display_name, byte_len, source)?;
+    document.packets = Arc::new(document.source.packet_records(infos)?);
+    Ok(document)
+}
+
+pub(crate) fn read_archive_index(
+    reader: impl Read + Seek,
+    display_name: String,
+    byte_len: u64,
+    source: ArchiveSource,
+) -> Result<(ArchiveDocument, Vec<RsgInfo>), String> {
     let mut archive = Rsb::open(reader).map_err(|error| error.to_string())?;
     let header = archive.header.clone();
     let mut warnings = Vec::new();
@@ -129,20 +210,22 @@ fn load_archive(
     };
     let infos = archive.read_rsg_info().map_err(|error| error.to_string())?;
     let ptx_infos = archive.read_ptx_info().map_err(|error| error.to_string())?;
-    let packets = source.packet_records(infos)?;
-
-    Ok(ArchiveDocument {
-        display_name,
-        byte_len,
-        header,
-        resource_count: file_index.len(),
-        file_index: Arc::new(file_index),
-        packets: Arc::new(packets),
-        ptx_infos: Arc::new(ptx_infos),
-        warnings: Arc::new(warnings),
-        channel_order_mode: ArchiveChannelOrderMode::Auto,
-        source,
-    })
+    Ok((
+        ArchiveDocument {
+            display_name,
+            byte_len,
+            header,
+            resource_count: file_index.len(),
+            file_index: Arc::new(file_index),
+            packets: Arc::new(Vec::new()),
+            ptx_infos: Arc::new(ptx_infos),
+            warnings: Arc::new(warnings),
+            channel_order_mode: ArchiveChannelOrderMode::Auto,
+            metadata_override: None,
+            source,
+        },
+        infos,
+    ))
 }
 
 fn read_packet_records(
@@ -174,6 +257,14 @@ fn read_packet_records(
 }
 
 impl ArchiveDocument {
+    pub fn metadata_bytes(&self) -> Result<Vec<u8>, String> {
+        if let Some(metadata) = &self.metadata_override {
+            return Ok(metadata.as_ref().clone());
+        }
+        self.source
+            .read_range(0, self.header.information_section_size as usize)
+    }
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn source_bytes(&self) -> Result<Vec<u8>, String> {
         self.source.read_all()
     }
@@ -183,6 +274,7 @@ impl ArchiveDocument {
         self.source.native_path()
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn read_packet_raw(&self, packet_index: usize) -> Result<(PacketRecord, Vec<u8>), String> {
         let record = self
             .packets
@@ -196,6 +288,27 @@ impl ArchiveDocument {
         Ok((record, raw))
     }
 
+    #[cfg(target_arch = "wasm32")]
+    pub async fn read_packet_raw_async(
+        &self,
+        packet_index: usize,
+    ) -> Result<(PacketRecord, Vec<u8>), String> {
+        let record = self
+            .packets
+            .get(packet_index)
+            .cloned()
+            .ok_or_else(|| "RSG 包索引已失效".to_string())?;
+        let raw = self
+            .source
+            .read_range_async(
+                u64::from(record.info.rsg_offset),
+                record.info.rsg_length as usize,
+            )
+            .await?;
+        Ok((record, raw))
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn load_packet(&self, packet_index: usize) -> Result<PacketDocument, String> {
         let (record, raw) = self.read_packet_raw(packet_index)?;
         let files =
@@ -210,6 +323,49 @@ mod tests {
     use crate::preview::{PreviewQuality, prepare_png_export, prepare_preview};
     use std::path::{Path, PathBuf};
     use std::sync::Arc;
+
+    #[test]
+    fn browser_metadata_validation_does_not_scale_with_archive_size() {
+        let header = rsb_archive::RsbHeader {
+            version: 4,
+            information_section_size: 4096,
+            rsg_number: 1,
+            rsg_info_begin_offset: 112,
+            rsg_info_each_length: 204,
+            ptx_number: 1,
+            ptx_info_begin_offset: 316,
+            ptx_info_each_length: 16,
+            ..Default::default()
+        };
+        for file_size in [4096, 1_270_000_000, 3_073_335_296] {
+            assert_eq!(super::browser_metadata_length(&header, file_size), Ok(4096));
+        }
+        assert!(super::browser_metadata_length(&header, 1000).is_err());
+        for malformed in [
+            rsb_archive::RsbHeader {
+                information_section_size: u32::MAX,
+                ..header.clone()
+            },
+            rsb_archive::RsbHeader {
+                information_section_size: 0,
+                ..header.clone()
+            },
+            rsb_archive::RsbHeader {
+                rsg_number: u32::MAX,
+                ..header.clone()
+            },
+            rsb_archive::RsbHeader {
+                rsg_info_each_length: 0,
+                ..header.clone()
+            },
+            rsb_archive::RsbHeader {
+                ptx_info_begin_offset: 4090,
+                ..header.clone()
+            },
+        ] {
+            assert!(super::browser_metadata_length(&malformed, u64::MAX).is_err());
+        }
+    }
 
     fn real_sample_path() -> Option<PathBuf> {
         if let Some(path) = std::env::var_os("RSB_ARCHIVE_REAL_SAMPLE").map(PathBuf::from) {

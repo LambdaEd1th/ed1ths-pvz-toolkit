@@ -122,7 +122,7 @@ npx playwright install chromium webkit
 npm test
 ```
 
-The RSB address bar also opens a read-only **Resource Explorer**. It discovers
+The RSB address bar also opens a **Resource Explorer**. It discovers
 v3/v4 embedded resource descriptions and packaged `RESOURCES.RTON` / `.NEWTON`
 manifests, or accepts an imported RTON, NEWTON, or resource-description JSON.
 Logical paths form a file-manager-style directory tree, with breadcrumbs,
@@ -145,6 +145,28 @@ and conflicting definitions are preserved rather than replaced by load order.
 NEWTON's omitted zero atlas coordinates are interpreted as zero when crop sizes
 are present. The footer lists all merged manifests.
 
+On the Web, opening an RSB retains its browser `File` handle and reads only the
+metadata and small packet headers. Resource browsing and exports read individual
+RSG slices on demand, so multiple gigabyte-sized archives do not reside in WASM
+memory. Unmodified **Save as** downloads the original file directly. Metadata is
+limited to 128 MiB and individual reads to 256 MiB. Saving edits composes a new
+browser File from rebuilt metadata, edited packets, and unchanged slices of the
+original file, without loading the whole archive into WASM. Oversized individual
+packets still require the desktop app; RSB offsets have a 4 GiB format limit.
+
+The resource explorer supports **Replace content**, **Edit definition**, **Add
+definition**, and **Delete definition**, followed by **Save RSB**. Definition
+edits synchronize matching in-archive RTON/NEWTON and embedded descriptions,
+retain unknown RTON fields and existing slots, and update child references when
+an atlas ID changes. External imported manifests remain mapping-only. Path/group
+edits affect logical definitions, not physical file placement. Deleting a
+definition retains its underlying file and is blocked for referenced atlases.
+New ordinary files can accompany definitions in existing RSG packets. PTX and
+atlas-child replacement requires same-size PNG/WebP/JPEG images and re-encodes
+the original texture format; lossy formats can affect the whole atlas. Crop
+rectangles are bounds-checked. PAM, level, and script references are not rewritten.
+Changes are applied atomically after validation and remain pending until saved.
+
 Resource actions support checkbox selection, Ctrl/Cmd toggling, Shift ranges,
 and select-all. Exporting a folder includes all descendants. Single selections
 save directly; batches use a ZIP with logical paths, collision-safe variant
@@ -163,6 +185,11 @@ Optional real-sample browser coverage (after building and serving the Web app):
 ```sh
 RSB_RESOURCE_REAL_SAMPLE=/path/to/main.rsb UI_TEST_URL=http://127.0.0.1:8097 \
   npm --prefix scripts/ui-tests run test:resources
+
+# Two large sparse copies (1.27 GB / 1 GB); source files remain unchanged.
+RSB_RESOURCE_REAL_SAMPLE=/path/to/main.rsb RSB_SECOND_SAMPLE=/path/to/another.rsb \
+  RSB_LARGE_TEST=1 UI_TEST_URL=http://127.0.0.1:8097 \
+  npm --prefix scripts/ui-tests run test:rsb-tabs
 ```
 
 Public libraries are intentionally independent:

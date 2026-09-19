@@ -79,6 +79,17 @@
 .rsb-page-host .rsb-res-item.is-selected { background: var(--rsb-accent-soft); border-color: color-mix(in srgb, var(--rsb-accent) 45%, transparent); }
 .rsb-res-file-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .rsb-res-operationbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 7px 14px; border-top: 1px solid var(--rsb-border); }
+.rsb-resource-editor-layer { z-index: 120; padding: 12px; margin: 0; width: 100%; height: 100%; max-width: none; max-height: none; box-sizing: border-box; border: 0; background: transparent; color: inherit; }
+.rsb-resource-editor { width: min(700px, calc(100vw - 24px)); max-height: calc(100dvh - 32px); }
+.rsb-resource-editor .rsb-dialog-body { overflow: auto; min-height: 0; }
+.rsb-resource-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.rsb-resource-fields label { display: grid; gap: 5px; font-size: 12px; }
+.rsb-page-host .rsb-resource-fields input { width: 100%; min-width: 0; box-sizing: border-box; padding: 7px 9px; border: 1px solid var(--rsb-border); border-radius: 6px; background: var(--rsb-surface); color: var(--rsb-text); }
+.rsb-resource-fields .rsb-resource-checkbox { display: flex; align-items: center; }
+.rsb-page-host .rsb-resource-fields input[type="checkbox"] { width: auto; }
+.rsb-resource-editor pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; }
+.rsb-resource-edit-error { color: var(--rsb-danger, #cf4747); overflow-wrap: anywhere; }
+@media (max-width: 540px) { .rsb-resource-fields { grid-template-columns: minmax(0, 1fr); } }
 .rsb-page-host .rsb-res-operationbar .rsb-tool-button { width: auto; min-height: 28px; padding: 4px 8px; font-size: 11px; white-space: nowrap; }
 .rsb-page-host .rsb-res-open-as, .rsb-res-image-dialog select { width: auto; min-height: 28px; padding: 4px 7px; border: 1px solid var(--rsb-border); border-radius: 5px; background: var(--rsb-surface); color: var(--rsb-text); font: inherit; font-size: 11px; }
 .rsb-res-selection-hint { margin-left: auto; color: var(--rsb-faint); font-size: 10px; }
