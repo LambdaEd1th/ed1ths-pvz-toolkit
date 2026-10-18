@@ -36,6 +36,27 @@ async function run(engineName, engine) {
     return entry && !entry.disabled;
   });
   assert.equal(await tool.locator('.rsb-browser-details').isVisible(), true, 'file browsing should keep the details pane');
+  const back = tool.getByRole('button', { name: '后退', exact: true });
+  const forward = tool.getByRole('button', { name: '前进', exact: true });
+  const up = tool.getByRole('button', { name: '上一级', exact: true });
+  assert.equal(await back.isDisabled(), true, 'archive root should not have a back entry');
+  assert.equal(await forward.isDisabled(), true, 'archive root should not have a forward entry');
+  assert.equal(await up.isDisabled(), true, 'archive root should not have an up entry');
+  await tool.locator('.rsb-tree-item--child').first().click();
+  await sleep(800);
+  assert.equal(await tool.locator('.rsb-table-row').count(), 1, 'opening a packet should show its files');
+  assert.equal(await back.isDisabled(), false, 'packet browsing should enable back');
+  await back.click();
+  await sleep(500);
+  assert.equal(await tool.locator('.rsb-table-row').count(), 3, 'back should restore the archive root');
+  assert.equal(await forward.isDisabled(), false, 'after going back, forward should be available');
+  await forward.click();
+  await sleep(500);
+  assert.equal(await tool.locator('.rsb-table-row').count(), 1, 'forward should restore the packet');
+  await up.click();
+  await sleep(500);
+  assert.equal(await tool.locator('.rsb-table-row').count(), 3, 'up should return to the archive root');
+
   const fileKind = tool.locator('.rsb-browser-filters select');
   await fileKind.selectOption('file');
   await sleep(300);

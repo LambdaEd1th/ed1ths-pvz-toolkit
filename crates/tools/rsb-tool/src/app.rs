@@ -269,6 +269,7 @@ struct NavigationSignals {
     query: Signal<String>,
     table_scroll_top: Signal<f64>,
     history: Signal<Vec<NavigationSnapshot>>,
+    forward: Signal<Vec<NavigationSnapshot>>,
     scroll_restore: Signal<ScrollRestore>,
 }
 
@@ -288,6 +289,7 @@ struct ArchiveTabSession {
     table_scroll_top: f64,
     scroll_restore: ScrollRestore,
     navigation_history: Vec<NavigationSnapshot>,
+    navigation_forward: Vec<NavigationSnapshot>,
 }
 
 impl ArchiveTabSession {
@@ -334,6 +336,7 @@ struct ArchiveSessionSignals {
     table_scroll_top: Signal<f64>,
     scroll_restore: Signal<ScrollRestore>,
     navigation_history: Signal<Vec<NavigationSnapshot>>,
+    navigation_forward: Signal<Vec<NavigationSnapshot>>,
 }
 
 impl ArchiveSessionSignals {
@@ -353,6 +356,7 @@ impl ArchiveSessionSignals {
             table_scroll_top: *self.table_scroll_top.peek(),
             scroll_restore: (self.scroll_restore)(),
             navigation_history: self.navigation_history.read().clone(),
+            navigation_forward: self.navigation_forward.read().clone(),
         })
     }
 
@@ -373,6 +377,8 @@ impl ArchiveSessionSignals {
         self.scroll_restore.set(session.scroll_restore);
         self.navigation_history
             .set(session.navigation_history.clone());
+        self.navigation_forward
+            .set(session.navigation_forward.clone());
     }
 
     fn install_new(mut self, document: ArchiveDocument) {
@@ -381,6 +387,7 @@ impl ArchiveSessionSignals {
         self.table_scroll_top.set(0.0);
         self.scroll_restore.set(ScrollRestore::default());
         self.navigation_history.write().clear();
+        self.navigation_forward.write().clear();
         install_editable_archive(
             document,
             self.archive,
@@ -413,6 +420,7 @@ impl ArchiveSessionSignals {
         self.table_scroll_top.set(0.0);
         self.scroll_restore.set(ScrollRestore::default());
         self.navigation_history.write().clear();
+        self.navigation_forward.write().clear();
     }
 }
 
@@ -556,6 +564,11 @@ impl NavigationSignals {
     }
 
     fn push_history(mut self, snapshot: NavigationSnapshot) {
+        self = self.push_history_only(snapshot);
+        self.forward.write().clear();
+    }
+
+    fn push_history_only(mut self, snapshot: NavigationSnapshot) -> Self {
         let mut history = self.history.write();
         if history.len() >= NAVIGATION_HISTORY_LIMIT {
             let remove_count = history
@@ -565,6 +578,27 @@ impl NavigationSignals {
             history.drain(..remove_count);
         }
         history.push(snapshot);
+        drop(history);
+        self
+    }
+
+    fn push_forward(mut self, snapshot: NavigationSnapshot) {
+        let mut forward = self.forward.write();
+        if forward.len() >= NAVIGATION_HISTORY_LIMIT {
+            let remove_count = forward
+                .len()
+                .saturating_add(1)
+                .saturating_sub(NAVIGATION_HISTORY_LIMIT);
+            forward.drain(..remove_count);
+        }
+        forward.push(snapshot);
+    }
+
+    fn restore(mut self, snapshot: NavigationSnapshot) {
+        self.location.set(snapshot.location);
+        self.selection.set(snapshot.selection);
+        self.query.set(snapshot.query);
+        self.request_scroll(snapshot.scroll_top);
     }
 }
 
@@ -826,12 +860,8 @@ fn enter_directory(directory: Vec<String>, mut navigation: NavigationSignals) {
     if directory == current_directory {
         return;
     }
-    let is_direct_child =
-        directory.len() == current_directory.len() + 1 && directory.starts_with(&current_directory);
-    if is_direct_child {
-        let snapshot = navigation.snapshot();
-        navigation.push_history(snapshot);
-    }
+    let snapshot = navigation.snapshot();
+    navigation.push_history(snapshot);
     navigation.location.set(BrowserLocation::Packet {
         packet_index,
         directory,
@@ -926,7 +956,8 @@ fn locate_resource_file(
     });
 }
 
-fn go_up(mut navigation: NavigationSignals) {
+fn go_up(navigation: NavigationSignals) {
+    let current = navigation.snapshot();
     let (parent, fallback_selection) = match (navigation.location)() {
         BrowserLocation::Archive => return,
         BrowserLocation::Packet {
@@ -953,30 +984,60 @@ fn go_up(mut navigation: NavigationSignals) {
     };
 
     let restored = {
-        let mut history = navigation.history.write();
-        let index = history
+        let history = navigation.history.read();
+        history
             .iter()
-            .rposition(|snapshot| snapshot.location == parent);
-        let snapshot = index.map(|index| history[index].clone());
-        if let Some(index) = index {
-            history.truncate(index);
-        }
-        snapshot
+            .rposition(|snapshot| snapshot.location == parent)
+            .map(|index| history[index].clone())
     };
-    navigation.location.set(parent);
-    if let Some(snapshot) = restored {
-        navigation
-            .selection
-            .set(snapshot.selection.or(fallback_selection));
-        navigation.query.set(snapshot.query);
-        navigation.request_scroll(snapshot.scroll_top);
+    navigation.push_history(current);
+    if let Some(mut snapshot) = restored {
+        snapshot.location = parent;
+        if snapshot.selection.is_none() {
+            snapshot.selection = fallback_selection;
+        }
+        navigation.restore(snapshot);
     } else {
-        navigation.selection.set(fallback_selection);
-        navigation.query.set(String::new());
-        navigation.request_scroll(0.0);
+        navigation.restore(NavigationSnapshot {
+            location: parent,
+            selection: fallback_selection,
+            query: String::new(),
+            scroll_top: 0.0,
+        });
     }
 }
 
+fn go_archive(navigation: NavigationSignals) {
+    if matches!((navigation.location)(), BrowserLocation::Archive) {
+        return;
+    }
+    let current = navigation.snapshot();
+    navigation.push_history(current);
+    navigation.restore(NavigationSnapshot {
+        location: BrowserLocation::Archive,
+        selection: None,
+        query: String::new(),
+        scroll_top: 0.0,
+    });
+}
+
+fn go_back(mut navigation: NavigationSignals) {
+    let Some(target) = navigation.history.write().pop() else {
+        return;
+    };
+    let current = navigation.snapshot();
+    navigation.push_forward(current);
+    navigation.restore(target);
+}
+
+fn go_forward(mut navigation: NavigationSignals) {
+    let Some(target) = navigation.forward.write().pop() else {
+        return;
+    };
+    let current = navigation.snapshot();
+    navigation = navigation.push_history_only(current);
+    navigation.restore(target);
+}
 #[cfg(target_arch = "wasm32")]
 fn build_zip(entries: &[(String, Vec<u8>)]) -> Result<Vec<u8>, String> {
     let cursor = Cursor::new(Vec::new());
@@ -3528,7 +3589,7 @@ pub fn RsbArchivePage(
     let removed_packets = use_signal(RemovedPackets::new);
     let mut virtual_directories = use_signal(VirtualDirectories::new);
     let mut ptx_infos = use_signal(Vec::<RsbPtxInfo>::new);
-    let mut location = use_signal(BrowserLocation::default);
+    let location = use_signal(BrowserLocation::default);
     let mut selection = use_signal(|| None::<RowSelection>);
     let mut query = use_signal(String::new);
     let mut file_kind_filter = use_signal(|| "all".to_string());
@@ -3545,6 +3606,7 @@ pub fn RsbArchivePage(
     let mut table_scroll_top = use_signal(|| 0_f64);
     let mut scroll_restore = use_signal(ScrollRestore::default);
     let mut navigation_history = use_signal(Vec::<NavigationSnapshot>::new);
+    let mut navigation_forward = use_signal(Vec::<NavigationSnapshot>::new);
     let mut edit_dialog = use_signal(|| None::<EditDialog>);
     let mut context_menu = use_signal(|| None::<ArchiveContextMenuState>);
     let mut preview_context_menu = use_signal(|| None::<PtxPreviewContextMenuState>);
@@ -3558,6 +3620,7 @@ pub fn RsbArchivePage(
         query,
         table_scroll_top,
         history: navigation_history,
+        forward: navigation_forward,
         scroll_restore,
     };
     let session_signals = ArchiveSessionSignals {
@@ -3575,6 +3638,7 @@ pub fn RsbArchivePage(
         table_scroll_top,
         scroll_restore,
         navigation_history,
+        navigation_forward,
     };
     let transient_signals = ArchiveTransientSignals {
         ptx_preview,
@@ -3633,6 +3697,7 @@ pub fn RsbArchivePage(
             table_scroll_top.set(0.0);
             scroll_restore.set(ScrollRestore::default());
             navigation_history.write().clear();
+            navigation_forward.write().clear();
             context_menu.set(None);
             preview_context_menu.set(None);
             virtual_directories.write().clear();
@@ -4058,12 +4123,13 @@ pub fn RsbArchivePage(
                             archive: document.clone(),
                             packet: packet_snapshot.clone(),
                             location: location_snapshot.clone(),
-                            on_archive: move |_| {
-                                location.set(BrowserLocation::Archive);
-                                selection.set(None);
-                                query.set(String::new());
-                                navigation.request_scroll(0.0);
-                            },
+                            can_go_back: !navigation_history.read().is_empty(),
+                            can_go_forward: !navigation_forward.read().is_empty(),
+                            can_go_up: !matches!(location_snapshot, BrowserLocation::Archive),
+                            on_back: move |_| go_back(navigation),
+                            on_forward: move |_| go_forward(navigation),
+                            on_up: move |_| go_up(navigation),
+                            on_archive: move |_| go_archive(navigation),
                             on_directory: move |directory: Vec<String>| {
                                 enter_directory(directory, navigation);
                             },
@@ -4114,12 +4180,7 @@ pub fn RsbArchivePage(
                                     virtual_directories: virtual_directories_snapshot.clone(),
                                     packet: packet_snapshot.clone(),
                                     location: location_snapshot.clone(),
-                                    on_archive: move |_| {
-                                        location.set(BrowserLocation::Archive);
-                                        selection.set(None);
-                                        query.set(String::new());
-                                        navigation.request_scroll(0.0);
-                                    },
+                                    on_archive: move |_| go_archive(navigation),
                                     on_packet: move |index| enter_packet(
                                         index,
                                         archive,
@@ -5273,17 +5334,54 @@ fn AddressBar(
     packet: Option<Arc<PacketDocument>>,
     location: BrowserLocation,
     query: String,
+    can_go_back: bool,
+    can_go_forward: bool,
+    can_go_up: bool,
+    on_back: EventHandler<()>,
+    on_forward: EventHandler<()>,
+    on_up: EventHandler<()>,
     on_archive: EventHandler<()>,
     on_directory: EventHandler<Vec<String>>,
     on_query: EventHandler<String>,
 ) -> Element {
-    let packet_name = packet.as_ref().map(|value| value.record.info.name.clone());
+    let packet_name = match &location {
+        BrowserLocation::Packet { .. } => {
+            packet.as_ref().map(|value| value.record.info.name.clone())
+        }
+        BrowserLocation::Archive => None,
+    };
     let directory = match &location {
         BrowserLocation::Archive => Vec::new(),
         BrowserLocation::Packet { directory, .. } => directory.clone(),
     };
     rsx! {
         div { class: "rsb-address-row",
+            div { class: "rsb-browser-navigation",
+                button {
+                    r#type: "button",
+                    disabled: !can_go_back,
+                    title: "后退",
+                    aria_label: "后退",
+                    onclick: move |_| on_back.call(()),
+                    Glyph { name: "back" }
+                }
+                button {
+                    r#type: "button",
+                    disabled: !can_go_forward,
+                    title: "前进",
+                    aria_label: "前进",
+                    onclick: move |_| on_forward.call(()),
+                    Glyph { name: "forward" }
+                }
+                button {
+                    r#type: "button",
+                    disabled: !can_go_up,
+                    title: "上一级",
+                    aria_label: "上一级",
+                    onclick: move |_| on_up.call(()),
+                    Glyph { name: "up" }
+                }
+            }
             div { class: "rsb-address-bar", aria_label: "当前位置",
                 Glyph { name: "archive" }
                 button {
@@ -7879,6 +7977,8 @@ fn Glyph(name: &'static str) -> Element {
         "delete" => "M5 7h14M9 7V4h6v3m2 0-1 13H8L7 7m3 4v6m4-6v6",
         "properties" => "M4 6h10m4 0h2M4 12h2m4 0h10M4 18h7m4 0h5M14 4v4M6 10v4m5 2v4",
         "up" => "m5 15 7-7 7 7",
+        "back" => "m14 6-6 6 6 6",
+        "forward" => "m10 6 6 6-6 6",
         "tree" => "M4 5h6M7 5v14m0-9h5m-5 6h5M12 8h8v4h-8V8Zm0 6h8v4h-8v-4Z",
         "extract" => "M12 3v12m0 0 5-5m-5 5-5-5M4 19h16",
         "export" => "M12 3v12m0 0 5-5m-5 5-5-5M5 20h14",

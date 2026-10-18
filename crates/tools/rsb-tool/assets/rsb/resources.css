@@ -226,11 +226,34 @@
 }
 
 .rsb-page-host .rsb-address-row {
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 280px);
+  grid-template-columns: auto minmax(0, 1fr) minmax(180px, 280px);
   gap: 8px;
   padding: 8px 14px;
   border-bottom: 1px solid var(--rsb-border);
   background: var(--rsb-surface);
+}
+
+.rsb-browser-navigation {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.rsb-page-host .rsb-browser-navigation button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--rsb-muted);
+}
+
+.rsb-page-host .rsb-browser-navigation button:not(:disabled):hover {
+  background: var(--rsb-surface-muted);
+  color: var(--rsb-text);
 }
 
 .rsb-page-host .rsb-res-addressbar {
@@ -412,7 +435,11 @@
 
 @container rsb-workspace (max-width: 700px) {
   .rsb-page-host .rsb-address-row {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .rsb-page-host .rsb-address-row .rsb-search {
+    display: none;
   }
 }
 
@@ -786,4 +813,9 @@
 
 .rsb-res-details {
   background: var(--rsb-surface);
+}
+
+.rsb-page-host .rsb-browser-navigation button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }

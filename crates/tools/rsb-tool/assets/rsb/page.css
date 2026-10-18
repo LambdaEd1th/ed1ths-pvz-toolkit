@@ -812,7 +812,7 @@
 .rsb-address-row {
   display: grid;
   min-width: 0;
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 280px);
+  grid-template-columns: auto minmax(0, 1fr) minmax(180px, 280px);
   gap: 8px;
   padding: 7px 8px;
   border-bottom: 1px solid var(--rsb-border);
