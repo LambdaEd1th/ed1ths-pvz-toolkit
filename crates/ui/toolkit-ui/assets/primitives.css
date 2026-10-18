@@ -750,12 +750,10 @@
   justify-content: center;
   gap: 5px;
   padding: 10px 3px;
-  border: 1px solid var(--tk-outline-variant);
-  border-right: 0;
-  border-left: 0;
+  border: 0;
   border-radius: 0;
-  background: var(--tk-surface-card);
-  box-shadow: var(--tk-shadow-control);
+  background: var(--tk-surface-container);
+  box-shadow: none;
   color: var(--tk-primary);
   cursor: ns-resize;
   pointer-events: auto;
@@ -782,7 +780,6 @@
 
 .ui-tool-drawer-handle:hover {
   background: var(--tk-surface-container-high);
-  box-shadow: var(--tk-shadow-high);
 }
 
 .ui-tool-drawer-toolbar-icon {
