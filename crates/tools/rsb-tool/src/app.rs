@@ -3787,7 +3787,6 @@ pub fn RsbArchivePage(
                                 rescan_request: resource_rescan_request,
                                 status,
                                 on_save: move |_| save_edited_archive(false, archive, packet, location, selection, query, packet_edits, removed_packets, ptx_infos, status),
-                                on_back: move |_| resources_visible.set(false),
                             }
                         } else {
                             ArchiveToolbar {
@@ -4012,6 +4011,7 @@ pub fn RsbArchivePage(
                             active: resources_visible(),
                             import_request: resource_import_request,
                             rescan_request: resource_rescan_request,
+                            on_close: move |_| resources_visible.set(false),
                             on_commit: move |commit: crate::resource_edit::ResourceCommit| {
                                 let Some(current) = archive() else { return; };
                                 if current.identity() != commit.identity
@@ -4798,7 +4798,6 @@ fn ResourceToolbar(
     rescan_request: Signal<u64>,
     mut status: Signal<AppStatus>,
     on_save: EventHandler<()>,
-    on_back: EventHandler<()>,
 ) -> Element {
     rsx! {
         div { class: "ui-island ui-tool-page-actions rsb-page-actions rsb-resource-toolbar",
@@ -4827,12 +4826,6 @@ fn ResourceToolbar(
                         status.set(AppStatus::new("正在重新扫描资源…", StatusTone::Neutral));
                     },
                     "重新扫描"
-                }
-                button {
-                    r#type: "button",
-                    class: "rsb-tool-button",
-                    onclick: move |_| on_back.call(()),
-                    "返回文件浏览"
                 }
             }
         }

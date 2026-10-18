@@ -23,6 +23,7 @@ pub fn ResourceExplorer(
     active: bool,
     import_request: Signal<Option<AddedFile>>,
     rescan_request: Signal<u64>,
+    on_close: EventHandler<()>,
     on_commit: EventHandler<crate::resource_edit::ResourceCommit>,
     on_locate: EventHandler<ResourceLocation>,
 ) -> Element {
@@ -251,6 +252,9 @@ pub fn ResourceExplorer(
         section { class: "rsb-resource-explorer", hidden: !active, aria_label: "资源管理器",
             header { class: "rsb-res-heading rsb-packet-heading",
                 div { class: "rsb-res-title", ResourceIcon { kind: "archive" } strong { "资源管理器" } span { "RSB v{archive.header.version} · 逻辑资源路径" } }
+                div { class: "rsb-res-actions",
+                    button { class: "rsb-tool-button rsb-file-entry", onclick: move |_| on_close.call(()), "文件浏览" }
+                }
             }
             div { class: "rsb-res-addressbar",
                 div { class: "rsb-res-navigation",

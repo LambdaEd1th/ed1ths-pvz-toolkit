@@ -157,10 +157,7 @@ function packetBytes(file, name) {
       await page.getByText('当前目录没有符合条件的资源', { exact: true }).waitFor();
       await search.fill('');
     }
-    await page.locator('.tk-tool-slot--active .ui-tool-drawer-handle').click();
-    await page.locator('.tk-tool-slot--active .rsb-resource-toolbar').getByRole('button', { name: '返回文件浏览', exact: true }).click();
-    const drawerClose = page.locator('.tk-tool-slot--active .ui-tool-drawer-close');
-    if (await drawerClose.isVisible()) await drawerClose.click();
+    await page.locator('.tk-tool-slot--active .rsb-res-actions').getByRole('button', { name: '文件浏览', exact: true }).click();
     await page.locator('.rsb-page-host').getByRole('button', { name: '展开工具栏', exact: true }).click();
     // Save as must use the browser File directly, without a full read into WASM.
     const readCount = await page.evaluate(() => window.rsbReadStats.calls);

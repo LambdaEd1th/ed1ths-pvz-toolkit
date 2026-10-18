@@ -761,3 +761,15 @@
   padding-left: 12px;
   border-left: 1px solid var(--rsb-border);
 }
+
+
+.rsb-page-host .rsb-file-entry {
+  width: auto;
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: var(--tk-radius-sm);
+  color: var(--rsb-accent-strong);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}

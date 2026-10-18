@@ -53,7 +53,7 @@ async function run(engineName, engine) {
   await sleep(450);
   assert.deepEqual(
     await tool.locator('.rsb-resource-toolbar button, .rsb-resource-toolbar label').allInnerTexts(),
-    ['保存 RSB', '导入清单', '重新扫描', '返回文件浏览'],
+    ['保存 RSB', '导入清单', '重新扫描'],
     'resource browsing should expose its own toolbar actions',
   );
   await tool.locator('.ui-tool-drawer-close').click();
@@ -153,12 +153,8 @@ async function run(engineName, engine) {
   console.log(`${engineName}: unified resource texture preview passed`);
 
   // The packet browser still uses the same viewer and keeps its context menu.
-  await tool.locator('.ui-tool-drawer-handle').click();
-  await sleep(450);
-  await tool.locator('.rsb-resource-toolbar').getByRole('button', { name: '返回文件浏览', exact: true }).click();
+  await tool.locator('.rsb-res-actions').getByRole('button', { name: '文件浏览', exact: true }).click();
   await sleep(500);
-  const drawerClose = tool.locator('.ui-tool-drawer-close');
-  if (await drawerClose.isVisible()) await drawerClose.click();
   await tool.locator('.rsb-table-row').filter({ hasText: 'Textures_768' }).first().dblclick();
   await sleep(800);
   const atlases = tool.locator('.rsb-table-row').filter({ hasText: 'atlases' }).first();
