@@ -578,3 +578,12 @@
 .rsb-browser-tree .rsb-tree-summary {
   display: none;
 }
+
+.rsb-browser-tree .rsb-tree-item:focus {
+  outline: 0;
+}
+
+.rsb-browser-tree .rsb-tree-item:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--rsb-accent) 55%, transparent);
+  outline-offset: -2px;
+}

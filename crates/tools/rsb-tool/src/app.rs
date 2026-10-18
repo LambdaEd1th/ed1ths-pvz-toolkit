@@ -5284,6 +5284,7 @@ fn ArchiveTree(
     on_directory: EventHandler<Vec<String>>,
 ) -> Element {
     let visible_packet_count = editing::visible_packet_count(&archive, &edits, &removed_packets);
+    let packets = editing::visible_packet_records(&archive, &edits, &removed_packets);
     let in_archive = matches!(location, BrowserLocation::Archive);
     let current_directory = match &location {
         BrowserLocation::Packet { directory, .. } => directory.clone(),
@@ -5319,46 +5320,58 @@ fn ArchiveTree(
                     span { "{archive.display_name}" }
                     small { "{visible_packet_count}" }
                 }
-                if let Some(document) = packet {
-                    button {
-                        r#type: "button",
-                        class: if !in_archive && current_directory.is_empty() { "rsb-tree-item rsb-tree-item--child is-active" } else { "rsb-tree-item rsb-tree-item--child" },
-                        onclick: move |_| on_packet.call(document.record.index),
-                        Glyph { name: "package" }
-                        span { "{document.record.info.name}" }
-                    }
-                    for row in tree_rows.iter() {
-                        {
-                            let path = row.path.clone();
-                            let key = path.join("/");
-                            let title = key.clone();
-                            let class = if row.is_current {
-                                "rsb-tree-item rsb-tree-item--directory is-active"
-                            } else if row.is_expanded {
-                                "rsb-tree-item rsb-tree-item--directory is-expanded"
-                            } else {
-                                "rsb-tree-item rsb-tree-item--directory"
-                            };
-                            let padding = 9 + row.depth.min(9) * 12;
-                            rsx! {
-                                button {
-                                    key: "{key}",
-                                    r#type: "button",
-                                    class,
-                                    style: "padding-left: {padding}px",
-                                    aria_current: row.is_current.then_some("page"),
-                                    title,
-                                    onclick: move |_| on_directory.call(path.clone()),
-                                    Glyph { name: "folder" }
-                                    span { "{row.name}" }
-                                    small { "{row.file_count}" }
+                for record in packets.iter() {
+                    {
+                        let index = record.index;
+                        let name = record.info.name.clone();
+                        let active = packet_index == Some(index);
+                        rsx! {
+                            button {
+                                key: "tree-packet-{index}",
+                                r#type: "button",
+                                class: if active { "rsb-tree-item rsb-tree-item--child is-active" } else { "rsb-tree-item rsb-tree-item--child" },
+                                aria_current: active.then_some("page"),
+                                onclick: move |_| on_packet.call(index),
+                                Glyph { name: "package" }
+                                span { "{name}" }
+                            }
+                            if active {
+                                for row in tree_rows.iter() {
+                                    {
+                                        let path = row.path.clone();
+                                        let key = path.join("/");
+                                        let title = key.clone();
+                                        let class = if row.is_current {
+                                            "rsb-tree-item rsb-tree-item--directory is-active"
+                                        } else if row.is_expanded {
+                                            "rsb-tree-item rsb-tree-item--directory is-expanded"
+                                        } else {
+                                            "rsb-tree-item rsb-tree-item--directory"
+                                        };
+                                        let padding = 9 + row.depth.min(9) * 12;
+                                        rsx! {
+                                            button {
+                                                key: "{key}",
+                                                r#type: "button",
+                                                class,
+                                                style: "padding-left: {padding}px",
+                                                aria_current: row.is_current.then_some("page"),
+                                                title,
+                                                onclick: move |_| on_directory.call(path.clone()),
+                                                Glyph { name: "folder" }
+                                                span { "{row.name}" }
+                                                small { "{row.file_count}" }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                } else {
+                }
+                if packets.is_empty() {
                     div { class: "rsb-tree-placeholder",
-                        span { "选择并打开一个 RSG 包后，目录会显示在这里。" }
+                        span { "当前归档中没有可用的 RSG 包。" }
                     }
                 }
                 if packet_index.is_none() && visible_packet_count > 0 {
