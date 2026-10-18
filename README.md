@@ -122,6 +122,12 @@ npx playwright install chromium webkit
 npm test
 ```
 
+Shell keyboard/focus regressions run against a served Web build:
+
+```sh
+UI_TEST_URL=http://127.0.0.1:8097 npm run test:shell
+```
+
 The RSB address bar also opens a **Resource Explorer**. It discovers
 v3/v4 embedded resource descriptions and packaged `RESOURCES.RTON` / `.NEWTON`
 manifests, or accepts an imported RTON, NEWTON, or resource-description JSON.

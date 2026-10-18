@@ -1020,6 +1020,7 @@
   }
 
   .ui-tool-page-toolbar.is-open .ui-tool-drawer-handle {
+    visibility: hidden;
     opacity: 0;
     pointer-events: none;
     transform: translateX(-8px);

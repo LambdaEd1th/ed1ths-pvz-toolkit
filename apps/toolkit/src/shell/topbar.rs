@@ -24,6 +24,8 @@ pub(crate) fn TopBar(
                     class: "tk-icon-button".to_string(),
                     label: i18n.t("topbar-toggle-navigation"),
                     title: Some(i18n.t("topbar-toggle-navigation")),
+                    expanded: Some(sidebar_open()),
+                    controls: Some("tk-sidebar".to_string()),
                     onclick: move |_| menu_sidebar.set(!menu_sidebar()),
                     span { class: "tk-menu-icon", aria_hidden: "true",
                         i {}
@@ -45,7 +47,8 @@ pub(crate) fn TopBar(
                     class: "tk-settings-button".to_string(),
                     label: i18n.t("topbar-open-settings"),
                     title: Some(i18n.t("settings-title")),
-                    pressed: Some(settings_open()),
+                    expanded: Some(settings_open()),
+                    controls: Some("tk-settings-overlay".to_string()),
                     onclick: move |_| open_settings.set(!open_settings()),
                     SettingsIcon {}
                 }

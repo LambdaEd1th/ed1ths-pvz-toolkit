@@ -13,6 +13,9 @@ nav-home = Accueil
 nav-libraries = Bibliothèques
 nav-about = À propos
 experimental = Expérimental
+toolbar-label = Outils
+toolbar-expand = Développer la barre d’outils
+toolbar-collapse = Réduire la barre d’outils
 
 settings-title = Paramètres
 settings-close = Fermer les paramètres

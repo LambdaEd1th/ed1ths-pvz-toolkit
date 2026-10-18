@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
-use toolkit_ui::use_appearance;
+use toolkit_ui::{ToolbarLabels, use_appearance, use_provide_toolbar_labels};
 
+use crate::i18n::{I18n, use_i18n};
 use crate::navigation::AppRoute;
 
 use super::content_host::ContentHost;
@@ -35,10 +36,25 @@ return (async function () {
 })();
 "#;
 
+fn toolbar_labels_for(i18n: I18n) -> ToolbarLabels {
+    ToolbarLabels {
+        label: i18n.t("toolbar-label"),
+        open_label: i18n.t("toolbar-expand"),
+        close_label: i18n.t("toolbar-collapse"),
+    }
+}
+
 #[component]
 pub(crate) fn AppShell(on_ready: EventHandler<()>) -> Element {
+    let i18n = use_i18n();
+    let mut toolbar_labels = use_signal(|| toolbar_labels_for(i18n));
+    use_effect(use_reactive(&i18n, move |i18n| {
+        toolbar_labels.set(toolbar_labels_for(i18n));
+    }));
+    use_provide_toolbar_labels(toolbar_labels);
+
     let route = use_signal(AppRoute::default);
-    let sidebar_open = use_signal(|| true);
+    let mut sidebar_open = use_signal(|| true);
     let compact_shell = use_signal(|| false);
     let settings_open = use_signal(|| false);
     #[cfg(not(target_arch = "wasm32"))]
@@ -75,6 +91,12 @@ pub(crate) fn AppShell(on_ready: EventHandler<()>) -> Element {
         document::Stylesheet { href: TOOLKIT_CSS }
         div {
             class: "{shell_class}",
+            onkeydown: move |event| {
+                if event.key() == Key::Escape && compact_shell() && sidebar_open() {
+                    event.prevent_default();
+                    sidebar_open.set(false);
+                }
+            },
             onmounted: start_responsive_host,
             onresize: move |event| {
                 #[cfg(not(target_arch = "wasm32"))]

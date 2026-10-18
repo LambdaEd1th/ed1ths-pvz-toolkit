@@ -3,10 +3,12 @@
   "private": true,
   "scripts": {
     "test": "node typography.cjs && node tooltips.cjs",
+    "test:rton-text": "node rton-text.cjs",
     "test:resources": "node resource-actions.cjs",
     "test:resource-edit": "node resource-edit.cjs",
     "test:rsb-tabs": "node rsb-tabs.cjs",
-    "test:pam-images": "node pam-images.cjs"
+    "test:pam-images": "node pam-images.cjs",
+    "test:shell": "node shell-focus.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

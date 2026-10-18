@@ -2,12 +2,14 @@ use dioxus::prelude::*;
 
 const TOKENS_CSS: Asset = asset!("/assets/tokens.css");
 const PRIMITIVES_CSS: Asset = asset!("/assets/primitives.css");
+const MODAL_FOCUS_JS: Asset = asset!("/assets/modal-focus.js");
 const TOOL_DRAWER_JS: Asset = asset!("/assets/tool-drawer.js");
 const TOOLTIPS_JS: Asset = asset!("/assets/tooltips.js");
 
 #[component]
 pub fn UiStyles() -> Element {
     rsx! {
+        document::Script { src: MODAL_FOCUS_JS }
         document::Script { src: TOOL_DRAWER_JS }
         document::Script { src: TOOLTIPS_JS }
         document::Stylesheet { href: TOKENS_CSS }
@@ -33,6 +35,8 @@ pub fn IconButton(
     #[props(default)] class: String,
     #[props(default)] title: Option<String>,
     #[props(default)] pressed: Option<bool>,
+    #[props(default)] expanded: Option<bool>,
+    #[props(default)] controls: Option<String>,
     onclick: EventHandler<MouseEvent>,
     children: Element,
 ) -> Element {
@@ -41,6 +45,8 @@ pub fn IconButton(
             class: "ui-icon-button {class}",
             aria_label: "{label}",
             aria_pressed: pressed,
+            aria_expanded: expanded,
+            aria_controls: controls,
             title,
             onclick: move |event| onclick.call(event),
             {children}

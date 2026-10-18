@@ -1,3 +1,4 @@
+mod focus;
 mod logs;
 mod open_file;
 mod page;
@@ -5,6 +6,10 @@ mod primitives;
 mod surface;
 mod theme;
 
+pub use focus::{
+    ToolbarLabels, ToolbarLabelsContext, use_modal_focus, use_provide_toolbar_labels,
+    use_toolbar_labels,
+};
 pub use logs::{
     application_log_lines, clear_application_logs, format_application_log_line,
     push_application_log,

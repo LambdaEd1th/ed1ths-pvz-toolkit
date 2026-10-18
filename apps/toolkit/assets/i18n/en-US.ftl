@@ -13,6 +13,9 @@ nav-home = Home
 nav-libraries = Libraries
 nav-about = About
 experimental = Experimental
+toolbar-label = Tools
+toolbar-expand = Expand toolbar
+toolbar-collapse = Collapse toolbar
 
 settings-title = Settings
 settings-close = Close settings

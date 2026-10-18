@@ -140,7 +140,7 @@ pub(crate) fn AboutPage() -> Element {
                                     class: "tk-about-repository",
                                     href: REPOSITORY_URL,
                                     target: "_blank",
-                                    rel: "noreferrer",
+                                    rel: "noopener noreferrer",
                                     span { {i18n.t("github-repository")} }
                                     b { aria_hidden: "true", "↗" }
                                 }

@@ -13,6 +13,9 @@ nav-home = Главная
 nav-libraries = Библиотеки
 nav-about = О программе
 experimental = Экспериментально
+toolbar-label = Инструменты
+toolbar-expand = Развернуть панель инструментов
+toolbar-collapse = Свернуть панель инструментов
 
 settings-title = Настройки
 settings-close = Закрыть настройки

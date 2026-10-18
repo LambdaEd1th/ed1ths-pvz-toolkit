@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use toolkit_ui::{Appearance, IconButton, use_appearance};
+use toolkit_ui::{Appearance, IconButton, use_appearance, use_modal_focus};
 
 use crate::i18n::{language_options, use_i18n, use_locale};
 use crate::update_check::{LATEST_RELEASE_URL, UpdateCheckResult};
@@ -58,6 +58,10 @@ fn copy_to_clipboard(text: &str) {
     ));
 }
 
+fn focus_language_control() {
+    let _ = document::eval("document.getElementById('tk-settings-language-control')?.focus();");
+}
+
 #[component]
 pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
     let i18n = use_i18n();
@@ -70,11 +74,21 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
     let mut language_open = use_signal(|| false);
     let mut update_state = use_signal(SettingsUpdateState::default);
 
+    let language_control_id = "tk-settings-language-control";
+    use_modal_focus(
+        "tk-settings-modal",
+        open(),
+        "#tk-settings-overlay",
+        None,
+        None,
+    );
+
     if !open() {
         return rsx! {};
     }
 
     let mut close_backdrop = open;
+    let mut close_escape = open;
     let mut close_button = open;
     let active_view_snapshot = active_view();
     let _log_revision_snapshot = log_revision();
@@ -118,7 +132,22 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
     };
 
     rsx! {
-        div { class: "tk-settings-overlay",
+        div {
+            id: "tk-settings-overlay",
+            class: "tk-settings-overlay",
+            onkeydown: move |event| {
+                if event.key() != Key::Escape {
+                    return;
+                }
+                event.prevent_default();
+                event.stop_propagation();
+                if language_open() {
+                    language_open.set(false);
+                    focus_language_control();
+                } else {
+                    close_escape.set(false);
+                }
+            },
             button {
                 class: "tk-settings-backdrop",
                 aria_label: i18n.t("settings-close"),
@@ -129,6 +158,13 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                 role: "dialog",
                 aria_modal: "true",
                 aria_labelledby: "tk-settings-title",
+                tabindex: "-1",
+                "data-modal-content": "true",
+                onclick: move |_| {
+                    if language_open() {
+                        language_open.set(false);
+                    }
+                },
                 div { class: "tk-settings-header",
                     h2 { id: "tk-settings-title",
                         SettingsGlyph {}
@@ -146,10 +182,12 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                     role: "tablist",
                     aria_label: i18n.t("settings-pages"),
                     button {
+                        id: "tk-settings-tab-general",
                         r#type: "button",
                         class: if active_view_snapshot == SettingsView::General { "is-active" } else { "" },
                         role: "tab",
                         aria_selected: active_view_snapshot == SettingsView::General,
+                        aria_controls: "tk-settings-tabpanel",
                         onclick: move |_| {
                             active_view.set(SettingsView::General);
                             copied.set(false);
@@ -157,10 +195,12 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                         {i18n.t("settings-general")}
                     }
                     button {
+                        id: "tk-settings-tab-logs",
                         r#type: "button",
                         class: if active_view_snapshot == SettingsView::Logs { "is-active" } else { "" },
                         role: "tab",
                         aria_selected: active_view_snapshot == SettingsView::Logs,
+                        aria_controls: "tk-settings-tabpanel",
                         onclick: move |_| {
                             active_view.set(SettingsView::Logs);
                             copied.set(false);
@@ -168,21 +208,39 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                         {i18n.t("settings-logs")}
                     }
                 }
-                div { class: "tk-settings-content",
+                div {
+                    id: "tk-settings-tabpanel",
+                    class: "tk-settings-content",
+                    role: "tabpanel",
+                    aria_labelledby: if active_view_snapshot == SettingsView::General {
+                        "tk-settings-tab-general"
+                    } else {
+                        "tk-settings-tab-logs"
+                    },
                     if active_view_snapshot == SettingsView::General {
-                        div { class: "tk-settings-section tk-settings-section--language",
+                        div {
+                            class: "tk-settings-section tk-settings-section--language",
+                            onclick: move |event| event.stop_propagation(),
                             span { class: "tk-settings-label", {i18n.t("settings-language")} }
                             div { class: if language_open() { "tk-settings-language is-open" } else { "tk-settings-language" },
                                 button {
+                                    id: "{language_control_id}",
                                     r#type: "button",
                                     class: "tk-settings-language-control",
                                     aria_label: i18n.t("settings-language"),
                                     aria_expanded: language_open(),
+                                    aria_controls: "tk-settings-language-menu",
+                                    aria_haspopup: "menu",
                                     onclick: move |_| language_open.set(!language_open()),
                                     span { "{active_language}" }
                                     span { class: "tk-settings-language-caret", aria_hidden: "true", "⌄" }
                                 }
-                                div { class: "tk-settings-language-menu", role: "menu",
+                                div {
+                                    id: "tk-settings-language-menu",
+                                    class: "tk-settings-language-menu",
+                                    role: "menu",
+                                    aria_hidden: !language_open(),
+                                    inert: (!language_open()).then_some(true),
                                     for option in languages {
                                         button {
                                             r#type: "button",
@@ -192,6 +250,7 @@ pub(crate) fn SettingsPanel(open: Signal<bool>) -> Element {
                                             onclick: move |_| {
                                                 locale_context.set(option.locale);
                                                 language_open.set(false);
+                                                focus_language_control();
                                             },
                                             span { "{option.label}" }
                                             if option.locale == active_locale {

@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use toolkit_ui::use_modal_focus;
 
 use crate::i18n::use_i18n;
 use crate::navigation::{AppRoute, navigate};
@@ -14,15 +15,36 @@ pub(crate) fn Sidebar(route: Signal<AppRoute>, open: Signal<bool>, compact: bool
         "tk-sidebar tk-island"
     };
     let mut close_sidebar = open;
+    let mut close_by_keyboard = open;
+    use_modal_focus(
+        "tk-sidebar-modal",
+        open() && compact,
+        "#tk-sidebar",
+        None,
+        Some(".tk-sidebar-backdrop, .tk-appbar"),
+    );
 
     rsx! {
         button {
             class: if open() { "tk-sidebar-backdrop tk-sidebar-backdrop--visible" } else { "tk-sidebar-backdrop" },
             aria_label: i18n.t("sidebar-close-navigation"),
+            aria_hidden: !open(),
+            inert: (!open()).then_some(true),
             onclick: move |_| close_sidebar.set(false),
         }
 
-        aside { class: "{sidebar_class}",
+        aside {
+            id: "tk-sidebar",
+            class: "{sidebar_class}",
+            aria_hidden: !open(),
+            inert: (!open()).then_some(true),
+            onkeydown: move |event| {
+                if compact && open() && event.key() == Key::Escape {
+                    event.prevent_default();
+                    event.stop_propagation();
+                    close_by_keyboard.set(false);
+                }
+            },
             nav { class: "tk-sidebar-nav", aria_label: i18n.t("sidebar-navigation"),
                 div { class: "tk-nav-group",
                     span { class: "tk-nav-label", {i18n.t("nav-overview")} }

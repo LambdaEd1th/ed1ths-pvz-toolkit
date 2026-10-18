@@ -144,6 +144,38 @@ jobs:
       - name: Build web
         run: RUSTUP_TOOLCHAIN=stable dx build --platform web --package toolkit-app --release --debug-symbols=false
 
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/ui-tests/package-lock.json
+
+      - name: Install UI test dependencies
+        working-directory: scripts/ui-tests
+        run: npm ci
+
+      - name: Install browser engines
+        working-directory: scripts/ui-tests
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Test Web shell and editors
+        working-directory: scripts/ui-tests
+        env:
+          UI_TEST_URL: http://127.0.0.1:8097
+        run: |
+          python3 -m http.server 8097 \
+            --directory "${GITHUB_WORKSPACE}/target/dx/pvz-toolkit/release/web/public" &
+          server=$!
+          trap 'kill "$server"' EXIT
+          for _ in $(seq 1 40); do
+            if curl -fsS "${UI_TEST_URL}/" >/dev/null; then break; fi
+            sleep 0.5
+          done
+          npm run test:shell
+          npm run test:rton-text
+          RTON_TEST_BROWSER=webkit npm run test:rton-text
+
       - name: Free build artifacts
         if: always()
         run: cargo clean

@@ -1,10 +1,26 @@
 use dioxus::html::input_data::MouseButton;
 use dioxus::prelude::*;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+use crate::focus::{use_modal_focus, use_toolbar_labels};
 
 const TOOL_DRAWER_HANDLE_DRAG_THRESHOLD: f64 = 4.0;
 
+static NEXT_MODAL_ID: AtomicU64 = AtomicU64::new(1);
+
+fn next_modal_id(prefix: &str) -> String {
+    format!("{prefix}-{}", NEXT_MODAL_ID.fetch_add(1, Ordering::Relaxed))
+}
+
 fn handle_moved(start_y: Option<f64>, current_y: f64) -> bool {
     start_y.is_some_and(|start_y| (current_y - start_y).abs() >= TOOL_DRAWER_HANDLE_DRAG_THRESHOLD)
+}
+
+fn close_tool_drawer(mut open: Signal<bool>, handle_id: &str) {
+    open.set(false);
+    if let Ok(handle_id) = serde_json::to_string(handle_id) {
+        let _ = document::eval(&format!("document.getElementById({handle_id})?.focus();"));
+    }
 }
 
 #[component]
@@ -26,14 +42,32 @@ pub fn ToolPage(
 pub fn ToolPageToolbar(
     actions: Element,
     #[props(default)] class: String,
-    #[props(default = "工具".to_string())] label: String,
-    #[props(default = "展开工具栏".to_string())] open_label: String,
-    #[props(default = "收起工具栏".to_string())] close_label: String,
+    #[props(default)] label: Option<String>,
+    #[props(default)] open_label: Option<String>,
+    #[props(default)] close_label: Option<String>,
 ) -> Element {
+    let labels = use_toolbar_labels();
+    let label = label.unwrap_or(labels.label);
+    let open_label = open_label.unwrap_or(labels.open_label);
+    let close_label = close_label.unwrap_or(labels.close_label);
+    let layer_id = use_hook(|| next_modal_id("tk-tool-toolbar"));
+    let layer_selector = format!("#{layer_id}");
+    let panel_id = format!("{layer_id}-panel");
+    let handle_id = format!("{layer_id}-handle");
+    let handle_id_for_keydown = handle_id.clone();
+    let handle_id_for_backdrop = handle_id.clone();
+    let handle_id_for_close = handle_id.clone();
     let mut open = use_signal(|| false);
     let mut handle_drag_start = use_signal(|| None::<f64>);
     let mut handle_dragged = use_signal(|| false);
     let is_open = open();
+    use_modal_focus(
+        &layer_id,
+        is_open,
+        &layer_selector,
+        Some(".ui-tool-drawer-backdrop"),
+        None,
+    );
     let root_class = if is_open {
         format!("ui-tool-page-toolbar is-open {class}")
     } else {
@@ -52,24 +86,28 @@ pub fn ToolPageToolbar(
 
     rsx! {
         section {
+            id: "{layer_id}",
             class: root_class,
             onkeydown: move |event| {
                 if event.key() == Key::Escape && open() {
+                    event.prevent_default();
                     event.stop_propagation();
-                    open.set(false);
+                    close_tool_drawer(open, &handle_id_for_keydown);
                 }
             },
             if is_open {
                 div {
                     class: "ui-tool-drawer-backdrop",
                     aria_hidden: "true",
-                    onclick: move |_| open.set(false),
+                    onclick: move |_| close_tool_drawer(open, &handle_id_for_backdrop),
                 }
             }
             aside {
+                id: "{panel_id}",
                 class: "ui-tool-drawer-panel",
                 aria_hidden: !is_open,
                 aria_label: panel_label,
+                "data-modal-content": "true",
                 div { class: "ui-tool-drawer-header",
                     strong { {header_label} }
                     button {
@@ -79,7 +117,7 @@ pub fn ToolPageToolbar(
                         aria_label: close_button_label,
                         onclick: move |event| {
                             event.stop_propagation();
-                            open.set(false);
+                            close_tool_drawer(open, &handle_id_for_close);
                         },
                         svg {
                             view_box: "0 0 24 24",
@@ -97,11 +135,14 @@ pub fn ToolPageToolbar(
                 }
             }
             button {
+                id: "{handle_id}",
                 r#type: "button",
                 class: "ui-tool-drawer-handle",
                 title: toggle_label.clone(),
                 aria_label: toggle_label,
                 aria_expanded: is_open,
+                aria_controls: "{panel_id}",
+                "data-modal-restore-focus": "true",
                 onmounted: move |_| {
                     let _ = document::eval("window.toolkitToolDrawerHandleDrag?.refresh?.();");
                 },
@@ -241,23 +282,40 @@ pub fn ContextSheet(
     #[props(default)] class: String,
     children: Element,
 ) -> Element {
+    let layer_id = use_hook(|| next_modal_id("tk-context-sheet"));
+    let layer_selector = format!("#{layer_id}");
+    use_modal_focus(&layer_id, open, &layer_selector, None, None);
+
     if !open {
         return rsx! {};
     }
 
+    let close_backdrop = on_close;
+    let close_escape = on_close;
     rsx! {
-        div { class: "ui-context-sheet-layer ui-context-sheet-layer--{side} {class}",
+        div {
+            id: "{layer_id}",
+            class: "ui-context-sheet-layer ui-context-sheet-layer--{side} {class}",
+            onkeydown: move |event| {
+                if event.key() == Key::Escape {
+                    event.prevent_default();
+                    event.stop_propagation();
+                    close_escape.call(());
+                }
+            },
             button {
                 r#type: "button",
                 class: "ui-context-sheet-backdrop",
                 aria_label: "{close_label}",
-                onclick: move |_| on_close.call(()),
+                onclick: move |_| close_backdrop.call(()),
             }
             aside {
                 class: "ui-context-sheet",
                 role: "dialog",
                 aria_modal: "true",
                 aria_label: "{title}",
+                tabindex: "-1",
+                "data-modal-content": "true",
                 div { class: "ui-context-sheet-grabber", aria_hidden: "true" }
                 {children}
             }

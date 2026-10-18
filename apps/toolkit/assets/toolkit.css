@@ -558,7 +558,7 @@ button {
   overflow-y: auto;
   border: 1px solid var(--tk-border);
   border-radius: 13px;
-  background: color-mix(in srgb, var(--tk-surface-opaque) 94%, transparent);
+  background: var(--tk-surface-opaque);
   box-shadow: var(--tk-shadow-high);
   opacity: 0;
   pointer-events: none;

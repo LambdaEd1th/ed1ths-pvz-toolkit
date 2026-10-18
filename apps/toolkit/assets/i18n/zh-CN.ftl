@@ -13,6 +13,9 @@ nav-home = 主页
 nav-libraries = 格式库
 nav-about = 关于
 experimental = 实验性
+toolbar-label = 工具
+toolbar-expand = 展开工具栏
+toolbar-collapse = 收起工具栏
 
 settings-title = 设置
 settings-close = 关闭设置

@@ -6786,6 +6786,7 @@ dependencies = [
  "dioxus-html",
  "js-sys",
  "pollster 1.0.1",
+ "serde_json",
 ]
 
 [[package]]

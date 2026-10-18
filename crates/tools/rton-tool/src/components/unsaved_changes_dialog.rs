@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons::{LdTriangleAlert, LdX};
+use toolkit_ui::use_modal_focus;
 
 use crate::components::lucide_icon;
 use crate::i18n::I18n;
@@ -28,17 +29,23 @@ pub(crate) fn UnsavedChangesDialog(
     let closing_snapshot = *closing.read();
     let title = i18n.t("unsaved-changes-title");
     let close_label = i18n.t("toolbar-close-menu");
+    use_modal_focus(
+        "rton-unsaved-dialog-modal",
+        true,
+        "#rton-unsaved-dialog",
+        None,
+        None,
+    );
 
     rsx! {
         div {
+            id: "rton-unsaved-dialog",
             class: if closing_snapshot { "rton-unsaved-backdrop closing" } else { "rton-unsaved-backdrop" },
             tabindex: "-1",
-            onmounted: move |event| async move {
-                let _ = event.set_focus(true).await;
-            },
             onkeydown: move |event| {
                 if event.key() == Key::Escape {
                     event.prevent_default();
+                    event.stop_propagation();
                     close_dialog(closing, on_cancel);
                 }
             },
@@ -49,6 +56,8 @@ pub(crate) fn UnsavedChangesDialog(
                 aria_modal: "true",
                 aria_labelledby: "rton-unsaved-title",
                 aria_describedby: "rton-unsaved-description",
+                tabindex: "-1",
+                "data-modal-content": "true",
                 onclick: move |event| event.stop_propagation(),
                 header { class: "rton-unsaved-header",
                     div { class: "rton-unsaved-title-row",
