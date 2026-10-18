@@ -266,7 +266,7 @@ button {
 
 .tk-brand-copy span {
   color: var(--tk-muted);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -766,7 +766,7 @@ button {
 }
 
 .tk-settings-update-action b {
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1;
 }
 
@@ -793,7 +793,7 @@ button {
 
 .tk-settings-log-summary span {
   color: var(--tk-faint);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .tk-settings-log-viewer {
@@ -838,7 +838,7 @@ button {
   border-radius: 9px;
   background: var(--tk-surface-muted);
   color: var(--tk-muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
@@ -906,7 +906,7 @@ button {
 .tk-nav-label {
   padding: 0 12px 6px;
   color: var(--tk-faint);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -966,7 +966,7 @@ button {
 
 .tk-nav-glyph--pam {
   color: #43a776;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .tk-nav-glyph--particle {
@@ -982,7 +982,7 @@ button {
 .tk-nav-glyph--rton {
   color: #708eb3;
   font-family: monospace;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .tk-nav-glyph--rsb {
@@ -1256,7 +1256,7 @@ button {
   display: block;
   margin-top: 4px;
   color: var(--tk-faint);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1270,7 +1270,7 @@ button {
   border-radius: 999px;
   background: var(--tk-surface-muted);
   color: var(--tk-muted);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 750;
 }
 
@@ -1297,7 +1297,7 @@ button {
   border-radius: 999px;
   background: var(--tk-accent-soft);
   color: var(--tk-accent-strong);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 750;
 }
 
@@ -1326,7 +1326,7 @@ button {
 
 .tk-about-card-label {
   color: var(--tk-faint);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -1400,7 +1400,7 @@ button {
 .tk-about-card--maintainer small {
   margin-top: 19px;
   color: var(--tk-faint);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .tk-about-card--stack {
@@ -1426,7 +1426,7 @@ button {
   padding-top: 15px;
   border-top: 1px solid var(--tk-border);
   color: var(--tk-faint);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .tk-about-credits > h2 {
@@ -1447,7 +1447,7 @@ button {
   padding-bottom: 8px;
   border-bottom: 1px solid color-mix(in srgb, var(--tk-accent) 22%, var(--tk-border));
   color: var(--tk-accent-strong);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1478,7 +1478,7 @@ button {
 .tk-about-credit-grid li p,
 .tk-about-credit-grid section > p {
   color: var(--tk-muted);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.7;
 }
 
@@ -1512,7 +1512,7 @@ button {
 .tk-about-credit-link b {
   margin-left: 5px;
   color: var(--tk-accent-strong);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .tk-about-credit-grid section > p {
@@ -1530,7 +1530,7 @@ button {
   border-radius: 11px;
   background: var(--tk-surface-muted);
   color: var(--tk-ink);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 750;
   text-decoration: none;
   transition: border-color 160ms ease, color 160ms ease, transform 160ms ease;
@@ -1575,7 +1575,7 @@ button {
   border-radius: 12px;
   background: var(--tk-accent-soft);
   color: var(--tk-accent-strong);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 850;
 }
 
@@ -1638,13 +1638,13 @@ button {
   display: block;
   margin-top: 3px;
   color: var(--tk-faint);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .tk-about-format > p {
   margin-top: 13px;
   color: var(--tk-muted);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.7;
 }
 
@@ -1670,7 +1670,7 @@ button {
   gap: 18px;
   padding: 26px 8px 4px;
   color: var(--tk-faint);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .tk-about-footer span {
@@ -1734,7 +1734,7 @@ button {
   gap: 8px;
   margin-bottom: 19px;
   color: var(--tk-accent-strong);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1819,7 +1819,7 @@ button {
   place-items: center;
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.14);
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .tk-button--secondary .tk-button-icon {
@@ -1829,7 +1829,7 @@ button {
 
 .tk-button-icon--code {
   font-family: monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .tk-welcome-preview {
@@ -1998,7 +1998,7 @@ button {
   background: var(--tk-accent-soft);
   color: var(--tk-accent-strong);
   font-family: monospace;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 800;
 }
 
@@ -2008,7 +2008,7 @@ button {
 }
 
 .tk-floating-format strong {
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .tk-floating-format small {
@@ -2053,7 +2053,7 @@ button {
   display: block;
   margin-bottom: 6px;
   color: var(--tk-accent-strong);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -2255,7 +2255,7 @@ button {
   border-radius: 8px;
   background: var(--tk-surface-muted);
   color: var(--tk-faint);
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -2334,7 +2334,7 @@ button {
   border-radius: 999px;
   background: var(--tk-accent-soft);
   color: var(--tk-accent-strong);
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -2351,7 +2351,7 @@ button {
   border-radius: 999px;
   background: var(--tk-accent-soft);
   color: var(--tk-accent-strong);
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.04em;
   cursor: pointer;
@@ -2437,14 +2437,14 @@ button {
 .tk-crate-title span {
   color: var(--tk-faint);
   font-family: monospace;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .tk-crate-copy p {
   overflow: hidden;
   margin: 4px 0 0;
   color: var(--tk-muted);
-  font-size: 9px;
+  font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2490,20 +2490,20 @@ button {
   background: var(--tk-surface-muted);
   color: var(--tk-accent-strong);
   font-family: var(--tk-font-ui);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
 }
 
 .tk-step-list strong {
   display: block;
   margin: 1px 0 3px;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .tk-step-list p {
   margin: 0;
   color: var(--tk-muted);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -2535,13 +2535,13 @@ button {
   gap: 2px;
   margin: 0;
   color: var(--tk-muted);
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.4;
 }
 
 .tk-growth-note strong {
   color: var(--tk-ink);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .tk-footer {
@@ -2552,7 +2552,7 @@ button {
   margin-top: 42px;
   border-top: 1px solid var(--tk-border);
   color: var(--tk-faint);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .tk-footer p {
@@ -2667,7 +2667,7 @@ button {
 
 .tk-libraries-summary span {
   color: var(--tk-muted);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1.45;
 }
@@ -2798,7 +2798,7 @@ button {
   border-radius: 999px;
   color: var(--tk-faint);
   font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -2829,7 +2829,7 @@ button {
 .tk-library-card > p {
   margin: 10px 0 17px;
   color: var(--tk-muted);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.7;
 }
 
@@ -2845,7 +2845,7 @@ button {
   border-radius: 999px;
   background: color-mix(in srgb, var(--tk-library-accent) 10%, var(--tk-surface-muted));
   color: color-mix(in srgb, var(--tk-library-accent) 72%, var(--tk-ink));
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 750;
 }
 
@@ -2888,7 +2888,7 @@ button {
 .tk-libraries-principles p {
   margin: 7px 0 0;
   color: var(--tk-muted);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.65;
 }
 
@@ -2899,7 +2899,7 @@ button {
   gap: 18px;
   padding: 28px 8px 4px;
   color: var(--tk-faint);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .tk-libraries-footer span {
@@ -3101,7 +3101,7 @@ button {
   border-radius: 15px;
   background: transparent;
   color: var(--tk-workbench-muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
   transition: background 200ms var(--tk-spring), box-shadow 200ms var(--tk-spring), color 160ms ease, transform 200ms var(--tk-spring);
@@ -3133,7 +3133,7 @@ button {
   background: color-mix(in srgb, var(--tk-workbench-muted) 12%, transparent);
   color: var(--tk-workbench-muted);
   font-family: var(--tk-font-ui);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
 }
 
@@ -3594,4 +3594,58 @@ button {
   box-shadow: var(--tk-shadow) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+/* M3 dialog surface: every tool dialog uses the same shape, outline and lift. */
+:is(
+  .pak-dialog,
+  .dzip-dialog,
+  .rsb-dialog,
+  .newton-dialog,
+  .rsp-dialog,
+  .pam-export-dialog,
+  .rton-unsaved-dialog
+) {
+  border: 1px solid var(--tk-outline-variant) !important;
+  border-radius: var(--tk-radius-xl) !important;
+  background: var(--tk-surface-card) !important;
+  box-shadow: var(--tk-shadow-high) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+:is(
+  .pak-dialog,
+  .dzip-dialog,
+  .rsb-dialog,
+  .newton-dialog,
+  .rsp-dialog,
+  .pam-export-dialog,
+  .rton-unsaved-dialog
+) h2 {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+}
+
+:is(
+  .pak-dialog,
+  .dzip-dialog,
+  .rsb-dialog,
+  .newton-dialog,
+  .rsp-dialog,
+  .pam-export-dialog,
+  .rton-unsaved-dialog
+) button {
+  border-radius: 999px !important;
+}
+
+/* Action buttons in every tool drawer/toolbar use one M3 pill shape. */
+.ui-tool-page-actions :is(button, label) {
+  border-radius: 999px !important;
+}
+
+/* One M3 type hierarchy for tool pages: headlines are semibold, not ultra-bold. */
+.ui-tool-surface :is(h1, h2, h3) {
+  font-weight: 600 !important;
 }
