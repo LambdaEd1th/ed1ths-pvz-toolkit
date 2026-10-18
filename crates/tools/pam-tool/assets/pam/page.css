@@ -841,6 +841,7 @@ html.native-wgpu-host .pam-stage {
   border-radius: 10px;
   background: var(--color-control);
   color: var(--color-text-strong);
+  text-align: left;
   cursor: pointer;
 }
 
@@ -849,6 +850,7 @@ html.native-wgpu-host .pam-stage {
   max-width: 100%;
   flex: 1 1 auto;
   overflow: hidden;
+  text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
