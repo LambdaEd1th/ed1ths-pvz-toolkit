@@ -187,32 +187,48 @@ pub fn ResourceOperations(
                     if indices.len() == 1 {
                         message.set("正在导出所选资源…".into());
                         let file = reader.extract(&catalog.rows[indices[0]]).await?;
-                        if cancelled() { return Ok("已取消导出".into()); }
-                        let name = file.name.rsplit('/').next().unwrap_or(&file.name);
-                        return crate::platform::save_bytes(name, &file.bytes).await.map(|saved| if saved { format!("已导出 {name}") } else { "已取消保存".into() });
-                    }
-                    let mut zip = ResourceZip::new();
-                    let mut errors = Vec::new();
-                    for (position, index) in indices.iter().enumerate() {
-                        if cancelled() { return Ok("已取消导出，未保存文件".into()); }
-                        let row = &catalog.rows[*index];
-                        message.set(format!("正在导出 {}/{} · {}", position + 1, indices.len(), row.entry.id));
-                        match reader.extract(row).await {
-                            Ok(file) => zip.add(&file.name, &file.bytes)?,
-                            Err(error) => errors.push(format!("{} [{}]：{error}", resource_actions::output_path(row), row.entry.subgroup)),
+                        if cancelled() {
+                            return Ok("已取消导出".into());
                         }
-                        #[cfg(target_arch = "wasm32")]
-                        gloo_timers::future::TimeoutFuture::new(0).await;
+                        let name = file.name.rsplit('/').next().unwrap_or(&file.name);
+                        return crate::platform::save_bytes(name, &file.bytes)
+                            .await
+                            .map(|saved| {
+                                if saved {
+                                    format!("已导出 {name}")
+                                } else {
+                                    "已取消保存".into()
+                                }
+                            });
                     }
-                    if cancelled() { return Ok("已取消导出，未保存文件".into()); }
-                    let count = zip.count;
-                    warnings.set(errors.clone());
-                    if count == 0 { return Err(format!("没有可导出的资源（{} 项未映射或读取失败）", errors.len())); }
-                    if !errors.is_empty() { zip.add("_export-errors.txt", errors.join("\n").as_bytes())?; }
-                    let bytes = zip.finish()?;
-                    let saved = crate::platform::save_bytes(&zip_name, &bytes).await?;
-                    Ok(if saved { format!("已导出 {count} 个资源 · 跳过 {} 项；ZIP 保留逻辑目录，同名变体自动编号", errors.len()) } else { "已取消保存".into() })
-                }.await;
+                    #[cfg(not(target_arch = "wasm32"))]
+                    {
+                        export_zip_native(
+                            &mut reader,
+                            &catalog,
+                            &indices,
+                            &zip_name,
+                            message,
+                            cancelled,
+                            warnings,
+                        )
+                        .await
+                    }
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        export_zip_web(
+                            &mut reader,
+                            &catalog,
+                            &indices,
+                            &zip_name,
+                            message,
+                            cancelled,
+                            warnings,
+                        )
+                        .await
+                    }
+                }
+                .await;
                 message.set(result.unwrap_or_else(|error| format!("导出失败：{error}")));
                 busy.set(false);
             });
@@ -254,6 +270,217 @@ pub fn ResourceOperations(
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+const EXPORT_CANCELLED: &str = "已取消导出，未保存文件";
+
+#[cfg(not(target_arch = "wasm32"))]
+async fn export_zip_native(
+    reader: &mut ResourceReader,
+    catalog: &ResourceCatalog,
+    indices: &[usize],
+    zip_name: &str,
+    mut message: Signal<String>,
+    cancelled: Signal<bool>,
+    mut warnings: Signal<Vec<String>>,
+) -> Result<String, String> {
+    let Some(path) = crate::platform::pick_export_path(zip_name).await else {
+        return Ok("已取消保存".into());
+    };
+    let (count, errors) = match export_zip_native_to_path(
+        reader,
+        catalog,
+        indices,
+        &path,
+        |position, total, id| {
+            message.set(format!("正在导出 {position}/{total} · {id}"));
+        },
+        || (*cancelled)(),
+    )
+    .await
+    {
+        Ok(result) => result,
+        Err(error) if error == EXPORT_CANCELLED => return Ok(error),
+        Err(error) => return Err(error),
+    };
+    warnings.set(errors.clone());
+    Ok(format!(
+        "已导出 {count} 个资源 · 跳过 {} 项；ZIP 保留逻辑目录，同名变体自动编号",
+        errors.len()
+    ))
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+async fn export_zip_native_to_path(
+    reader: &mut ResourceReader,
+    catalog: &ResourceCatalog,
+    indices: &[usize],
+    path: &std::path::Path,
+    mut progress: impl FnMut(usize, usize, &str),
+    cancelled: impl Fn() -> bool,
+) -> Result<(usize, Vec<String>), String> {
+    use std::io::BufWriter;
+
+    let (file, temporary) = crate::platform::create_atomic_temp(path)?;
+    let mut zip = ResourceZip::new(BufWriter::new(file));
+    let mut errors = Vec::new();
+    for (position, index) in indices.iter().enumerate() {
+        if cancelled() {
+            let _ = std::fs::remove_file(&temporary);
+            return Err(EXPORT_CANCELLED.into());
+        }
+        let row = &catalog.rows[*index];
+        progress(position + 1, indices.len(), &row.entry.id);
+        match reader.extract(row).await {
+            Ok(file) => {
+                if let Err(error) = zip.add(&file.name, &file.bytes) {
+                    let _ = std::fs::remove_file(&temporary);
+                    return Err(error);
+                }
+            }
+            Err(error) => errors.push(format!(
+                "{} [{}]：{error}",
+                resource_actions::output_path(row),
+                row.entry.subgroup
+            )),
+        }
+        if position % 64 == 63 {
+            futures_timer::Delay::new(std::time::Duration::ZERO).await;
+        }
+    }
+    let count = zip.count;
+    if count == 0 {
+        let _ = std::fs::remove_file(&temporary);
+        return Err(format!(
+            "没有可导出的资源（{} 项未映射或读取失败）",
+            errors.len()
+        ));
+    }
+    if !errors.is_empty()
+        && let Err(error) = zip.add("_export-errors.txt", errors.join("\n").as_bytes())
+    {
+        let _ = std::fs::remove_file(&temporary);
+        return Err(error);
+    }
+    let writer = match zip.finish() {
+        Ok(writer) => writer,
+        Err(error) => {
+            let _ = std::fs::remove_file(&temporary);
+            return Err(error);
+        }
+    };
+    if let Err(error) = crate::platform::finish_atomic_temp(&temporary, path, writer) {
+        let _ = std::fs::remove_file(&temporary);
+        return Err(error);
+    }
+    Ok((count, errors))
+}
+
+#[cfg(target_arch = "wasm32")]
+async fn export_zip_web(
+    reader: &mut ResourceReader,
+    catalog: &ResourceCatalog,
+    indices: &[usize],
+    zip_name: &str,
+    mut message: Signal<String>,
+    cancelled: Signal<bool>,
+    mut warnings: Signal<Vec<String>>,
+) -> Result<String, String> {
+    let mut zip = ResourceZip::memory();
+    let mut errors = Vec::new();
+    let mut part = 1usize;
+    let mut exported = 0usize;
+    let mut parts = 0usize;
+    for (position, index) in indices.iter().enumerate() {
+        if cancelled() {
+            warnings.set(errors);
+            return Ok(if parts == 0 {
+                "已取消导出，未保存文件".into()
+            } else {
+                format!("已取消保存，已导出前 {parts} 个分卷")
+            });
+        }
+        let row = &catalog.rows[*index];
+        message.set(format!(
+            "正在导出 {}/{} · {}",
+            position + 1,
+            indices.len(),
+            row.entry.id
+        ));
+        let file = match reader.extract(row).await {
+            Ok(file) => file,
+            Err(error) => {
+                errors.push(format!(
+                    "{} [{}]：{error}",
+                    resource_actions::output_path(row),
+                    row.entry.subgroup
+                ));
+                continue;
+            }
+        };
+        let file_size = file.bytes.len() as u64;
+        if file_size > resource_actions::MAX_EXPORT_BYTES as u64 {
+            errors.push(format!(
+                "{}：单个文件超过 512 MiB，已跳过",
+                resource_actions::output_path(row)
+            ));
+            continue;
+        }
+        if zip.count > 0
+            && zip.total_bytes.saturating_add(file_size) > resource_actions::MAX_EXPORT_BYTES as u64
+        {
+            let count = zip.count;
+            let bytes = zip.into_bytes()?;
+            let name = web_part_name(zip_name, part);
+            if !crate::platform::save_bytes(&name, &bytes).await? {
+                warnings.set(errors);
+                return Ok(format!("已取消保存，已导出前 {parts} 个分卷"));
+            }
+            exported += count;
+            parts += 1;
+            part += 1;
+            zip = ResourceZip::memory();
+        }
+        if let Err(error) = zip.add(&file.name, &file.bytes) {
+            warnings.set(errors);
+            return Err(error);
+        }
+        gloo_timers::future::TimeoutFuture::new(0).await;
+    }
+    if zip.count == 0 {
+        warnings.set(errors.clone());
+        return Err(format!(
+            "没有可导出的资源（{} 项未映射或读取失败）",
+            errors.len()
+        ));
+    }
+    if !errors.is_empty() {
+        zip.add("_export-errors.txt", errors.join("\n").as_bytes())?;
+    }
+    let count = zip.count;
+    let bytes = zip.into_bytes()?;
+    let name = web_part_name(zip_name, part);
+    if !crate::platform::save_bytes(&name, &bytes).await? {
+        warnings.set(errors);
+        return Ok(format!("已取消保存，已导出前 {parts} 个分卷"));
+    }
+    exported += count;
+    parts += 1;
+    warnings.set(errors.clone());
+    Ok(format!(
+        "已导出 {exported} 个资源 · 跳过 {} 项 · 共 {parts} 个 ZIP；ZIP 保留逻辑目录，同名变体自动编号",
+        errors.len()
+    ))
+}
+
+#[cfg(target_arch = "wasm32")]
+fn web_part_name(base: &str, part: usize) -> String {
+    if part <= 1 {
+        return base.to_string();
+    }
+    let stem = base.strip_suffix(".zip").unwrap_or(base);
+    format!("{stem}-part{part:02}.zip")
+}
+
 #[component]
 fn ResourceImagePreview(
     image: ImagePreview,
@@ -286,5 +513,105 @@ fn ResourceImagePreview(
                 });
             },
         }
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use super::*;
+    use crate::editing::{PacketEdits, RemovedPackets};
+    use crate::resources;
+    use std::sync::Arc;
+
+    #[test]
+    fn native_export_streams_every_selected_resource_to_a_zip() {
+        let archive = crate::edit_fixture::archive();
+        let data = pollster::block_on(resources::load_manifests(
+            archive.clone(),
+            PacketEdits::new(),
+            RemovedPackets::new(),
+        ));
+        let files =
+            resources::physical_files(&archive, &PacketEdits::new(), &RemovedPackets::new());
+        let catalog = resources::build_catalog(&data, &files);
+        let indices = catalog
+            .rows
+            .iter()
+            .enumerate()
+            .filter(|(_, row)| resource_actions::can_extract(row))
+            .map(|(index, _)| index)
+            .collect::<Vec<_>>();
+        assert!(!indices.is_empty());
+        let path = std::env::temp_dir().join(format!(
+            "rsb-native-export-{}-{}.zip",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|duration| duration.as_nanos())
+                .unwrap_or_default()
+        ));
+        let mut reader = ResourceReader::new(
+            Arc::clone(&archive),
+            PacketEdits::new(),
+            RemovedPackets::new(),
+        );
+        let (count, errors) = pollster::block_on(export_zip_native_to_path(
+            &mut reader,
+            &catalog,
+            &indices,
+            &path,
+            |_, _, _| {},
+            || false,
+        ))
+        .unwrap();
+        assert!(count > 0);
+        assert_eq!(count, indices.len() - errors.len());
+        let archive = zip::ZipArchive::new(std::fs::File::open(&path).unwrap()).unwrap();
+        assert_eq!(archive.len(), count + usize::from(!errors.is_empty()));
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn native_export_cancellation_leaves_no_partial_file() {
+        let archive = crate::edit_fixture::archive();
+        let data = pollster::block_on(resources::load_manifests(
+            archive.clone(),
+            PacketEdits::new(),
+            RemovedPackets::new(),
+        ));
+        let files =
+            resources::physical_files(&archive, &PacketEdits::new(), &RemovedPackets::new());
+        let catalog = resources::build_catalog(&data, &files);
+        let indices = catalog
+            .rows
+            .iter()
+            .enumerate()
+            .filter(|(_, row)| resource_actions::can_extract(row))
+            .map(|(index, _)| index)
+            .collect::<Vec<_>>();
+        let path = std::env::temp_dir().join(format!(
+            "rsb-cancel-export-{}-{}.zip",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|duration| duration.as_nanos())
+                .unwrap_or_default()
+        ));
+        let mut reader = ResourceReader::new(
+            Arc::clone(&archive),
+            PacketEdits::new(),
+            RemovedPackets::new(),
+        );
+        let error = pollster::block_on(export_zip_native_to_path(
+            &mut reader,
+            &catalog,
+            &indices,
+            &path,
+            |_, _, _| {},
+            || true,
+        ))
+        .unwrap_err();
+        assert_eq!(error, EXPORT_CANCELLED);
+        assert!(!path.exists());
     }
 }

@@ -304,3 +304,96 @@ pub async fn extract_entries(entries: &[(String, Vec<u8>)]) -> Result<Option<usi
     }
     Ok(Some(written))
 }
+
+/// Picks the final destination for a streamed export. The file is not created
+/// here; the export writes a sibling temp file and renames it on success so a
+/// cancelled or failed export never truncates an existing file.
+#[cfg(not(target_arch = "wasm32"))]
+pub async fn pick_export_path(default_name: &str) -> Option<std::path::PathBuf> {
+    rfd::AsyncFileDialog::new()
+        .set_file_name(default_name)
+        .save_file()
+        .await
+        .map(|file| file.path().to_path_buf())
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn create_atomic_temp(
+    path: &std::path::Path,
+) -> Result<(std::fs::File, std::path::PathBuf), String> {
+    let parent = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .unwrap_or_else(|| std::path::Path::new("."));
+    let file_name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("resources.zip");
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|duration| duration.as_nanos())
+        .unwrap_or_default();
+    for attempt in 0..16_u8 {
+        let temporary = parent.join(format!(
+            ".{file_name}.toolkit-{}-{stamp}-{attempt}.tmp",
+            std::process::id()
+        ));
+        match std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&temporary)
+        {
+            Ok(file) => return Ok((file, temporary)),
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(error) => {
+                return Err(format!("无法在 {} 创建临时文件：{error}", parent.display()));
+            }
+        }
+    }
+    Err(format!("无法为 {} 分配临时保存文件", path.display()))
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn finish_atomic_temp(
+    temporary: &std::path::Path,
+    path: &std::path::Path,
+    writer: std::io::BufWriter<std::fs::File>,
+) -> Result<(), String> {
+    use std::io::Write as _;
+
+    let mut writer = writer;
+    writer.flush().map_err(|error| error.to_string())?;
+    writer
+        .get_ref()
+        .sync_all()
+        .map_err(|error| error.to_string())?;
+    drop(writer);
+    std::fs::rename(temporary, path).map_err(|error| {
+        let _ = std::fs::remove_file(temporary);
+        format!("无法保存 {}：{error}", path.display())
+    })
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    #[test]
+    fn atomic_temp_file_is_renamed_only_on_finish() {
+        let path = std::env::temp_dir().join(format!(
+            "rsb-atomic-{}-{}.zip",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|duration| duration.as_nanos())
+                .unwrap_or_default()
+        ));
+        let (file, temporary) = super::create_atomic_temp(&path).unwrap();
+        assert!(temporary.exists());
+        assert!(!path.exists());
+        std::io::Write::write_all(&mut &file, b"test").unwrap();
+        super::finish_atomic_temp(&temporary, &path, std::io::BufWriter::new(file)).unwrap();
+        assert!(path.exists());
+        assert!(!temporary.exists());
+        assert_eq!(std::fs::read(&path).unwrap(), b"test");
+        let _ = std::fs::remove_file(path);
+    }
+}

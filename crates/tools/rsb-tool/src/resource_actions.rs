@@ -7,10 +7,12 @@ use crate::resources::{
 };
 use image::{ImageFormat, RgbaImage};
 use std::collections::BTreeSet;
-use std::io::{Cursor, Write};
+use std::io::{Cursor, Seek, Write};
 use std::sync::Arc;
 use toolkit_ui::{ToolFile, ToolKind};
 
+/// Per-ZIP cap for browser downloads and PAM companion images. Native desktop
+/// exports stream to disk and are not limited by this value.
 pub const MAX_EXPORT_BYTES: usize = 512 * 1024 * 1024;
 
 pub fn can_extract(row: &MappedResource) -> bool {
@@ -386,27 +388,25 @@ pub fn find_pam_image(
     Ok(index)
 }
 
-/// ZIP is built incrementally, without retaining a second copy of every output.
-pub struct ResourceZip {
-    writer: zip::ZipWriter<Cursor<Vec<u8>>>,
+/// ZIP is built incrementally over any seekable writer. Native exports stream
+/// straight to a temporary file instead of retaining the entire archive in RAM.
+pub struct ResourceZip<W: Write + Seek> {
+    writer: zip::ZipWriter<W>,
     names: BTreeSet<String>,
     pub count: usize,
-    pub total_bytes: usize,
+    pub total_bytes: u64,
 }
 
-impl ResourceZip {
-    pub fn new() -> Self {
+impl<W: Write + Seek> ResourceZip<W> {
+    pub fn new(writer: W) -> Self {
         Self {
-            writer: zip::ZipWriter::new(Cursor::new(Vec::new())),
+            writer: zip::ZipWriter::new(writer),
             names: BTreeSet::new(),
             count: 0,
             total_bytes: 0,
         }
     }
     pub fn add(&mut self, path: &str, bytes: &[u8]) -> Result<(), String> {
-        if self.total_bytes.saturating_add(bytes.len()) > MAX_EXPORT_BYTES {
-            return Err("本次导出超过 512 MiB，请分批选择".into());
-        }
         let path = safe_path(path, "resource.bin");
         let mut unique = path.clone();
         let mut suffix = 2;
@@ -437,14 +437,22 @@ impl ResourceZip {
             .write_all(bytes)
             .map_err(|error| error.to_string())?;
         self.count += 1;
-        self.total_bytes += bytes.len();
+        self.total_bytes = self.total_bytes.saturating_add(bytes.len() as u64);
         Ok(())
     }
-    pub fn finish(self) -> Result<Vec<u8>, String> {
-        self.writer
-            .finish()
-            .map(|cursor| cursor.into_inner())
-            .map_err(|error| error.to_string())
+    pub fn finish(self) -> Result<W, String> {
+        self.writer.finish().map_err(|error| error.to_string())
+    }
+}
+
+#[cfg(any(target_arch = "wasm32", test))]
+impl ResourceZip<Cursor<Vec<u8>>> {
+    pub fn memory() -> Self {
+        Self::new(Cursor::new(Vec::new()))
+    }
+
+    pub fn into_bytes(self) -> Result<Vec<u8>, String> {
+        self.finish().map(|cursor| cursor.into_inner())
     }
 }
 
@@ -556,12 +564,40 @@ mod tests {
         );
         assert!(crop(&atlas, &AtlasRegion { width: 0, ..region }).is_err());
     }
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn zip_streams_to_a_file_without_a_memory_buffer() {
+        use std::io::Write as _;
+
+        let path = std::env::temp_dir().join(format!(
+            "rsb-stream-export-{}-{}.zip",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|duration| duration.as_nanos())
+                .unwrap_or_default()
+        ));
+        let file = std::fs::File::create(&path).unwrap();
+        let mut zip = ResourceZip::new(std::io::BufWriter::new(file));
+        zip.add("folder/a.txt", b"hello").unwrap();
+        zip.add("folder/b.txt", b"world").unwrap();
+        let count = zip.count;
+        let mut writer = zip.finish().unwrap();
+        writer.flush().unwrap();
+        drop(writer);
+        let mut archive = zip::ZipArchive::new(std::fs::File::open(&path).unwrap()).unwrap();
+        assert_eq!(count, 2);
+        assert_eq!(archive.len(), 2);
+        assert_eq!(archive.by_index(0).unwrap().name(), "folder/a.txt");
+        let _ = std::fs::remove_file(path);
+    }
+
     #[test]
     fn zip_paths_are_safe_and_case_insensitive_collisions_survive() {
-        let mut zip = ResourceZip::new();
+        let mut zip = ResourceZip::memory();
         zip.add("../images/a.png", b"one").unwrap();
         zip.add("images/A.png", b"two").unwrap();
-        let mut read = zip::ZipArchive::new(Cursor::new(zip.finish().unwrap())).unwrap();
+        let mut read = zip::ZipArchive::new(Cursor::new(zip.into_bytes().unwrap())).unwrap();
         assert_eq!(read.len(), 2);
         assert_eq!(read.by_index(0).unwrap().name(), "images/a.png");
         assert_eq!(read.by_index(1).unwrap().name(), "images/A (2).png");

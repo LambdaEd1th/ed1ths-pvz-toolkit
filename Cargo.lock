@@ -5432,6 +5432,7 @@ dependencies = [
  "dioxus-free-icons",
  "dioxus-html",
  "futures-channel",
+ "futures-timer",
  "gloo-timers 0.4.0",
  "image",
  "js-sys",

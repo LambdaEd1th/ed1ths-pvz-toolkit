@@ -29,6 +29,7 @@ zip.workspace = true
 arboard.workspace = true
 dioxus = { workspace = true, features = ["desktop"] }
 futures-channel.workspace = true
+futures-timer.workspace = true
 rayon.workspace = true
 rfd.workspace = true
 
