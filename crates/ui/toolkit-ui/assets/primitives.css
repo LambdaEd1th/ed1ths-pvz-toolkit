@@ -1101,3 +1101,16 @@
     transform: translateY(28px) scale(0.985);
   }
 }
+
+/* A popover can extend past the drawer panel. When one is open, lift the whole
+ * panel above the floating handle instead of letting the handle paint over the
+ * menu options. */
+.ui-tool-page-toolbar:has(
+    .pam-select-menu,
+    .rton-mode-menu,
+    .rton-inline-select-menu,
+    .wem-select-menu
+  )
+  .ui-tool-drawer-panel {
+  z-index: 3;
+}
