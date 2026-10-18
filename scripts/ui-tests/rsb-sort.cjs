@@ -114,6 +114,20 @@ async function run(engineName, engine) {
   const exportBounds = await exportButton.boundingBox();
   assert.ok(copyBounds && exportBounds && copyBounds.x + copyBounds.width <= exportBounds.x,
     'clipboard copy should sit immediately left of the PNG export button');
+  await preview.locator('.rsb-preview-modal-canvas').click({ button: 'right', position: { x: 80, y: 80 } });
+  await sleep(250);
+  assert.equal(
+    await tool.locator('.rsb-preview-context-menu').count(),
+    1,
+    'resource preview should expose its copy/export context menu',
+  );
+  await tool.locator('.rsb-preview-context-menu button').first().click();
+  await sleep(250);
+  assert.equal(
+    await tool.locator('.rsb-preview-context-menu').count(),
+    0,
+    'choosing a preview context action should close the menu',
+  );
   await page.keyboard.press('Escape');
   await preview.waitFor({ state: 'detached' });
   console.log(`${engineName}: unified resource texture preview passed`);

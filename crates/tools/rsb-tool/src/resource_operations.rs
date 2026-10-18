@@ -482,6 +482,10 @@ fn web_part_name(base: &str, part: usize) -> String {
     format!("{stem}-part{part:02}.zip")
 }
 
+fn focus_resource_preview_canvas() {
+    let _ = document::eval("document.querySelector('.rsb-preview-modal-canvas')?.focus()");
+}
+
 #[component]
 fn ResourceImagePreview(
     image: ImagePreview,
@@ -502,34 +506,103 @@ fn ResourceImagePreview(
     let copy_url = image.asset.url();
     let copy_width = image.width;
     let copy_height = image.height;
+    let mut menu = use_signal(|| None::<(f64, f64)>);
+    let export_action = EventHandler::new(move |_| {
+        let name = export_name.clone();
+        let png = Arc::clone(&export_png);
+        spawn(async move {
+            let file_name = name.rsplit('/').next().unwrap_or(&name);
+            let stem = file_name
+                .rsplit_once('.')
+                .map(|(stem, _)| stem)
+                .unwrap_or(file_name);
+            if let Err(error) = crate::platform::save_bytes(&format!("{stem}.png"), &png).await {
+                on_error.call(error);
+            }
+        });
+    });
+    let copy_action = EventHandler::new(move |_| {
+        let url = copy_url.clone();
+        let name = copy_name.clone();
+        spawn(async move {
+            match crate::platform::copy_preview_image(&url).await {
+                Ok(()) => message.set(format!("已复制 {name} · {copy_width} × {copy_height} PNG")),
+                Err(error) => message.set(format!("复制图像失败：{error}")),
+            }
+        });
+    });
     rsx! {
         PreviewModal {
             id: "rsb-resource-preview-modal".to_string(),
             image: modal_image,
             on_close,
-            on_export: move |_| {
-                let name = export_name.clone();
-                let png = Arc::clone(&export_png);
-                spawn(async move {
-                    let file_name = name.rsplit('/').next().unwrap_or(&name);
-                    let stem = file_name.rsplit_once('.').map(|(stem, _)| stem).unwrap_or(file_name);
-                    if let Err(error) = crate::platform::save_bytes(&format!("{stem}.png"), &png).await {
-                        on_error.call(error);
-                    }
-                });
-            },
-            on_copy: Some(EventHandler::new(move |_| {
-                let url = copy_url.clone();
-                let name = copy_name.clone();
-                spawn(async move {
-                    match crate::platform::copy_preview_image(&url).await {
-                        Ok(()) => message.set(format!(
-                            "已复制 {name} · {copy_width} × {copy_height} PNG"
-                        )),
-                        Err(error) => message.set(format!("复制图像失败：{error}")),
-                    }
-                });
+            on_export: move |_| export_action.call(()),
+            on_copy: Some(EventHandler::new(move |_| copy_action.call(()))),
+            on_context_menu: Some(EventHandler::new(move |(x, y): (f64, f64)| {
+                menu.set(Some((x, y)));
             })),
+        }
+        if let Some((x, y)) = menu() {
+            {
+                let style = format!(
+                    "--rsb-context-x: {}px; --rsb-context-y: {}px",
+                    x.round(),
+                    y.round()
+                );
+                rsx! {
+                    div {
+                        class: "rsb-context-backdrop rsb-preview-context-backdrop",
+                        onmousedown: move |event| {
+                            event.prevent_default();
+                            menu.set(None);
+                            focus_resource_preview_canvas();
+                        },
+                        oncontextmenu: move |event| {
+                            event.prevent_default();
+                            menu.set(None);
+                            focus_resource_preview_canvas();
+                        },
+                    }
+                    div {
+                        class: "rsb-context-menu rsb-preview-context-menu",
+                        role: "menu",
+                        aria_label: "纹理预览操作",
+                        tabindex: "0",
+                        style: "{style}",
+                        onmousedown: move |event| event.stop_propagation(),
+                        oncontextmenu: move |event| {
+                            event.prevent_default();
+                            event.stop_propagation();
+                        },
+                        onkeydown: move |event| {
+                            if event.key() == Key::Escape {
+                                menu.set(None);
+                                focus_resource_preview_canvas();
+                            }
+                        },
+                        button {
+                            r#type: "button",
+                            role: "menuitem",
+                            onclick: move |_| {
+                                menu.set(None);
+                                focus_resource_preview_canvas();
+                                copy_action.call(());
+                            },
+                            span { "复制图像" }
+                        }
+                        button {
+                            r#type: "button",
+                            role: "menuitem",
+                            onclick: move |_| {
+                                menu.set(None);
+                                focus_resource_preview_canvas();
+                                export_action.call(());
+                            },
+                            span { "导出 PNG" }
+                        }
+                    }
+                }
+            }
         }
     }
 }
