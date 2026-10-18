@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const { chromium, webkit } = require('playwright');
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const fixture = process.env.RSB_EDIT_FIXTURE || path.resolve(__dirname, '../../target/resource-edit.rsb');
 if (!fs.existsSync(fixture)) throw new Error('Generate target/resource-edit.rsb with RSB_EDIT_FIXTURE_PATH and cargo test -p rsb-tool --lib write_browser_fixture_when_requested');
 async function bytes(download) {
@@ -61,14 +62,14 @@ async function bytes(download) {
     await replace.getByRole('button', { name: '应用修改', exact: true }).click();
     await replace.waitFor({ state: 'hidden' });
     await (await select('LEAF')).dblclick();
-    const preview = explorer.getByRole('dialog', { name: '资源图片预览' });
+    const preview = page.locator('.tk-tool-slot--active .rsb-preview-modal');
     await preview.waitFor();
-    await page.waitForFunction(() => { const img = document.querySelector('.rsb-res-image-stage img'); return img?.complete && img.naturalWidth === 2; });
+    await page.waitForFunction(() => { const img = document.querySelector('.rsb-preview-modal-image img'); return img?.complete && img.naturalWidth === 2; });
     assert.deepEqual(await preview.locator('img').evaluate(img => {
       const canvas = document.createElement('canvas'); canvas.width = canvas.height = 2;
       const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0); return [...ctx.getImageData(0, 0, 2, 2).data];
     }), Array(16).fill(0));
-    await preview.getByRole('button', { name: '关闭预览' }).click();
+    await preview.locator('.rsb-preview-close').click();
     console.log('SAME-SIZE TRANSPARENT CHILD REPLACEMENT VERIFIED');
 
     await select('CONFIG');
@@ -94,12 +95,16 @@ async function bytes(download) {
     await explorer.locator('[data-resource-id]').filter({ hasText: '未列入清单' }).waitFor();
     console.log('ADD CONTENT AND DEFINITION / DELETE DEFINITION WITHOUT DELETING FILE PASSED');
 
-    const [saved] = await Promise.all([page.waitForEvent('download'), explorer.getByRole('button', { name: '保存 RSB', exact: true }).click()]);
+    await page.locator('.tk-tool-slot--active .ui-tool-drawer-handle').click();
+    await sleep(450);
+    const [saved] = await Promise.all([page.waitForEvent('download'), page.locator('.tk-tool-slot--active .rsb-resource-toolbar').getByRole('button', { name: '保存 RSB', exact: true }).click()]);
+    await page.locator('.tk-tool-slot--active .ui-tool-drawer-close').click();
     const savedBytes = await bytes(saved);
     await page.waitForFunction(() => document.querySelector('.rsb-status-message')?.textContent.includes('已保存并重新验证'));
     assert.notDeepEqual(savedBytes, original);
     assert.deepEqual(fs.readFileSync(fixture), original);
     await page.locator('.rsb-page-host input[type=file][accept*=".rsb"]').first().setInputFiles({ name: 'reopened.rsb', mimeType: 'application/octet-stream', buffer: savedBytes });
+    await sleep(900);
     await select('LEAF');
     assert.match(await explorer.locator('.rsb-res-details').innerText(), /RENAMED_ATLAS/);
     assert.match(await explorer.locator('.rsb-res-details').innerText(), /RESOURCES\.RTON/i);

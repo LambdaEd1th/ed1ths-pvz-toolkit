@@ -21,9 +21,9 @@ pub fn ResourceExplorer(
     ptx_infos: Vec<rsb_archive::RsbPtxInfo>,
     dirty: bool,
     active: bool,
+    import_request: Signal<Option<AddedFile>>,
+    rescan_request: Signal<u64>,
     on_commit: EventHandler<crate::resource_edit::ResourceCommit>,
-    on_save: EventHandler<()>,
-    on_close: EventHandler<()>,
     on_locate: EventHandler<ResourceLocation>,
 ) -> Element {
     let mut source = use_resource(use_reactive(
@@ -53,6 +53,34 @@ pub fn ResourceExplorer(
     let mut viewport_height = use_signal(|| TABLE_DEFAULT_VIEWPORT_HEIGHT);
     let mut viewport_width = use_signal(|| 800_usize);
     let mut mounted = use_signal(|| None::<MountedEvent>);
+    let mut import_request = import_request;
+    let rescan_request = rescan_request;
+    use_effect(use_reactive(&import_request(), move |request| {
+        let Some(file) = request else {
+            return;
+        };
+        let name = file.name.clone();
+        spawn(async move {
+            match crate::processing::parse_resource_manifest(file).await {
+                Ok(data) => {
+                    message.set(format!(
+                        "已导入 {name} · {} 个资源，仅用于映射",
+                        data.resources.len()
+                    ));
+                    imported.write().merge(data);
+                }
+                Err(error) => message.set(format!("导入失败：{error}")),
+            }
+            import_request.set(None);
+        });
+    }));
+    use_effect(use_reactive(&rescan_request(), move |tick| {
+        if tick == 0 {
+            return;
+        }
+        source.restart();
+        message.set(String::new());
+    }));
 
     let files = use_memo(use_reactive(
         &(archive.clone(), edits.clone(), removed.clone()),
@@ -223,27 +251,6 @@ pub fn ResourceExplorer(
         section { class: "rsb-resource-explorer", hidden: !active, aria_label: "资源管理器",
             header { class: "rsb-res-heading",
                 div { class: "rsb-res-title", ResourceIcon { kind: "archive" } strong { "资源管理器" } span { "RSB v{archive.header.version} · 逻辑资源路径" } }
-                div { class: "rsb-res-actions",
-                    button { class: "rsb-tool-button", disabled: !dirty || loading, onclick: move |_| on_save.call(()), "保存 RSB" }
-                    ManifestImportButton {
-                        on_import: move |file: AddedFile| {
-                            let name = file.name.clone();
-                            message.set(format!("正在读取 {name}…"));
-                            spawn(async move {
-                                match crate::processing::parse_resource_manifest(file).await {
-                                    Ok(data) => {
-                                        message.set(format!("已导入 {} · {} 个资源，仅用于映射", name, data.resources.len()));
-                                        imported.write().merge(data);
-                                    }
-                                    Err(error) => message.set(format!("导入失败：{error}")),
-                                }
-                            });
-                        },
-                        on_error: move |error| message.set(error),
-                    }
-                    button { class: "rsb-tool-button", disabled: loading, onclick: move |_| { source.restart(); message.set(String::new()); }, "重新扫描" }
-                    button { class: "rsb-tool-button", onclick: move |_| on_close.call(()), "返回文件浏览" }
-                }
             }
             div { class: "rsb-res-addressbar",
                 div { class: "rsb-res-navigation",
@@ -553,7 +560,7 @@ fn ResourceIcon(kind: String) -> Element {
 
 #[cfg(target_arch = "wasm32")]
 #[component]
-fn ManifestImportButton(
+pub(crate) fn ManifestImportButton(
     on_import: EventHandler<AddedFile>,
     on_error: EventHandler<String>,
 ) -> Element {
@@ -575,7 +582,7 @@ fn ManifestImportButton(
 
 #[cfg(not(target_arch = "wasm32"))]
 #[component]
-fn ManifestImportButton(
+pub(crate) fn ManifestImportButton(
     on_import: EventHandler<AddedFile>,
     on_error: EventHandler<String>,
 ) -> Element {

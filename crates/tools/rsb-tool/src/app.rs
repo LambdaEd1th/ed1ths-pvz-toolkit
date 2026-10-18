@@ -10,6 +10,7 @@ use crate::preview::{
     PreviewQuality, PtxPreview, PtxPreviewState, decode_prepared, detect_archive_channel_order,
     prepare_png_export, prepare_preview,
 };
+use crate::resource_explorer::ManifestImportButton;
 use crate::view_model::{
     ArchiveRowFilter, ArchiveRowSource, ArchiveTableRow, BrowserSort, BrowserSortKey,
     PacketItemSource, PacketTreeSource,
@@ -3537,6 +3538,8 @@ pub fn RsbArchivePage(
     let mut dragging = use_signal(|| false);
     let mut inspector_visible = use_signal(|| false);
     let mut resources_visible = use_signal(|| false);
+    let resource_import_request = use_signal(|| None::<AddedFile>);
+    let resource_rescan_request = use_signal(|| 0_u64);
     let mut ptx_preview = use_signal(|| None::<PtxPreviewState>);
     let mut detail_preview = use_signal(|| None::<PtxPreviewState>);
     let mut preview_open = use_signal(|| false);
@@ -3748,7 +3751,19 @@ pub fn RsbArchivePage(
             ToolPage { namespace: "rsb", class: "rsb-app",
                 ToolPageToolbar {
                     class: "rsb-page-toolbar",
-                    actions: rsx! { ArchiveToolbar {
+                    actions: rsx! {
+                        if resources_visible() {
+                            ResourceToolbar {
+                                has_archive: archive_snapshot.is_some(),
+                                dirty: has_unsaved_changes,
+                                import_request: resource_import_request,
+                                rescan_request: resource_rescan_request,
+                                status,
+                                on_save: move |_| save_edited_archive(false, archive, packet, location, selection, query, packet_edits, removed_packets, ptx_infos, status),
+                                on_back: move |_| resources_visible.set(false),
+                            }
+                        } else {
+                            ArchiveToolbar {
                     archive_name: archive_snapshot
                         .as_ref()
                         .map(|archive| archive.display_name.clone())
@@ -3945,7 +3960,7 @@ pub fn RsbArchivePage(
                         let open = !inspector_visible();
                         inspector_visible.set(open);
                     },
-                } },
+                } } },
                 }
 
                 ArchiveTabBar {
@@ -4004,7 +4019,8 @@ pub fn RsbArchivePage(
                             ptx_infos: ptx_infos.read().clone(),
                             dirty: has_unsaved_changes,
                             active: resources_visible(),
-                            on_save: move |_| save_edited_archive(false, archive, packet, location, selection, query, packet_edits, removed_packets, ptx_infos, status),
+                            import_request: resource_import_request,
+                            rescan_request: resource_rescan_request,
                             on_commit: move |commit: crate::resource_edit::ResourceCommit| {
                                 let Some(current) = archive() else { return; };
                                 if current.identity() != commit.identity
@@ -4027,7 +4043,6 @@ pub fn RsbArchivePage(
                                 preview_cache.write().clear();
                                 status.set(AppStatus::new(commit.message, StatusTone::Success));
                             },
-                            on_close: move |_| resources_visible.set(false),
                             on_locate: move |target| {
                                 resources_visible.set(false);
                                 locate_resource_file(target, archive, packet, packet_edits, navigation, preview_signals, ptx_infos, inspector_visible, status);
@@ -4757,6 +4772,55 @@ fn ArchiveTabBar(
                     on_open,
                     on_error,
                     tab_add: true,
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn ResourceToolbar(
+    has_archive: bool,
+    dirty: bool,
+    import_request: Signal<Option<AddedFile>>,
+    rescan_request: Signal<u64>,
+    mut status: Signal<AppStatus>,
+    on_save: EventHandler<()>,
+    on_back: EventHandler<()>,
+) -> Element {
+    rsx! {
+        div { class: "ui-island ui-tool-page-actions rsb-page-actions rsb-resource-toolbar",
+            div { class: "rsb-resource-toolbar-title",
+                Glyph { name: "archive" }
+                span { "资源管理器" }
+            }
+            div { class: "rsb-toolbar-group",
+                button {
+                    r#type: "button",
+                    class: "rsb-tool-button",
+                    disabled: !has_archive || !dirty,
+                    onclick: move |_| on_save.call(()),
+                    "保存 RSB"
+                }
+                ManifestImportButton {
+                    on_import: move |file| import_request.set(Some(file)),
+                    on_error: move |error| status.set(AppStatus::new(error, StatusTone::Error)),
+                }
+                button {
+                    r#type: "button",
+                    class: "rsb-tool-button",
+                    disabled: !has_archive,
+                    onclick: move |_| {
+                        rescan_request.set(rescan_request() + 1);
+                        status.set(AppStatus::new("正在重新扫描资源…", StatusTone::Neutral));
+                    },
+                    "重新扫描"
+                }
+                button {
+                    r#type: "button",
+                    class: "rsb-tool-button",
+                    onclick: move |_| on_back.call(()),
+                    "返回文件浏览"
                 }
             }
         }

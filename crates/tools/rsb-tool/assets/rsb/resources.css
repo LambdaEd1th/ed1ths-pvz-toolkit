@@ -10,7 +10,6 @@
 }
 .rsb-resource-explorer[hidden] { display: none; }
 .rsb-browser-card:has(.rsb-resource-explorer:not([hidden])) > :not(.rsb-resource-explorer) { visibility: hidden; pointer-events: none; }
-.rsb-page-host:has(.rsb-resource-explorer:not([hidden])) .rsb-page-toolbar { display: none; }
 .rsb-page-host .ui-tool-page.rsb-app:has(.rsb-resource-explorer:not([hidden])) { padding-left: 10px; }
 .rsb-resource-explorer button { font-family: inherit; cursor: pointer; }
 .rsb-resource-explorer button:disabled { opacity: .35; cursor: default; }
@@ -586,4 +585,61 @@
 .rsb-browser-tree .rsb-tree-item:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--rsb-accent) 55%, transparent);
   outline-offset: -2px;
+}
+
+
+/* Resource browsing gets its own toolbar instead of hiding the drawer. */
+.rsb-resource-toolbar {
+  width: fit-content;
+  min-width: 0;
+  gap: 10px;
+  padding: 5px 8px;
+}
+
+.rsb-resource-toolbar-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  color: var(--rsb-accent-strong);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rsb-resource-toolbar-title .rsb-glyph {
+  width: 15px;
+  height: 15px;
+}
+
+.rsb-page-host .rsb-resource-toolbar .rsb-tool-button,
+.rsb-page-host .rsb-resource-toolbar .rsb-res-import {
+  width: auto;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--tk-radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rsb-page-host .rsb-resource-toolbar .rsb-tool-button:hover:not(:disabled),
+.rsb-page-host .rsb-resource-toolbar .rsb-res-import:hover {
+  border-color: color-mix(in srgb, var(--rsb-accent) 28%, transparent);
+  background: var(--rsb-accent-soft);
+  color: var(--rsb-accent-strong);
+}
+
+.rsb-page-toolbar .ui-tool-drawer-panel {
+  background: color-mix(in srgb, var(--tk-surface-card) 96%, transparent);
+}
+
+/* The resource toolbar is the primary action surface, so keep its panel
+ * opaque instead of letting the resource table bleed through. */
+.rsb-page-toolbar:has(.rsb-resource-toolbar) .ui-tool-drawer-panel {
+  background: var(--tk-surface-card);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
