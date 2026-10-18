@@ -220,7 +220,7 @@ pub fn ResourceEditor(
                             if form.mode == Mode::Replace {
                                 p { class: "rsb-dialog-copy", "普通资源按原始字节替换。PTX / 图集子图请选择同尺寸图片，将按原纹理格式重新编码；有损格式可能影响整个图集画质。修改尚未写入原文件。" }
                             } else {
-                                p { class: "rsb-dialog-copy", "可选：同时添加普通文件，需要已存在的 RSG 子组和带扩展名的路径。子图只新增定义，再单独替换图片；新增 PTX 请使用包内文件视图。" }
+                                p { class: "rsb-dialog-copy", "可选：同时添加普通文件，需要已存在的 RSG 子组和带扩展名的路径。子图只新增定义，再单独替换图片；新增 PTX 请使用文件浏览视图。" }
                             }
                         }
                         if form.mode == Mode::Delete {

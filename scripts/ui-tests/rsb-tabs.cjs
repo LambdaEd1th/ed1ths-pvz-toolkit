@@ -156,7 +156,7 @@ function packetBytes(file, name) {
       await page.getByText('当前目录没有符合条件的资源', { exact: true }).waitFor();
       await search.fill('');
     }
-    await page.getByRole('button', { name: '返回包内文件', exact: true }).click();
+    await page.getByRole('button', { name: '返回文件浏览', exact: true }).click();
     await page.locator('.rsb-page-host').getByRole('button', { name: '展开工具栏', exact: true }).click();
     // Save as must use the browser File directly, without a full read into WASM.
     const readCount = await page.evaluate(() => window.rsbReadStats.calls);

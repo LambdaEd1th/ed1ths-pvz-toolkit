@@ -222,7 +222,7 @@ pub fn ResourceExplorer(
     rsx! {
         section { class: "rsb-resource-explorer", hidden: !active, aria_label: "资源管理器",
             header { class: "rsb-res-heading",
-                div { class: "rsb-res-title", ResourceIcon { kind: "archive" } strong { "资源管理器" } span { "RSB v{archive.header.version} · 逻辑路径" } }
+                div { class: "rsb-res-title", ResourceIcon { kind: "archive" } strong { "资源管理器" } span { "RSB v{archive.header.version} · 逻辑资源路径" } }
                 div { class: "rsb-res-actions",
                     button { class: "rsb-tool-button", disabled: !dirty || loading, onclick: move |_| on_save.call(()), "保存 RSB" }
                     ManifestImportButton {
@@ -242,7 +242,7 @@ pub fn ResourceExplorer(
                         on_error: move |error| message.set(error),
                     }
                     button { class: "rsb-tool-button", disabled: loading, onclick: move |_| { source.restart(); message.set(String::new()); }, "重新扫描" }
-                    button { class: "rsb-tool-button", onclick: move |_| on_close.call(()), "返回包内文件" }
+                    button { class: "rsb-tool-button", onclick: move |_| on_close.call(()), "返回文件浏览" }
                 }
             }
             div { class: "rsb-res-addressbar",

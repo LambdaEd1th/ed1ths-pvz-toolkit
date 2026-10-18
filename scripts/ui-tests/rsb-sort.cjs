@@ -112,7 +112,7 @@ async function run(engineName, engine) {
   console.log(`${engineName}: unified resource texture preview passed`);
 
   // The packet browser still uses the same viewer and keeps its context menu.
-  await explorer.locator('button').filter({ hasText: '返回包内文件' }).click();
+  await explorer.locator('button').filter({ hasText: '返回文件浏览' }).click();
   await sleep(500);
   await tool.locator('.rsb-table-row').filter({ hasText: 'Textures_768' }).first().dblclick();
   await sleep(800);

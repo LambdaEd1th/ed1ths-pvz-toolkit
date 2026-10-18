@@ -801,7 +801,7 @@ pub async fn apply(
                 return Err("子组中已有相同路径，不能覆盖".into());
             }
             if path.to_ascii_lowercase().ends_with(".ptx") {
-                return Err("新增 PTX 请使用包内文件视图的“添加纹理”；此处可添加普通文件或已有图集的子图定义".into());
+                return Err("新增 PTX 请使用文件浏览视图的“添加纹理”；此处可添加普通文件或已有图集的子图定义".into());
             }
             draft.files.push(UnpackedFile {
                 path,

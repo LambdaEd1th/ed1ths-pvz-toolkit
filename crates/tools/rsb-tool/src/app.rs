@@ -4056,8 +4056,8 @@ pub fn RsbArchivePage(
                         header { class: "rsb-res-heading rsb-packet-heading",
                             div { class: "rsb-res-title",
                                 span { class: "rsb-res-header-icon", Glyph { name: "archive" } }
-                                strong { "包内浏览" }
-                                span { "RSB v{document.header.version} · 物理路径" }
+                                strong { "文件浏览" }
+                                span { "RSB v{document.header.version} · 物理文件结构" }
                             }
                             div { class: "rsb-res-actions",
                                 button { class: "rsb-tool-button rsb-resource-entry", onclick: move |_| {
