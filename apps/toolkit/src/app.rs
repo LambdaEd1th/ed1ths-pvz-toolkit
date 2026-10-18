@@ -66,7 +66,10 @@ pub(crate) fn launch() {
             .with_transparent(true)
             .with_background_color((14, 17, 23, 255));
         #[cfg(target_os = "macos")]
-        let window = window.with_position(dioxus::desktop::LogicalPosition::new(0.0, 0.0));
+        let window = {
+            let (x, y) = pam_editor_native_window::safe_startup_position();
+            window.with_position(dioxus::desktop::LogicalPosition::new(x, y))
+        };
         let config = Config::new()
             .with_custom_index(
                 include_str!("../index.html").replace("{app_title}", "Ed1th's PvZ Toolkit"),
@@ -79,13 +82,14 @@ pub(crate) fn launch() {
                 {
                     use dioxus::desktop::tao::platform::macos::WindowExtMacOS;
 
-                    pam_editor_native_window::install_safe_reopen_handler();
                     // SAFETY: Dioxus/Tao owns this NSWindow for the duration of
                     // the callback and returns its live native pointer here.
                     unsafe {
+                        pam_editor_native_window::remember_main_window(_window.ns_window());
                         pam_editor_native_window::fit_window_to_visible_frame(_window.ns_window());
                         pam_editor_native_window::make_opaque(_window.ns_window());
                     }
+                    pam_editor_native_window::install_safe_reopen_handler();
                 }
             });
         dioxus::LaunchBuilder::desktop()

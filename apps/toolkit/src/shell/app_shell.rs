@@ -70,6 +70,27 @@ pub(crate) fn AppShell(on_ready: EventHandler<()>) -> Element {
         "tk-content-viewport"
     };
 
+    #[cfg(not(target_arch = "wasm32"))]
+    use_hook(move || {
+        spawn(async move {
+            let mut evaluator = document::eval(
+                r#"
+                const reportWindowSize = () => dioxus.send([window.innerWidth, window.innerHeight]);
+                reportWindowSize();
+                window.addEventListener("resize", reportWindowSize);
+                "#,
+            );
+            while let Ok((width, height)) = evaluator.recv::<(f64, f64)>().await {
+                schedule_window_size_save(
+                    width,
+                    height,
+                    last_saved_window_size,
+                    window_size_save_generation,
+                );
+            }
+        });
+    });
+
     let mut responsive_sidebar = sidebar_open;
     let mut compact_signal = compact_shell;
     let start_responsive_host = move |_| {
@@ -98,19 +119,6 @@ pub(crate) fn AppShell(on_ready: EventHandler<()>) -> Element {
                 }
             },
             onmounted: start_responsive_host,
-            onresize: move |event| {
-                #[cfg(not(target_arch = "wasm32"))]
-                if let Ok(size) = event.get_content_box_size() {
-                    schedule_window_size_save(
-                        size.width,
-                        size.height,
-                        last_saved_window_size,
-                        window_size_save_generation,
-                    );
-                }
-                #[cfg(target_arch = "wasm32")]
-                let _ = event;
-            },
             div { class: "tk-backdrop", aria_hidden: "true" }
             div { class: "tk-ambient tk-ambient--one", aria_hidden: "true" }
             div { class: "tk-ambient tk-ambient--two", aria_hidden: "true" }
