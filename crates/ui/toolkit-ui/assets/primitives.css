@@ -751,9 +751,8 @@
   gap: 7px;
   padding: 13px 7px;
   border: 1px solid var(--tk-island-border);
-  border-right: 0;
   border-left: 0;
-  border-radius: 18px 0 0 18px;
+  border-radius: 0 18px 18px 0;
   background: var(--tk-surface-card);
   box-shadow: var(--tk-shadow-high);
   color: var(--tk-primary);
