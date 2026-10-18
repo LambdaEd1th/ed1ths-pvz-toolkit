@@ -80,3 +80,126 @@ pub fn SegmentedControl(
         }
     }
 }
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SelectOption {
+    pub value: String,
+    pub label: String,
+    pub disabled: bool,
+}
+
+impl SelectOption {
+    pub fn new(value: impl Into<String>, label: impl Into<String>) -> Self {
+        Self {
+            value: value.into(),
+            label: label.into(),
+            disabled: false,
+        }
+    }
+
+    pub const fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+}
+
+#[component]
+pub fn Select(
+    options: Vec<SelectOption>,
+    value: String,
+    onchange: EventHandler<String>,
+    #[props(default)] aria_label: String,
+    #[props(default)] id: String,
+    #[props(default)] title: String,
+    #[props(default)] disabled: bool,
+    #[props(default)] class: String,
+    #[props(default)] compact: bool,
+) -> Element {
+    let mut open = use_signal(|| false);
+    let selected = options
+        .iter()
+        .find(|option| option.value == value)
+        .map(|option| option.label.clone())
+        .unwrap_or_default();
+    let trigger_class = if compact {
+        "ui-select-trigger is-compact"
+    } else {
+        "ui-select-trigger"
+    };
+    rsx! {
+        div {
+            class: "ui-select {class}",
+            onkeydown: move |event| {
+                if event.key() == Key::Escape {
+                    open.set(false);
+                }
+            },
+            button {
+                r#type: "button",
+                id: "{id}",
+                class: "{trigger_class}",
+                title: "{title}",
+                aria_label: "{aria_label}",
+                role: "combobox",
+                aria_haspopup: "listbox",
+                aria_expanded: *open.read(),
+                disabled,
+                onclick: move |_| {
+                    if !disabled {
+                        open.toggle();
+                    }
+                },
+                span { class: "ui-select-value", "{selected}" }
+                span { class: "ui-select-caret", aria_hidden: "true",
+                    svg {
+                        view_box: "0 0 24 24",
+                        width: "12",
+                        height: "12",
+                        path { d: "m6 9 6 6 6-6", fill: "none", stroke: "currentColor", stroke_width: "2", stroke_linecap: "round", stroke_linejoin: "round" }
+                    }
+                }
+            }
+            if *open.read() {
+                button {
+                    r#type: "button",
+                    class: "ui-select-backdrop",
+                    aria_label: "关闭选项",
+                    onclick: move |_| open.set(false),
+                }
+                div { class: "ui-select-menu", role: "listbox", aria_label: "{aria_label}",
+                    for option in options {
+                        {
+                            let option_value = option.value.clone();
+                            let active = option.value == value;
+                            let option_class = if active { "ui-select-option is-active" } else { "ui-select-option" };
+                            rsx! {
+                                button {
+                                    r#type: "button",
+                                    class: "{option_class}",
+                                    role: "option",
+                                    aria_selected: active,
+                                    disabled: option.disabled,
+                                    onclick: move |_| {
+                                        onchange.call(option_value.clone());
+                                        open.set(false);
+                                    },
+                                    span { class: "ui-select-option-label", "{option.label}" }
+                                    span { class: "ui-select-option-check", aria_hidden: "true",
+                                        if active {
+                                            svg {
+                                                view_box: "0 0 24 24",
+                                                width: "13",
+                                                height: "13",
+                                                path { d: "m5 12 4 4L19 6", fill: "none", stroke: "currentColor", stroke_width: "2.2", stroke_linecap: "round", stroke_linejoin: "round" }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -4,7 +4,10 @@ use particle_codec::{
     Particles, ParticlesEmitter, ParticlesTrackNode, ParticlesVersion, decode_pc, decode_phone32,
     decode_phone64, encode, trail, trail::Trail, xml,
 };
-use toolkit_ui::{DropIndicator, InlineNotice, ToolPage, WorkspaceCard, push_application_log};
+use toolkit_ui::{
+    DropIndicator, InlineNotice, Select, SelectOption, ToolPage, WorkspaceCard,
+    push_application_log,
+};
 
 use crate::platform;
 
@@ -506,12 +509,14 @@ fn ParticleWorkspace(
                 }
                 label { class: "particle-version-field",
                     span { "Compiled 输出布局" }
-                    select {
-                        value: version_code(version),
-                        onchange: move |event| set_version(tab_id, &event.value(), signals),
-                        option { value: "pc", "PC · 32-bit" }
-                        option { value: "phone32", "Mobile · 32-bit" }
-                        option { value: "phone64", "Mobile · 64-bit" }
+                    Select {
+                        value: version_code(version).to_string(),
+                        onchange: move |value: String| set_version(tab_id, &value, signals),
+                        options: vec![
+                            SelectOption::new("pc", "PC · 32-bit"),
+                            SelectOption::new("phone32", "Mobile · 32-bit"),
+                            SelectOption::new("phone64", "Mobile · 64-bit"),
+                        ],
                     }
                 }
             }

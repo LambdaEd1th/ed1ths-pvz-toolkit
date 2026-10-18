@@ -1143,3 +1143,12 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+.newton-form-field .ui-select,
+.newton-form-field .ui-select-trigger {
+  width: 100%;
+}
+
+.newton-panel:has(.ui-select-menu) {
+  overflow: visible;
+}

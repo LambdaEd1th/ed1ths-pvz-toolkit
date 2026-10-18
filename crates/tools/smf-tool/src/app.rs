@@ -5,7 +5,10 @@ use dioxus_html::{FileData, HasFileData};
 use smf_worker::{
     DocumentMetadata, HeaderVariant, PrepareRequest, PreparedDocument, RebuildRequest, SourceKind,
 };
-use toolkit_ui::{DropIndicator, InlineNotice, ToolPage, WorkspaceCard, push_application_log};
+use toolkit_ui::{
+    DropIndicator, InlineNotice, Select, SelectOption, ToolPage, WorkspaceCard,
+    push_application_log,
+};
 
 use crate::{platform, processing};
 
@@ -387,15 +390,17 @@ fn DocumentWorkspace(
                     PanelHeading { eyebrow: "ENCODING", title: "压缩设置", glyph: "settings" }
                     label { class: "smf-field",
                         span { "头部布局" }
-                        select {
-                            value: variant_code(tab.variant),
+                        Select {
+                            value: variant_code(tab.variant).to_string(),
                             disabled: busy(),
-                            onchange: move |event| {
-                                let variant = if event.value() == "extended" { HeaderVariant::Extended64 } else { HeaderVariant::Compact32 };
+                            onchange: move |value: String| {
+                                let variant = if value == "extended" { HeaderVariant::Extended64 } else { HeaderVariant::Compact32 };
                                 update_tab_settings(tabs, active_tab_id, Some(variant), None);
                             },
-                            option { value: "compact", "32-bit · 8-byte header" }
-                            option { value: "extended", "64-bit · 16-byte header" }
+                            options: vec![
+                                SelectOption::new("compact", "32-bit · 8-byte header"),
+                                SelectOption::new("extended", "64-bit · 16-byte header"),
+                            ],
                         }
                     }
                     label { class: "smf-field smf-level-field",

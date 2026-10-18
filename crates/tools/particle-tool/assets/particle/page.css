@@ -777,3 +777,12 @@
   .particle-xml-heading { align-items: flex-start; flex-direction: column; }
   .particle-xml-heading > div:last-child { width: 100%; justify-content: flex-end; }
 }
+
+.particle-version-field .ui-select,
+.particle-version-field .ui-select-trigger {
+  width: 100%;
+}
+
+.particle-card:has(.ui-select-menu) {
+  overflow: visible;
+}

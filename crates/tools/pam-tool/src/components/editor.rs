@@ -1,4 +1,5 @@
 use crate::actions::*;
+use crate::components::primitives::{SelectControl, SelectOption};
 use crate::i18n::tr;
 use crate::state::{AppContext, Status, Tone};
 use dioxus::prelude::*;
@@ -88,22 +89,79 @@ pub(super) fn InstancePanel() -> Element {
         .find(|layer| Some(layer.index) == selected())
         .or(layers.first())
         .cloned();
+    let layer_value = layer
+        .as_ref()
+        .map(|layer| layer.index.to_string())
+        .unwrap_or_default();
+    let layer_options = layers
+        .iter()
+        .map(|layer| {
+            let name = if layer.is_sprite {
+                tab.document
+                    .pam
+                    .sprite
+                    .get(layer.resource)
+                    .and_then(|sprite| sprite.name.clone())
+            } else {
+                tab.document.pam.image.get(layer.resource).map(|image| {
+                    image
+                        .name
+                        .split('|')
+                        .next()
+                        .unwrap_or(&image.name)
+                        .to_string()
+                })
+            }
+            .unwrap_or_else(|| layer.resource.to_string());
+            SelectOption::new(
+                layer.index.to_string(),
+                format!("#{} · {name}", layer.index),
+            )
+        })
+        .collect::<Vec<_>>();
+    let mut resource_options = tab
+        .document
+        .pam
+        .image
+        .iter()
+        .enumerate()
+        .map(|(index, image)| {
+            SelectOption::new(
+                index.to_string(),
+                image
+                    .name
+                    .split('|')
+                    .next()
+                    .unwrap_or(&image.name)
+                    .to_string(),
+            )
+        })
+        .collect::<Vec<_>>();
+    resource_options.extend(
+        tab.document
+            .pam
+            .sprite
+            .iter()
+            .enumerate()
+            .filter(|(index, _)| tab.active_sprite != SpriteKey::Sprite(*index))
+            .map(|(index, sprite)| {
+                SelectOption::new(
+                    (index + tab.document.pam.image.len()).to_string(),
+                    format!(
+                        "Sprite #{index}: {}",
+                        sprite.name.clone().unwrap_or_default()
+                    ),
+                )
+            }),
+    );
     rsx! { details { class: "pam-editor-section pam-editor-instances", open: true,
         summary { {tr(locale, "instance_settings")} }
         div { class: "pam-editor-fields",
             label { {tr(locale, "instances")}
-                select { value: layer.as_ref().map(|l| l.index.to_string()).unwrap_or_default(),
-                    onchange: move |e| selected.set(e.value().parse().ok()),
-                    for layer in &layers {
-                        {
-                            let name = if layer.is_sprite {
-                                tab.document.pam.sprite.get(layer.resource).and_then(|s| s.name.clone())
-                            } else {
-                                tab.document.pam.image.get(layer.resource).map(|image| image.name.split('|').next().unwrap_or(&image.name).to_string())
-                            }.unwrap_or_else(|| layer.resource.to_string());
-                            rsx! { option { value: "{layer.index}", "#{layer.index} · {name}" } }
-                        }
-                    }
+                SelectControl {
+                    value: layer_value,
+                    options: layer_options,
+                    onchange: move |value: String| selected.set(value.parse().ok()),
                 }
             }
         }
@@ -111,15 +169,14 @@ pub(super) fn InstancePanel() -> Element {
             summary { {tr(locale, "add_instance")} }
             div { class: "pam-editor-fields",
             label { {tr(locale, "resources")}
-                select { value: "{resource}", onchange: move |e| { if let Ok(v) = e.value().parse() { resource.set(v); } },
-                    for (index, image) in tab.document.pam.image.iter().enumerate() {
-                        option { value: "{index}", "{image.name.split('|').next().unwrap_or(&image.name)}" }
-                    }
-                    for (index, sprite) in tab.document.pam.sprite.iter().enumerate() {
-                        if tab.active_sprite != SpriteKey::Sprite(index) {
-                            option { value: "{index + tab.document.pam.image.len()}", "Sprite #{index}: {sprite.name.clone().unwrap_or_default()}" }
+                SelectControl {
+                    value: resource().to_string(),
+                    options: resource_options,
+                    onchange: move |value: String| {
+                        if let Ok(value) = value.parse() {
+                            resource.set(value);
                         }
-                    }
+                    },
                 }
             }
             button { class: "pam-button", disabled: tab.document.pam.image.is_empty() && tab.document.pam.sprite.is_empty(), onclick: move |_| {

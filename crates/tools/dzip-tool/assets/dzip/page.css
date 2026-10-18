@@ -1272,3 +1272,23 @@
     flex-direction: column;
   }
 }
+
+.dzip-field-label .ui-select,
+.dzip-dialog .ui-select {
+  width: 100%;
+}
+
+.dzip-field-label .ui-select-trigger,
+.dzip-dialog .ui-select-trigger {
+  width: 100%;
+  min-height: 36px;
+}
+
+.dzip-dialog:has(.ui-select-menu),
+.dzip-dialog-body:has(.ui-select-menu) {
+  overflow: visible;
+}
+
+.dzip-inspector-panel:has(.ui-select-menu) {
+  overflow: visible;
+}

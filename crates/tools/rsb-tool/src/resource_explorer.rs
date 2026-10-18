@@ -12,6 +12,7 @@ use dioxus::prelude::*;
 use dioxus_html::{ScrollBehavior, geometry::PixelsVector2D};
 use std::collections::BTreeSet;
 use std::sync::Arc;
+use toolkit_ui::{Select, SelectOption};
 
 #[component]
 pub fn ResourceExplorer(
@@ -282,16 +283,47 @@ pub fn ResourceExplorer(
             }
             div { class: "rsb-browser-secondary rsb-resource-secondary",
             div { class: "rsb-res-filterbar",
-                select { aria_label: "资源组", value: group(), onchange: move |event| group.set(event.value()),
-                    option { value: "", "全部资源组" }
-                    for (name, count) in &catalog.groups { option { value: "{name}", "{name} ({count})" } }
+                {
+                    let mut group_options = vec![SelectOption::new("", "全部资源组")];
+                    group_options.extend(catalog.groups.iter().map(|(name, count)| {
+                        SelectOption::new(name.clone(), format!("{name} ({count})"))
+                    }));
+                    rsx! {
+                        Select {
+                            aria_label: "资源组",
+                            value: group(),
+                            options: group_options,
+                            onchange: move |value| group.set(value),
+                        }
+                    }
                 }
-                select { aria_label: "资源类型", value: kind(), onchange: move |event| kind.set(event.value()),
-                    option { value: "", "全部类型" }
-                    for name in &catalog.kinds { option { value: "{name}", "{name}" } }
+                {
+                    let mut kind_options = vec![SelectOption::new("", "全部类型")];
+                    kind_options.extend(catalog.kinds.iter().map(|name| {
+                        SelectOption::new(name.clone(), name.clone())
+                    }));
+                    rsx! {
+                        Select {
+                            aria_label: "资源类型",
+                            value: kind(),
+                            options: kind_options,
+                            onchange: move |value| kind.set(value),
+                        }
+                    }
                 }
-                select { aria_label: "映射状态", value: state(), onchange: move |event| state.set(event.value()),
-                    for (id, label, count) in counts { option { value: "{id}", "{label} ({count})" } }
+                {
+                    let state_options = counts
+                        .iter()
+                        .map(|(id, label, count)| SelectOption::new(*id, format!("{label} ({count})")))
+                        .collect::<Vec<_>>();
+                    rsx! {
+                        Select {
+                            aria_label: "映射状态",
+                            value: state(),
+                            options: state_options,
+                            onchange: move |value| state.set(value),
+                        }
+                    }
                 }
                 if !group().is_empty() || !kind().is_empty() || state() != "all" || !query().is_empty() {
                     button { class: "rsb-res-reset", onclick: move |_| { group.set(String::new()); kind.set(String::new()); state.set("all".into()); query.set(String::new()); }, "清除筛选" }

@@ -175,7 +175,8 @@ function zipEntries(bytes) {
 
     await page.getByRole('button', { name: /Toggle navigation|切换导航/ }).click();
     await page.locator('.tk-sidebar .tk-nav-item[data-tool="rsb"]').first().click();
-    await explorer.getByRole('combobox', { name: '映射状态' }).selectOption('unlisted');
+    await explorer.getByRole('combobox', { name: '映射状态' }).click();
+    await explorer.getByRole('option', { name: /未列入清单/ }).click();
     await search.fill('resources');
     const manifestRow = explorer.locator('[data-resource-id]').filter({ has: page.locator('.rsb-res-name strong', { hasText: /resources.rton/i }) });
     await manifestRow.click();
@@ -188,7 +189,8 @@ function zipEntries(bytes) {
 
     await page.getByRole('button', { name: /Toggle navigation|切换导航/ }).click();
     await page.locator('.tk-sidebar .tk-nav-item[data-tool="rsb"]').first().click();
-    await explorer.getByRole('combobox', { name: '映射状态' }).selectOption('all');
+    await explorer.getByRole('combobox', { name: '映射状态' }).click();
+    await explorer.getByRole('option', { name: /全部状态/ }).click();
     await search.fill('.bnk');
     const bankRow = explorer.locator('[data-resource-id]').filter({ has: page.locator('.rsb-res-kind > span', { hasText: /SoundBank/ }) }).first();
     await bankRow.click();
@@ -199,7 +201,8 @@ function zipEntries(bytes) {
     console.log('BNK IN-MEMORY HANDOFF PASSED');
     await page.getByRole('button', { name: /Toggle navigation|切换导航/ }).click();
     await page.locator('.tk-sidebar .tk-nav-item[data-tool="rsb"]').first().click();
-    await explorer.getByRole('combobox', { name: '打开方式' }).selectOption('SMF');
+    await explorer.getByRole('combobox', { name: '打开方式' }).click();
+    await explorer.getByRole('option', { name: 'SMF', exact: true }).click();
     await explorer.getByRole('button', { name: '打开', exact: true }).click();
     await page.waitForFunction(() => document.querySelector('.tk-breadcrumb strong')?.textContent?.includes('SMF'));
     await page.locator('.tk-tool-slot--active .smf-tab-select').first().waitFor();

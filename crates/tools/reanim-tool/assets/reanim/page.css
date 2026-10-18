@@ -1022,3 +1022,8 @@
     animation-duration: 1.6s;
   }
 }
+
+.reanim-setting .ui-select,
+.reanim-setting .ui-select-trigger {
+  width: 100%;
+}

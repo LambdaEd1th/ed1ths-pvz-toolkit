@@ -9,8 +9,8 @@ use pak_archive::{
     PakEntry, PakEntryKind, PakFormat, PakTimestamp, PathSeparator, ZipCompression,
 };
 use toolkit_ui::{
-    DropIndicator, InlineNotice, ToolPage, ToolPageToolbar, WorkspaceCard, push_application_log,
-    use_modal_focus,
+    DropIndicator, InlineNotice, Select, SelectOption, ToolPage, ToolPageToolbar, WorkspaceCard,
+    push_application_log, use_modal_focus,
 };
 
 use crate::{PakNewtonOpenRequest, PakRtonOpenRequest, PakWemOpenRequest, platform};
@@ -936,42 +936,54 @@ fn ArchivePropertiesEditor(
     let level_for_separator = compression_level.clone();
     rsx! {
         label { span { "输出格式" }
-            select { value: "{format}", onchange: move |event| on_change.call(EditDialog::ArchiveProperties {
-                    format: event.value(),
+            Select {
+                value: format.clone(),
+                options: vec![
+                    SelectOption::new("pc-raw", "PC XOR · Raw"),
+                    SelectOption::new("pc-zlib", "PC XOR · zlib"),
+                    SelectOption::new("plain-raw", "Plain · Raw"),
+                    SelectOption::new("plain-zlib", "Plain · zlib"),
+                    SelectOption::new("xbox-raw", "Xbox 360 · Raw"),
+                    SelectOption::new("xbox-zlib", "Xbox 360 · zlib"),
+                    SelectOption::new("tv-store", "TV ZIP · Stored"),
+                    SelectOption::new("tv-deflate", "TV ZIP · Deflate"),
+                ],
+                onchange: move |value: String| on_change.call(EditDialog::ArchiveProperties {
+                    format: value,
                     compression_level: level_for_format.clone(),
                     separator: separator_for_format.clone(),
                 }),
-                option { value: "pc-raw", "PC XOR · Raw" }
-                option { value: "pc-zlib", "PC XOR · zlib" }
-                option { value: "plain-raw", "Plain · Raw" }
-                option { value: "plain-zlib", "Plain · zlib" }
-                option { value: "xbox-raw", "Xbox 360 · Raw" }
-                option { value: "xbox-zlib", "Xbox 360 · zlib" }
-                option { value: "tv-store", "TV ZIP · Stored" }
-                option { value: "tv-deflate", "TV ZIP · Deflate" }
             }
         }
         div { class: "pak-form-grid",
             label { span { "压缩级别" }
-                select { value: "{compression_level}", onchange: move |event| on_change.call(EditDialog::ArchiveProperties {
+                Select {
+                    value: compression_level.clone(),
+                    options: vec![
+                        SelectOption::new("fast", "快速"),
+                        SelectOption::new("default", "默认"),
+                        SelectOption::new("best", "最佳"),
+                    ],
+                    onchange: move |value: String| on_change.call(EditDialog::ArchiveProperties {
                         format: format_for_level.clone(),
-                        compression_level: event.value(),
+                        compression_level: value,
                         separator: separator_for_level.clone(),
                     }),
-                    option { value: "fast", "快速" }
-                    option { value: "default", "默认" }
-                    option { value: "best", "最佳" }
                 }
             }
             label { span { "路径分隔符" }
-                select { value: "{separator}", onchange: move |event| on_change.call(EditDialog::ArchiveProperties {
+                Select {
+                    value: separator.clone(),
+                    options: vec![
+                        SelectOption::new("preserve", "保留"),
+                        SelectOption::new("forward", "/"),
+                        SelectOption::new("backward", "\\"),
+                    ],
+                    onchange: move |value: String| on_change.call(EditDialog::ArchiveProperties {
                         format: format_for_separator.clone(),
                         compression_level: level_for_separator.clone(),
-                        separator: event.value(),
+                        separator: value,
                     }),
-                    option { value: "preserve", "保留" }
-                    option { value: "forward", "/" }
-                    option { value: "backward", "\\" }
                 }
             }
         }

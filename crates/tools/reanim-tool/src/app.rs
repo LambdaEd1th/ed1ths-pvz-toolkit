@@ -5,7 +5,10 @@ use dioxus_html::{FileData, HasFileData};
 use reanim_codec::{
     Reanim, ReanimTrack, ReanimTransform, ReanimVersion, decode_with_version, encode,
 };
-use toolkit_ui::{DropIndicator, InlineNotice, ToolPage, WorkspaceCard, push_application_log};
+use toolkit_ui::{
+    DropIndicator, InlineNotice, Select, SelectOption, ToolPage, WorkspaceCard,
+    push_application_log,
+};
 
 use crate::platform;
 
@@ -429,26 +432,30 @@ fn DocumentSettings(tab: ReanimTab, disabled: bool, signals: WorkspaceSignals) -
             }
             div { class: "reanim-setting",
                 label { r#for: "reanim-scale-{tab.id}", "DoScale" }
-                select {
+                Select {
                     id: "reanim-scale-{tab.id}",
-                    value: do_scale_code(tab.reanim.do_scale),
+                    value: do_scale_code(tab.reanim.do_scale).to_string(),
                     disabled,
-                    onchange: move |event| set_do_scale(tab.id, &event.value(), signals),
-                    option { value: "none", "未设置" }
-                    option { value: "0", "关闭" }
-                    option { value: "1", "开启" }
+                    onchange: move |value: String| set_do_scale(tab.id, &value, signals),
+                    options: vec![
+                        SelectOption::new("none", "未设置"),
+                        SelectOption::new("0", "关闭"),
+                        SelectOption::new("1", "开启"),
+                    ],
                 }
             }
             div { class: "reanim-setting wide",
                 label { r#for: "reanim-version-{tab.id}", "Compiled 输出布局" }
-                select {
+                Select {
                     id: "reanim-version-{tab.id}",
-                    value: version_code(tab.version),
+                    value: version_code(tab.version).to_string(),
                     disabled,
-                    onchange: move |event| set_version(tab.id, &event.value(), signals),
-                    option { value: "pc", "PC · 32-bit" }
-                    option { value: "phone32", "Mobile · 32-bit" }
-                    option { value: "phone64", "Mobile · 64-bit" }
+                    onchange: move |value: String| set_version(tab.id, &value, signals),
+                    options: vec![
+                        SelectOption::new("pc", "PC · 32-bit"),
+                        SelectOption::new("phone32", "Mobile · 32-bit"),
+                        SelectOption::new("phone64", "Mobile · 64-bit"),
+                    ],
                 }
             }
         }

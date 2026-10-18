@@ -2243,3 +2243,28 @@
     display: none;
   }
 }
+
+.rsb-field .ui-select {
+  width: 100%;
+  height: 40px;
+}
+
+.rsb-field .ui-select-trigger {
+  width: 100%;
+  height: 40px;
+  padding: 0 11px;
+  border-color: var(--rsb-border);
+  border-radius: 12px;
+  background: var(--rsb-surface-muted);
+  color: var(--rsb-text);
+  font-size: 11px;
+}
+
+.rsb-field .ui-select-menu {
+  width: 100%;
+}
+
+.rsb-dialog:has(.ui-select-menu),
+.rsb-dialog-body:has(.ui-select-menu) {
+  overflow: visible;
+}

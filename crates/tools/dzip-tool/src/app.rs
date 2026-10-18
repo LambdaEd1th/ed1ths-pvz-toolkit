@@ -5,8 +5,8 @@ use dioxus::prelude::*;
 use dioxus_html::{FileData, HasFileData};
 use dzip::{ArchivePathKey, Compression, RangeSettings};
 use toolkit_ui::{
-    DropIndicator, InlineNotice, ToolPage, ToolPageToolbar, WorkspaceCard, push_application_log,
-    use_modal_focus,
+    DropIndicator, InlineNotice, Select, SelectOption, ToolPage, ToolPageToolbar, WorkspaceCard,
+    push_application_log, use_modal_focus,
 };
 
 use crate::model::{ArchiveSummary, BuildRequest, DraftEntry, MaterializeRequest, NamedBytes};
@@ -876,13 +876,51 @@ fn InspectorPanel(
                     div { dt { "数据块" } dd { "{entry.segments.as_ref().map(Vec::len).unwrap_or(1)}" } }
                 }
                 label { class: "dzip-field-label", "压缩算法"
-                    select { value: "{compression_code(entry.compression)}", onchange: { let id = entry.id; move |event| { if let Some(compression) = parse_compression(&event.value()) { change_entry_compression(signals, id, compression); } } },
-                        for compression in Compression::ALL { option { value: "{compression_code(compression)}", "{compression_label(compression)}" } }
+                    {
+                        let options = Compression::ALL
+                            .iter()
+                            .map(|compression| {
+                                SelectOption::new(
+                                    compression_code(*compression),
+                                    compression_label(*compression),
+                                )
+                            })
+                            .collect::<Vec<_>>();
+                        rsx! {
+                            Select {
+                                value: compression_code(entry.compression).to_string(),
+                                options,
+                                onchange: {
+                                    let id = entry.id;
+                                    move |value: String| {
+                                        if let Some(compression) = parse_compression(&value) {
+                                            change_entry_compression(signals, id, compression);
+                                        }
+                                    }
+                                },
+                            }
+                        }
                     }
                 }
                 label { class: "dzip-field-label", "分卷"
-                    select { value: "{entry.volume}", onchange: { let id = entry.id; move |event| { if let Ok(volume) = event.value().parse::<u16>() { change_entry_volume(signals, id, volume); } } },
-                        for volume in 0..tab.volume_count { option { value: "{volume}", "Volume {volume}" } }
+                    {
+                        let options = (0..tab.volume_count)
+                            .map(|volume| SelectOption::new(volume.to_string(), format!("Volume {volume}")))
+                            .collect::<Vec<_>>();
+                        rsx! {
+                            Select {
+                                value: entry.volume.to_string(),
+                                options,
+                                onchange: {
+                                    let id = entry.id;
+                                    move |value: String| {
+                                        if let Ok(volume) = value.parse::<u16>() {
+                                            change_entry_volume(signals, id, volume);
+                                        }
+                                    }
+                                },
+                            }
+                        }
                     }
                 }
                 div { class: "dzip-inspector-actions",
@@ -1039,13 +1077,17 @@ fn ArchivePropertiesEditor(
         }
         div { class: "dzip-form-grid",
             label { span { "数据对齐" }
-                select { value: "{alignment}", onchange: move |event| on_change.call(EditDialog::ArchiveProperties {
-                    name: name_for_alignment.clone(), alignment: event.value(), volumes: volumes_for_alignment.clone(), default_compression: compression_for_alignment.clone(), common_buffer,
-                }),
-                    option { value: "0", "无" }
-                    option { value: "512", "512 B" }
-                    option { value: "2048", "2048 B" }
-                    option { value: "4096", "4096 B" }
+                Select {
+                    value: alignment.clone(),
+                    onchange: move |value: String| on_change.call(EditDialog::ArchiveProperties {
+                        name: name_for_alignment.clone(), alignment: value, volumes: volumes_for_alignment.clone(), default_compression: compression_for_alignment.clone(), common_buffer,
+                    }),
+                    options: vec![
+                        SelectOption::new("0", "无"),
+                        SelectOption::new("512", "512 B"),
+                        SelectOption::new("2048", "2048 B"),
+                        SelectOption::new("4096", "4096 B"),
+                    ],
                 }
             }
             label { span { "分卷数量" }
@@ -1055,10 +1097,25 @@ fn ArchivePropertiesEditor(
             }
         }
         label { span { "新增文件默认算法" }
-            select { value: "{default_compression}", onchange: move |event| on_change.call(EditDialog::ArchiveProperties {
-                name: name_for_compression.clone(), alignment: alignment_for_compression.clone(), volumes: volumes_for_compression.clone(), default_compression: event.value(), common_buffer,
-            }),
-                for compression in Compression::ALL { option { value: "{compression_code(compression)}", "{compression_label(compression)}" } }
+            {
+                let options = Compression::ALL
+                    .iter()
+                    .map(|compression| {
+                        SelectOption::new(
+                            compression_code(*compression),
+                            compression_label(*compression),
+                        )
+                    })
+                    .collect::<Vec<_>>();
+                rsx! {
+                    Select {
+                        value: default_compression.clone(),
+                        options,
+                        onchange: move |value: String| on_change.call(EditDialog::ArchiveProperties {
+                            name: name_for_compression.clone(), alignment: alignment_for_compression.clone(), volumes: volumes_for_compression.clone(), default_compression: value, common_buffer,
+                        }),
+                    }
+                }
             }
         }
         label { class: "dzip-toggle-row",

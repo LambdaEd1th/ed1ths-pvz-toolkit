@@ -819,3 +819,41 @@
   opacity: 0.35;
   cursor: default;
 }
+
+.rsb-browser-filters .ui-select {
+  min-width: 96px;
+}
+
+.rsb-browser-filters .ui-select-trigger {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
+.rsb-page-host .rsb-res-filterbar .ui-select-trigger {
+  min-height: 34px;
+  font-size: 11px;
+}
+
+.rsb-page-host .ui-select.rsb-res-open-as {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.rsb-page-host .rsb-res-open-as .ui-select-trigger {
+  min-height: 34px;
+  padding: 4px 9px;
+  font-size: 11px;
+}
+
+.rsb-page-host .rsb-res-filterbar .ui-select {
+  max-width: 180px;
+}
+
+@media (max-width: 700px) {
+  .rsb-page-host .rsb-res-filterbar .ui-select {
+    max-width: 140px;
+    flex: 1;
+  }
+}

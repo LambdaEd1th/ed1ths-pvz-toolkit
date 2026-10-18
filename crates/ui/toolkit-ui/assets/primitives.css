@@ -572,7 +572,7 @@
   scrollbar-gutter: stable;
 }
 
-.ui-tool-drawer-body:has(.pam-select-menu, .rton-mode-menu) {
+.ui-tool-drawer-body:has(.pam-select-menu, .rton-mode-menu, .ui-select-menu) {
   overflow: visible;
 }
 
@@ -1109,8 +1109,128 @@
     .pam-select-menu,
     .rton-mode-menu,
     .rton-inline-select-menu,
-    .wem-select-menu
+    .wem-select-menu,
+    .ui-select-menu
   )
   .ui-tool-drawer-panel {
   z-index: 3;
+}
+
+/* Shared custom select. Keeps native popups out of the app while preserving
+ * the compact trigger/menu geometry used by the tool toolbars. */
+.ui-select {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ui-select-trigger {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 32px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--tk-outline-variant);
+  border-radius: var(--tk-radius-sm);
+  background: var(--tk-surface-card);
+  color: var(--tk-ink);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.ui-select-trigger.is-compact {
+  min-height: 30px;
+  padding: 0 8px;
+}
+
+.ui-select-trigger:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.ui-select-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-select-caret {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--tk-muted);
+}
+
+.ui-select-backdrop {
+  position: fixed;
+  z-index: 40;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
+
+.ui-select-menu {
+  position: absolute;
+  z-index: 41;
+  top: calc(100% + 6px);
+  left: 0;
+  display: flex;
+  width: max-content;
+  min-width: max(100%, 168px);
+  max-width: min(280px, calc(100vw - 24px));
+  max-height: 280px;
+  flex-direction: column;
+  padding: 5px;
+  overflow: auto;
+  border: 1px solid var(--tk-outline-variant);
+  border-radius: var(--tk-radius-md);
+  background: var(--tk-surface-container-high);
+  box-shadow: var(--tk-shadow-high);
+}
+
+.ui-select-option {
+  display: flex;
+  width: 100%;
+  min-height: 34px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--tk-ink);
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ui-select-option:hover,
+.ui-select-option.is-active {
+  background: var(--tk-secondary-container);
+  color: var(--tk-on-secondary-container);
+}
+
+.ui-select-option:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ui-select-option-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-select-option-check {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--tk-primary);
 }

@@ -20,6 +20,8 @@ pub use open_file::{
 pub use page::{
     ContextSheet, DropIndicator, InlineNotice, ToolPage, ToolPageToolbar, WorkspaceCard,
 };
-pub use primitives::{IconButton, PillTabs, SegmentedControl, SegmentedOption, UiStyles};
+pub use primitives::{
+    IconButton, PillTabs, SegmentedControl, SegmentedOption, Select, SelectOption, UiStyles,
+};
 pub use surface::ToolSurface;
 pub use theme::{Appearance, AppearanceContext, AppearanceProvider, use_appearance};

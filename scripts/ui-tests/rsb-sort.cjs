@@ -57,11 +57,13 @@ async function run(engineName, engine) {
   await sleep(500);
   assert.equal(await tool.locator('.rsb-table-row').count(), 3, 'up should return to the archive root');
 
-  const fileKind = tool.locator('.rsb-browser-filters select');
-  await fileKind.selectOption('file');
+  const fileKind = tool.locator('.rsb-browser-filters .ui-select');
+  await fileKind.locator('.ui-select-trigger').click();
+  await fileKind.getByRole('option', { name: '文件', exact: true }).click();
   await sleep(300);
   assert.equal(await tool.locator('.rsb-table-row').count(), 0, 'file filter should hide RSG packets');
-  await fileKind.selectOption('all');
+  await fileKind.locator('.ui-select-trigger').click();
+  await fileKind.getByRole('option', { name: '全部项目', exact: true }).click();
   await sleep(300);
   assert.ok(await tool.locator('.rsb-table-row').count() > 0, 'clearing the file filter should restore rows');
   await tool.locator('.rsb-resource-entry').click();

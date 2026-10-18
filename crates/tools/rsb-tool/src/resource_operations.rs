@@ -6,6 +6,7 @@ use crate::resource_actions::{self, ResourceReader, ResourceZip};
 use crate::resources::ResourceCatalog;
 use dioxus::prelude::*;
 use std::sync::Arc;
+use toolkit_ui::{Select, SelectOption};
 use toolkit_ui::{ToolKind, ToolOpenHandler};
 
 #[derive(Clone, PartialEq)]
@@ -242,10 +243,30 @@ pub fn ResourceOperations(
         button { class: "rsb-tool-button", disabled: busy() || selected_indices.is_empty(), onclick: move |_| export.call(()), "导出所选 ({selected_indices.len()})" }
         button { class: "rsb-tool-button", disabled: busy() || !can_preview,
             onclick: move |_| { if let Some(index) = focused_index { perform_open.call((index, None, true)); } }, "预览图片" }
-        select { class: "rsb-res-open-as", aria_label: "打开方式", value: open_as(), disabled: busy() || !can_open,
-            onchange: move |event| open_as.set(event.value()),
-            option { value: "", if let Some(kind) = current_tool { "自动 · {kind.label()}" } else { "打开方式…" } }
-            for kind in ToolKind::ALL { option { value: kind.label(), "{kind.label()}" } }
+        {
+            let mut open_options = vec![SelectOption::new(
+                "",
+                if let Some(kind) = current_tool {
+                    format!("自动 · {}", kind.label())
+                } else {
+                    "打开方式…".to_string()
+                },
+            )];
+            open_options.extend(
+                ToolKind::ALL
+                    .into_iter()
+                    .map(|kind| SelectOption::new(kind.label(), kind.label())),
+            );
+            rsx! {
+                Select {
+                    class: "rsb-res-open-as",
+                    aria_label: "打开方式",
+                    value: open_as(),
+                    disabled: busy() || !can_open,
+                    options: open_options,
+                    onchange: move |value| open_as.set(value),
+                }
+            }
         }
         button { class: "rsb-tool-button", disabled: busy() || !can_open || handler.is_none(),
             onclick: move |_| { if let Some(index) = focused_index {

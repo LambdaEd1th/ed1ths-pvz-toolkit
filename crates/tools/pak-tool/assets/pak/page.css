@@ -1676,3 +1676,13 @@
     grid-template-columns: 1fr;
   }
 }
+
+.pak-dialog-body .ui-select,
+.pak-dialog-body .ui-select-trigger {
+  width: 100%;
+}
+
+.pak-dialog:has(.ui-select-menu),
+.pak-dialog-body:has(.ui-select-menu) {
+  overflow: visible;
+}

@@ -853,3 +853,12 @@
     animation-duration: 1.4s;
   }
 }
+
+.smf-field .ui-select,
+.smf-field .ui-select-trigger {
+  width: 100%;
+}
+
+.smf-field .ui-select-trigger {
+  min-height: 38px;
+}

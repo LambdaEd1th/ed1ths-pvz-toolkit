@@ -36,7 +36,8 @@ use std::io::Cursor;
 use std::io::Write;
 use std::sync::Arc;
 use toolkit_ui::{
-    DropIndicator, ToolPage, ToolPageToolbar, WorkspaceCard, push_application_log, use_modal_focus,
+    DropIndicator, Select, SelectOption, ToolPage, ToolPageToolbar, WorkspaceCard,
+    push_application_log, use_modal_focus,
 };
 
 const RSB_PAGE_CSS: Asset = asset!("/assets/rsb/page.css");
@@ -4142,14 +4143,16 @@ pub fn RsbArchivePage(
 
                         div { class: "rsb-browser-secondary",
                             div { class: "rsb-browser-filters",
-                                select {
+                                Select {
                                     aria_label: "项目类型筛选",
                                     value: file_kind_filter(),
-                                    onchange: move |event| file_kind_filter.set(event.value()),
-                                    option { value: "all", "全部项目" }
-                                    option { value: "packet", "RSG 包" }
-                                    option { value: "directory", "文件夹" }
-                                    option { value: "file", "文件" }
+                                    onchange: move |value| file_kind_filter.set(value),
+                                    options: vec![
+                                        SelectOption::new("all", "全部项目"),
+                                        SelectOption::new("packet", "RSG 包"),
+                                        SelectOption::new("directory", "文件夹"),
+                                        SelectOption::new("file", "文件"),
+                                    ],
                                 }
                                 span { class: "rsb-browser-selection-hint", "{selection_summary}" }
                             }
@@ -6794,15 +6797,17 @@ fn EditArchiveDialog(
                             }
                             label { class: "rsb-field",
                                 span { "压缩方式" }
-                                select {
-                                    value: new_rsg.compression_flags,
-                                    oninput: move |event| {
+                                Select {
+                                    value: new_rsg.compression_flags.clone(),
+                                    onchange: move |value| {
                                         if let EditDialog::CreateRsg(new_rsg) = &mut *draft.write() {
-                                            new_rsg.compression_flags = event.value();
+                                            new_rsg.compression_flags = value;
                                         }
                                     },
-                                    option { value: "2", "Part 0 · zlib" }
-                                    option { value: "0", "Raw" }
+                                    options: vec![
+                                        SelectOption::new("2", "Part 0 · zlib"),
+                                        SelectOption::new("0", "Raw"),
+                                    ],
                                 }
                             }
                             p { class: "rsb-field-hint",
@@ -6954,19 +6959,20 @@ fn EditArchiveDialog(
                             if texture.source == TextureSourceKind::RasterImage {
                                 label { class: "rsb-field rsb-field--wide",
                                     span { "编码布局" }
-                                    select {
-                                        value: texture_encoding_value(texture.encoding),
-                                        oninput: move |event| {
+                                    Select {
+                                        value: texture_encoding_value(texture.encoding).to_string(),
+                                        onchange: move |value: String| {
                                             if let EditDialog::AddTexture(texture) = &mut *draft.write() {
-                                                texture.encoding =
-                                                    parse_texture_encoding(&event.value());
+                                                texture.encoding = parse_texture_encoding(&value);
                                             }
                                         },
-                                        option { value: "metadata", "根据格式代码与 Alpha 属性" }
-                                        option { value: "etc1", "ETC1" }
-                                        option { value: "etc1-a8", "ETC1 + A8" }
-                                        option { value: "etc1-compressed-alpha", "ETC1 + 压缩 Alpha" }
-                                        option { value: "etc1-palette", "ETC1 + Alpha Palette" }
+                                        options: vec![
+                                            SelectOption::new("metadata", "根据格式代码与 Alpha 属性"),
+                                            SelectOption::new("etc1", "ETC1"),
+                                            SelectOption::new("etc1-a8", "ETC1 + A8"),
+                                            SelectOption::new("etc1-compressed-alpha", "ETC1 + 压缩 Alpha"),
+                                            SelectOption::new("etc1-palette", "ETC1 + Alpha Palette"),
+                                        ],
                                     }
                                 }
                             }
@@ -7055,17 +7061,19 @@ fn EditArchiveDialog(
                                     }
                                     label { class: "rsb-field",
                                         span { "压缩方式" }
-                                        select {
-                                            value: properties.compression_flags,
-                                            oninput: move |event| {
+                                        Select {
+                                            value: properties.compression_flags.clone(),
+                                            onchange: move |value| {
                                                 if let EditDialog::Properties(properties) = &mut *draft.write() {
-                                                    properties.compression_flags = event.value();
+                                                    properties.compression_flags = value;
                                                 }
                                             },
-                                            option { value: "0", "Raw" }
-                                            option { value: "1", "Part 1 · zlib" }
-                                            option { value: "2", "Part 0 · zlib" }
-                                            option { value: "3", "Part 0 + Part 1 · zlib" }
+                                            options: vec![
+                                                SelectOption::new("0", "Raw"),
+                                                SelectOption::new("1", "Part 1 · zlib"),
+                                                SelectOption::new("2", "Part 0 · zlib"),
+                                                SelectOption::new("3", "Part 0 + Part 1 · zlib"),
+                                            ],
                                         }
                                     }
                                 },

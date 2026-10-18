@@ -7,8 +7,8 @@ use newton_manifest::{
 };
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use toolkit_ui::{
-    DropIndicator, InlineNotice, ToolPage, ToolPageToolbar, WorkspaceCard, push_application_log,
-    use_modal_focus,
+    DropIndicator, InlineNotice, Select, SelectOption, ToolPage, ToolPageToolbar, WorkspaceCard,
+    push_application_log, use_modal_focus,
 };
 
 const NEWTON_PAGE_CSS: Asset = asset!("/assets/newton/page.css");
@@ -1671,15 +1671,17 @@ fn SelectField(
     options: Vec<(&'static str, &'static str)>,
     onchange: EventHandler<String>,
 ) -> Element {
+    let options = options
+        .into_iter()
+        .map(|(option_value, option_label)| SelectOption::new(option_value, option_label))
+        .collect::<Vec<_>>();
     rsx! {
         label { class: "newton-form-field",
             span { "{label}" }
-            select {
+            Select {
                 value,
-                onchange: move |event| onchange.call(event.value()),
-                for (option_value, option_label) in options {
-                    option { value: option_value, "{option_label}" }
-                }
+                options,
+                onchange: move |value: String| onchange.call(value),
             }
         }
     }
