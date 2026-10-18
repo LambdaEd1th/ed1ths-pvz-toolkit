@@ -36,8 +36,7 @@ use std::io::Cursor;
 use std::io::Write;
 use std::sync::Arc;
 use toolkit_ui::{
-    ContextSheet, DropIndicator, ToolPage, ToolPageToolbar, WorkspaceCard, push_application_log,
-    use_modal_focus,
+    DropIndicator, ToolPage, ToolPageToolbar, WorkspaceCard, push_application_log, use_modal_focus,
 };
 
 const RSB_PAGE_CSS: Asset = asset!("/assets/rsb/page.css");
@@ -851,7 +850,6 @@ fn locate_resource_file(
     mut navigation: NavigationSignals,
     preview_signals: PreviewSignals,
     ptx_infos: Signal<Vec<RsbPtxInfo>>,
-    mut inspector_visible: Signal<bool>,
     status: Signal<AppStatus>,
 ) {
     let Some(document) = archive() else {
@@ -912,7 +910,6 @@ fn locate_resource_file(
                     navigation.selection,
                     preview_signals,
                 );
-                inspector_visible.set(true);
                 set_status(
                     status,
                     AppStatus::new(
@@ -3534,9 +3531,9 @@ pub fn RsbArchivePage(
     let mut location = use_signal(BrowserLocation::default);
     let mut selection = use_signal(|| None::<RowSelection>);
     let mut query = use_signal(String::new);
+    let mut file_kind_filter = use_signal(|| "all".to_string());
     let mut status = use_signal(|| AppStatus::new("打开或拖入一个 RSB 归档", StatusTone::Neutral));
     let mut dragging = use_signal(|| false);
-    let mut inspector_visible = use_signal(|| false);
     let mut resources_visible = use_signal(|| false);
     let resource_import_request = use_signal(|| None::<AddedFile>);
     let resource_rescan_request = use_signal(|| 0_u64);
@@ -3701,6 +3698,36 @@ pub fn RsbArchivePage(
         status,
     };
 
+    let extract_action = EventHandler::new(move |_| {
+        spawn(async move {
+            extract_current(archive, packet, location, selection, packet_edits, status).await;
+        });
+    });
+    let properties_action = EventHandler::new(move |_| {
+        let target = selection().or_else(|| match location() {
+            BrowserLocation::Packet { packet_index, .. } => {
+                Some(RowSelection::Packet(packet_index))
+            }
+            BrowserLocation::Archive => None,
+        });
+        let Some(target) = target else { return };
+        if let Some(draft) = property_draft(
+            target,
+            archive(),
+            packet(),
+            &packet_edits.read(),
+            &ptx_infos.read(),
+        ) {
+            edit_dialog.set(Some(EditDialog::Properties(draft)));
+        }
+    });
+    let selection_summary = match selection_snapshot.as_ref() {
+        Some(RowSelection::Packet(_)) => "已选择 RSG 包",
+        Some(RowSelection::Directory(_)) => "已选择文件夹",
+        Some(RowSelection::File(_)) => "已选择文件",
+        None => "未选择项目",
+    };
+
     rsx! {
         document::Stylesheet { href: RSB_PAGE_CSS }
         document::Stylesheet { href: RSB_RESOURCES_CSS }
@@ -3798,7 +3825,6 @@ pub fn RsbArchivePage(
                     },
                     can_export_png,
                     can_go_up: !matches!(location_snapshot, BrowserLocation::Archive),
-                    inspector_visible: inspector_visible(),
                     on_open: move |document| open_archive_tab(
                         document,
                         archive_tabs,
@@ -3812,19 +3838,7 @@ pub fn RsbArchivePage(
                         AppStatus::new(format!("打开失败：{error}"), StatusTone::Error),
                     ),
                     on_up: move |_| go_up(navigation),
-                    on_extract: move |_| {
-                        spawn(async move {
-                            extract_current(
-                                archive,
-                                packet,
-                                location,
-                                selection,
-                                packet_edits,
-                                status,
-                            )
-                            .await;
-                        });
-                    },
+                    on_extract: extract_action,
                     on_export_png: move |_| {
                         let target = selection();
                         spawn(async move {
@@ -3936,30 +3950,7 @@ pub fn RsbArchivePage(
                             edit_dialog.set(Some(dialog));
                         }
                     },
-                    on_properties: move |_| {
-                        let target = selection().or_else(|| match location() {
-                            BrowserLocation::Packet { packet_index, .. } => {
-                                Some(RowSelection::Packet(packet_index))
-                            }
-                            BrowserLocation::Archive => None,
-                        });
-                        let Some(target) = target else { return };
-                        if let Some(draft) =
-                            property_draft(
-                                target,
-                                archive(),
-                                packet(),
-                                &packet_edits.read(),
-                                &ptx_infos.read(),
-                            )
-                        {
-                            edit_dialog.set(Some(EditDialog::Properties(draft)));
-                        }
-                    },
-                    on_toggle_inspector: move |_| {
-                        let open = !inspector_visible();
-                        inspector_visible.set(open);
-                    },
+                    on_properties: properties_action,
                 } } },
                 }
 
@@ -4045,7 +4036,7 @@ pub fn RsbArchivePage(
                             },
                             on_locate: move |target| {
                                 resources_visible.set(false);
-                                locate_resource_file(target, archive, packet, packet_edits, navigation, preview_signals, ptx_infos, inspector_visible, status);
+                                locate_resource_file(target, archive, packet, packet_edits, navigation, preview_signals, ptx_infos, status);
                             },
                         }
                         header { class: "rsb-res-heading rsb-packet-heading",
@@ -4058,7 +4049,6 @@ pub fn RsbArchivePage(
                                 button { class: "rsb-tool-button rsb-resource-entry", onclick: move |_| {
                                     resources_visible.set(true);
                                     selection.set(None);
-                                    inspector_visible.set(false);
                                     context_menu.set(None);
                                 }, "资源管理器" }
                             }
@@ -4082,6 +4072,37 @@ pub fn RsbArchivePage(
                                 query.set(value);
                                 navigation.request_scroll(0.0);
                             },
+                        }
+
+                        div { class: "rsb-browser-secondary",
+                            div { class: "rsb-browser-filters",
+                                select {
+                                    aria_label: "项目类型筛选",
+                                    value: file_kind_filter(),
+                                    onchange: move |event| file_kind_filter.set(event.value()),
+                                    option { value: "all", "全部项目" }
+                                    option { value: "packet", "RSG 包" }
+                                    option { value: "directory", "文件夹" }
+                                    option { value: "file", "文件" }
+                                }
+                                span { class: "rsb-browser-selection-hint", "{selection_summary}" }
+                            }
+                            div { class: "rsb-browser-actions",
+                                button {
+                                    r#type: "button",
+                                    class: "rsb-tool-button",
+                                    disabled: selection_snapshot.is_none(),
+                                    onclick: move |_| extract_action.call(()),
+                                    "提取"
+                                }
+                                button {
+                                    r#type: "button",
+                                    class: "rsb-tool-button",
+                                    disabled: selection_snapshot.is_none(),
+                                    onclick: move |_| properties_action.call(()),
+                                    "属性"
+                                }
+                            }
                         }
 
                         div { class: "rsb-browser-grid",
@@ -4122,6 +4143,7 @@ pub fn RsbArchivePage(
                                 location: location_snapshot.clone(),
                                 selection: selection_snapshot.clone(),
                                 query: query_snapshot.clone(),
+                                kind_filter: file_kind_filter(),
                                 restore_scroll: scroll_restore(),
                                 on_scroll: move |top| table_scroll_top.set(top),
                                 on_select: move |next| {
@@ -4191,6 +4213,90 @@ pub fn RsbArchivePage(
                                 ),
                             }
                             }
+                            aside { class: "rsb-browser-details",
+                                Inspector {
+                                    archive: document.clone(),
+                                    edits: packet_edits.read().clone(),
+                                    removed_packets: removed_packets.read().clone(),
+                                    ptx_infos,
+                                    packet: packet_snapshot.clone(),
+                                    location: location_snapshot.clone(),
+                                    selection: selection_snapshot.clone(),
+                                    preview: ptx_preview_snapshot.clone(),
+                                    on_channel_order_mode: move |mode| {
+                                        let Some(current) = archive() else {
+                                            return;
+                                        };
+                                        if current.channel_order_mode == mode {
+                                            return;
+                                        }
+                                        let mut updated = current.as_ref().clone();
+                                        updated.channel_order_mode = mode;
+                                        let updated = Arc::new(updated);
+                                        archive.set(Some(updated.clone()));
+                                        processing::begin_request();
+                                        preview_cache.write().clear();
+                                        ptx_preview.set(None);
+                                        detail_preview.set(None);
+                                        preview_open.set(false);
+
+                                        if let (Some(RowSelection::File(index)), Some(packet)) =
+                                            (selection(), packet())
+                                        {
+                                            let updated = archive_with_ptx_infos(updated, &ptx_infos.read());
+                                            request_preview(
+                                                updated,
+                                                packet,
+                                                index,
+                                                PreviewQuality::Thumbnail,
+                                                ptx_preview,
+                                                preview_cache,
+                                                status,
+                                            );
+                                        } else {
+                                            let label = match mode {
+                                                ArchiveChannelOrderMode::Auto => "自动识别",
+                                                ArchiveChannelOrderMode::Rgba => "RGBA",
+                                                ArchiveChannelOrderMode::Apple => "Apple BGRA",
+                                            };
+                                            set_status(
+                                                status,
+                                                AppStatus::new(
+                                                    format!("纹理通道顺序已切换为 {label}"),
+                                                    StatusTone::Success,
+                                                ),
+                                            );
+                                        }
+                                    },
+                                    on_open_preview: move |_| {
+                                        let Some(RowSelection::File(index)) = selection() else {
+                                            return;
+                                        };
+                                        let (Some(archive), Some(packet)) = (archive(), packet()) else {
+                                            return;
+                                        };
+                                        let archive = archive_with_ptx_infos(archive, &ptx_infos.read());
+                                        preview_open.set(true);
+                                        request_preview(
+                                            archive,
+                                            packet,
+                                            index,
+                                            PreviewQuality::Detail,
+                                            detail_preview,
+                                            preview_cache,
+                                            status,
+                                        );
+                                    },
+                                    on_preview_context_menu: move |(preview, x, y)| {
+                                        context_menu.set(None);
+                                        preview_context_menu.set(Some(PtxPreviewContextMenuState {
+                                            preview,
+                                            x,
+                                            y,
+                                        }));
+                                    },
+                                }
+                            }
                         }
 
                         StatusBar {
@@ -4220,100 +4326,6 @@ pub fn RsbArchivePage(
                     }
                     if dragging() {
                         DropIndicator { title: "释放以打开 RSB 归档" }
-                    }
-                }
-
-                if let Some(document) = archive_snapshot.as_ref() {
-                    ContextSheet {
-                        open: inspector_visible(),
-                        title: "详情",
-                        close_label: "关闭详情",
-                        class: "rsb-context-sheet-layer",
-                        on_close: move |_| inspector_visible.set(false),
-                        Inspector {
-                            archive: document.clone(),
-                            edits: packet_edits.read().clone(),
-                            removed_packets: removed_packets.read().clone(),
-                            ptx_infos,
-                            packet: packet_snapshot.clone(),
-                            location: location_snapshot.clone(),
-                            selection: selection_snapshot.clone(),
-                            preview: ptx_preview_snapshot.clone(),
-                            on_channel_order_mode: move |mode| {
-                                let Some(current) = archive() else {
-                                    return;
-                                };
-                                if current.channel_order_mode == mode {
-                                    return;
-                                }
-                                let mut updated = current.as_ref().clone();
-                                updated.channel_order_mode = mode;
-                                let updated = Arc::new(updated);
-                                archive.set(Some(updated.clone()));
-                                processing::begin_request();
-                                preview_cache.write().clear();
-                                ptx_preview.set(None);
-                                detail_preview.set(None);
-                                preview_open.set(false);
-
-                                if let (Some(RowSelection::File(index)), Some(packet)) =
-                                    (selection(), packet())
-                                {
-                                    let updated =
-                                        archive_with_ptx_infos(updated, &ptx_infos.read());
-                                    request_preview(
-                                        updated,
-                                        packet,
-                                        index,
-                                        PreviewQuality::Thumbnail,
-                                        ptx_preview,
-                                        preview_cache,
-                                        status,
-                                    );
-                                } else {
-                                    let label = match mode {
-                                        ArchiveChannelOrderMode::Auto => "自动识别",
-                                        ArchiveChannelOrderMode::Rgba => "RGBA",
-                                        ArchiveChannelOrderMode::Apple => "Apple BGRA",
-                                    };
-                                    set_status(
-                                        status,
-                                        AppStatus::new(
-                                            format!("纹理通道顺序已切换为 {label}"),
-                                            StatusTone::Success,
-                                        ),
-                                    );
-                                }
-                            },
-                            on_open_preview: move |_| {
-                                let Some(RowSelection::File(index)) = selection() else {
-                                    return;
-                                };
-                                let (Some(archive), Some(packet)) = (archive(), packet()) else {
-                                    return;
-                                };
-                                let archive =
-                                    archive_with_ptx_infos(archive, &ptx_infos.read());
-                                preview_open.set(true);
-                                request_preview(
-                                    archive,
-                                    packet,
-                                    index,
-                                    PreviewQuality::Detail,
-                                    detail_preview,
-                                    preview_cache,
-                                    status,
-                                );
-                            },
-                            on_preview_context_menu: move |(preview, x, y)| {
-                                context_menu.set(None);
-                                preview_context_menu.set(Some(PtxPreviewContextMenuState {
-                                    preview,
-                                    x,
-                                    y,
-                                }));
-                            },
-                        }
                     }
                 }
 
@@ -4840,7 +4852,6 @@ fn ArchiveToolbar(
     can_delete: bool,
     can_export_png: bool,
     can_go_up: bool,
-    inspector_visible: bool,
     on_open: EventHandler<ArchiveDocument>,
     on_error: EventHandler<String>,
     on_up: EventHandler<()>,
@@ -4856,7 +4867,6 @@ fn ArchiveToolbar(
     on_rename: EventHandler<()>,
     on_delete: EventHandler<()>,
     on_properties: EventHandler<()>,
-    on_toggle_inspector: EventHandler<()>,
 ) -> Element {
     rsx! {
         div { class: "ui-island ui-tool-page-actions rsb-page-actions",
@@ -4975,15 +4985,6 @@ fn ArchiveToolbar(
                     aria_label: "将所选 PTX 导出为 PNG",
                     onclick: move |_| on_export_png.call(()),
                     Glyph { name: "image" }
-                }
-                button {
-                    r#type: "button",
-                    class: if inspector_visible { "rsb-tool-button rsb-tool-button--icon is-active" } else { "rsb-tool-button rsb-tool-button--icon" },
-                    title: "详情",
-                    aria_label: "显示或隐藏详情",
-                    aria_pressed: inspector_visible,
-                    onclick: move |_| on_toggle_inspector.call(()),
-                    Glyph { name: "panel" }
                 }
             }
         }
@@ -5463,6 +5464,7 @@ fn ArchiveTable(
     location: BrowserLocation,
     selection: Option<RowSelection>,
     query: String,
+    kind_filter: String,
     restore_scroll: ScrollRestore,
     on_scroll: EventHandler<f64>,
     on_select: EventHandler<RowSelection>,
@@ -5515,6 +5517,23 @@ fn ArchiveTable(
         |source| source.items(),
     ));
     let packet_items = packet_items.read().clone();
+    let archive_indices = archive_indices
+        .iter()
+        .copied()
+        .filter(|_| matches!(kind_filter.as_str(), "" | "all" | "packet"))
+        .collect::<Vec<_>>();
+    let packet_items = packet_items
+        .iter()
+        .filter(|item| {
+            matches!(
+                (kind_filter.as_str(), item),
+                ("" | "all", _)
+                    | ("directory", BrowserItem::Directory { .. })
+                    | ("file", BrowserItem::File { .. })
+            )
+        })
+        .cloned()
+        .collect::<Vec<_>>();
     let row_count = match location {
         BrowserLocation::Archive => archive_indices.len(),
         BrowserLocation::Packet { .. } => packet_items.len(),

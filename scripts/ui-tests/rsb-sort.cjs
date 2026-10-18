@@ -35,6 +35,14 @@ async function run(engineName, engine) {
     const entry = document.querySelector('.tk-tool-slot--active .rsb-resource-entry');
     return entry && !entry.disabled;
   });
+  assert.equal(await tool.locator('.rsb-browser-details').isVisible(), true, 'file browsing should keep the details pane');
+  const fileKind = tool.locator('.rsb-browser-filters select');
+  await fileKind.selectOption('file');
+  await sleep(300);
+  assert.equal(await tool.locator('.rsb-table-row').count(), 0, 'file filter should hide RSG packets');
+  await fileKind.selectOption('all');
+  await sleep(300);
+  assert.ok(await tool.locator('.rsb-table-row').count() > 0, 'clearing the file filter should restore rows');
   await tool.locator('.rsb-resource-entry').click();
   await tool.locator('.rsb-resource-explorer').waitFor();
   await sleep(800);

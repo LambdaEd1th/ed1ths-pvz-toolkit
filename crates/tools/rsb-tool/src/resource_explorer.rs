@@ -249,7 +249,7 @@ pub fn ResourceExplorer(
     ));
     rsx! {
         section { class: "rsb-resource-explorer", hidden: !active, aria_label: "资源管理器",
-            header { class: "rsb-res-heading",
+            header { class: "rsb-res-heading rsb-packet-heading",
                 div { class: "rsb-res-title", ResourceIcon { kind: "archive" } strong { "资源管理器" } span { "RSB v{archive.header.version} · 逻辑资源路径" } }
             }
             div { class: "rsb-res-addressbar",
@@ -276,6 +276,7 @@ pub fn ResourceExplorer(
                     input { r#type: "search", placeholder: "搜索 {current_name} 及子目录", aria_label: "搜索资源", value: query(), oninput: move |event| query.set(event.value()) }
                 }
             }
+            div { class: "rsb-browser-secondary rsb-resource-secondary",
             div { class: "rsb-res-filterbar",
                 select { aria_label: "资源组", value: group(), onchange: move |event| group.set(event.value()),
                     option { value: "", "全部资源组" }
@@ -310,6 +311,7 @@ pub fn ResourceExplorer(
                     archive: archive.clone(), edits, removed, ptx_infos, catalog: catalog.clone(), current: current.clone(), disabled: loading,
                     on_commit: move |commit: crate::resource_edit::ResourceCommit| { message.set(commit.message.clone()); on_commit.call(commit); },
                 }
+            }
             }
             div { class: if details() { "rsb-res-body" } else { "rsb-res-body without-details" },
                 nav { class: "rsb-res-tree", aria_label: "资源目录",
