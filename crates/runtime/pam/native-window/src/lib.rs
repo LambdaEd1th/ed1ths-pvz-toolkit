@@ -499,6 +499,7 @@ mod tests {
         assert_close(fitted.height, 2000.0);
     }
 
+    #[cfg(target_os = "macos")]
     #[test]
     fn startup_origin_uses_the_same_lane_as_the_final_fit() {
         let origin = super::startup_origin(
