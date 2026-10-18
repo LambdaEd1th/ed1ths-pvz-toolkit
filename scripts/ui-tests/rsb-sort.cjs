@@ -107,6 +107,13 @@ async function run(engineName, engine) {
     1,
     'resource preview should expose the shared zoom controls',
   );
+  const copyButton = preview.locator('.rsb-preview-copy-button');
+  const exportButton = preview.locator('.rsb-preview-export-button');
+  assert.equal(await copyButton.count(), 1, 'resource preview should expose clipboard copy');
+  const copyBounds = await copyButton.boundingBox();
+  const exportBounds = await exportButton.boundingBox();
+  assert.ok(copyBounds && exportBounds && copyBounds.x + copyBounds.width <= exportBounds.x,
+    'clipboard copy should sit immediately left of the PNG export button');
   await page.keyboard.press('Escape');
   await preview.waitFor({ state: 'detached' });
   console.log(`${engineName}: unified resource texture preview passed`);

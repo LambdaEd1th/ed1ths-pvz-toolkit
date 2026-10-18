@@ -4468,6 +4468,7 @@ pub fn RsbArchivePage(
                         Some(PtxPreviewState::Ready(decoded)) => {
                             let image = PreviewImage::from_ptx(&decoded);
                             let context_preview = decoded.clone();
+                            let copy_preview = decoded.clone();
                             let export_index = decoded.file_index;
                             rsx! {
                                 PreviewModal {
@@ -4494,6 +4495,9 @@ pub fn RsbArchivePage(
                                             status,
                                         ));
                                     },
+                                    on_copy: Some(EventHandler::new(move |_| {
+                                        spawn(copy_preview_png(copy_preview.clone(), status));
+                                    })),
                                 }
                             }
                         },
@@ -7249,6 +7253,7 @@ pub(crate) fn PreviewModal(
     on_close: EventHandler<()>,
     #[props(default)] on_context_menu: Option<EventHandler<(f64, f64)>>,
     on_export: EventHandler<()>,
+    #[props(default)] on_copy: Option<EventHandler<()>>,
 ) -> Element {
     let focus_selector = format!("#{id}");
     use_modal_focus(&id, true, &focus_selector, None, None);
@@ -7497,6 +7502,16 @@ pub(crate) fn PreviewModal(
                         span {
                             class: "rsb-preview-control-separator",
                             aria_hidden: "true",
+                        }
+                        if let Some(on_copy) = on_copy {
+                            button {
+                                r#type: "button",
+                                class: "rsb-preview-copy-button",
+                                title: "复制到剪贴板",
+                                aria_label: "复制纹理到剪贴板",
+                                onclick: move |_| on_copy.call(()),
+                                Glyph { name: "copy" }
+                            }
                         }
                         button {
                             r#type: "button",
@@ -7791,6 +7806,7 @@ fn Glyph(name: &'static str) -> Element {
         "tree" => "M4 5h6M7 5v14m0-9h5m-5 6h5M12 8h8v4h-8V8Zm0 6h8v4h-8v-4Z",
         "extract" => "M12 3v12m0 0 5-5m-5 5-5-5M4 19h16",
         "export" => "M12 3v12m0 0 5-5m-5 5-5-5M5 20h14",
+        "copy" => "M8 8h12v12H8V8ZM4 16H3V3h13v1",
         "panel" => "M4 4h16v16H4V4Zm10 0v16",
         "more" => "M5 12h.01M12 12h.01M19 12h.01",
         "close" => "M6 6l12 12M18 6 6 18",

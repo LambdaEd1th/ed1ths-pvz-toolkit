@@ -263,6 +263,7 @@ pub fn ResourceOperations(
         if let Some(image) = preview() {
             ResourceImagePreview {
                 image,
+                message,
                 on_close: move |_| preview.set(None),
                 on_error: move |error| message.set(error),
             }
@@ -484,6 +485,7 @@ fn web_part_name(base: &str, part: usize) -> String {
 #[component]
 fn ResourceImagePreview(
     image: ImagePreview,
+    mut message: Signal<String>,
     on_close: EventHandler<()>,
     on_error: EventHandler<String>,
 ) -> Element {
@@ -496,6 +498,10 @@ fn ResourceImagePreview(
     );
     let export_name = image.name.clone();
     let export_png = Arc::clone(&image.png);
+    let copy_name = image.name.clone();
+    let copy_url = image.asset.url();
+    let copy_width = image.width;
+    let copy_height = image.height;
     rsx! {
         PreviewModal {
             id: "rsb-resource-preview-modal".to_string(),
@@ -512,6 +518,18 @@ fn ResourceImagePreview(
                     }
                 });
             },
+            on_copy: Some(EventHandler::new(move |_| {
+                let url = copy_url.clone();
+                let name = copy_name.clone();
+                spawn(async move {
+                    match crate::platform::copy_preview_image(&url).await {
+                        Ok(()) => message.set(format!(
+                            "已复制 {name} · {copy_width} × {copy_height} PNG"
+                        )),
+                        Err(error) => message.set(format!("复制图像失败：{error}")),
+                    }
+                });
+            })),
         }
     }
 }

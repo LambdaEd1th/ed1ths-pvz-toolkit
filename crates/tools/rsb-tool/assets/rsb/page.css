@@ -1861,7 +1861,7 @@
   background: var(--rsb-border);
 }
 
-.rsb-preview-view-controls .rsb-preview-export-button {
+.rsb-preview-view-controls :is(.rsb-preview-copy-button, .rsb-preview-export-button) {
   width: 32px;
   min-width: 32px;
   padding: 0;
