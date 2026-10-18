@@ -1,5 +1,4 @@
 use dioxus::prelude::*;
-use dioxus_html::input_data::MouseButton;
 
 use super::layout::EmptyDropStage;
 use super::text_selection::*;
@@ -86,6 +85,14 @@ struct VisibleTextLine {
 struct VirtualTextDrag {
     anchor: VirtualTextPoint,
     active: bool,
+}
+
+#[derive(serde::Deserialize)]
+struct VirtualTextPointerEvent {
+    line_index: usize,
+    column_utf16: usize,
+    start: bool,
+    extend: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -377,8 +384,8 @@ fn VirtualTextEditor(
             move |(buffer, line_wrapping, viewport_width)| {
                 let generation = (*wrap_layout_generation.peek()).wrapping_add(1);
                 wrap_layout_generation.set(generation);
-                wrap_layout.set(None);
                 if !line_wrapping {
+                    wrap_layout.set(None);
                     return;
                 }
 
@@ -442,6 +449,7 @@ fn VirtualTextEditor(
                 style: "--virtual-text-row-height: {TEXT_ROW_HEIGHT}px",
                 onmounted: move |event| {
                     mounted.set(Some(event.clone()));
+                    dioxus::document::eval(include_str!("../../assets/rton/text-editor-pointer.js"));
                     async move {
                         focus_virtual_text_input_layer();
                         if let Ok(rect) = event.get_client_rect().await {
@@ -477,6 +485,27 @@ fn VirtualTextEditor(
                 },
                 onmouseup: move |_| finish_virtual_text_drag(drag_selection),
                 onmouseleave: move |_| finish_virtual_text_drag(drag_selection),
+                input {
+                    id: "rton-virtual-text-pointer",
+                    r#type: "hidden",
+                    oninput: {
+                        let buffer = buffer.clone();
+                        move |event| {
+                            let Ok(hit) = serde_json::from_str::<VirtualTextPointerEvent>(&event.value()) else {
+                                return;
+                            };
+                            let point = clamp_virtual_text_point(VirtualTextPoint {
+                                line_index: hit.line_index,
+                                column_utf16: hit.column_utf16,
+                            }, &buffer);
+                            if hit.start {
+                                start_virtual_text_drag(drag_selection, caret, selection, point, hit.extend);
+                            } else {
+                                update_virtual_text_drag(drag_selection, caret, selection, point);
+                            }
+                        }
+                    }
+                }
                 textarea {
                     id: "rton-virtual-text-input-sink",
                     class: "virtual-text-input-sink",
@@ -523,7 +552,6 @@ fn VirtualTextEditor(
                         }
                     },
                     oninput: {
-                        let buffer = buffer.clone();
                         move |event| {
                             dismiss_context_menu(
                                 context_menu,
@@ -536,7 +564,6 @@ fn VirtualTextEditor(
                                 return;
                             }
                             replace_virtual_text_selection_or_caret(
-                                &buffer,
                                 caret,
                                 selection,
                                 on_change,
@@ -564,12 +591,10 @@ fn VirtualTextEditor(
                         }
                     },
                     onpaste: {
-                        let buffer = buffer.clone();
                         move |event| {
                             if let Some(text) = virtual_text_clipboard_event_text(&event) {
                                 event.prevent_default();
                                 replace_virtual_text_selection_or_caret(
-                                    &buffer,
                                     caret,
                                     selection,
                                     on_change,
@@ -594,12 +619,6 @@ fn VirtualTextEditor(
                                 aria_hidden: "true"
                             }
                             {
-                                let drag_selection_for_start = drag_selection;
-                                let caret_for_start = caret;
-                                let selection_for_start = selection;
-                            let drag_selection_for_update = drag_selection;
-                            let caret_for_update = caret;
-                            let selection_for_update = selection;
                             let context_menu_for_open = context_menu;
                             let context_menu_closing_for_open = context_menu_closing;
                             let context_menu_generation_for_open = context_menu_generation;
@@ -611,23 +630,6 @@ fn VirtualTextEditor(
                                         line_text: line.line_text,
                                         caret: caret_snapshot,
                                         selection: selection_snapshot,
-                                        on_drag_start: EventHandler::new(move |(point, extend)| {
-                                            start_virtual_text_drag(
-                                                drag_selection_for_start,
-                                                caret_for_start,
-                                                selection_for_start,
-                                                point,
-                                                extend,
-                                            );
-                                        }),
-                                        on_drag_update: EventHandler::new(move |point| {
-                                            update_virtual_text_drag(
-                                                drag_selection_for_update,
-                                                caret_for_update,
-                                                selection_for_update,
-                                                point,
-                                            );
-                                        }),
                                         on_context_menu: EventHandler::new(move |menu| {
                                             let mounted = mounted.peek().clone();
                                             spawn(async move {
@@ -1023,13 +1025,8 @@ fn VirtualTextLineView(
     line_text: String,
     caret: VirtualTextPoint,
     selection: Option<VirtualTextSelection>,
-    on_drag_start: EventHandler<(VirtualTextPoint, bool)>,
-    on_drag_update: EventHandler<VirtualTextPoint>,
     on_context_menu: EventHandler<VirtualTextContextMenu>,
 ) -> Element {
-    let line_text_for_drag_start = line_text.clone();
-    let line_text_for_drag_update = line_text.clone();
-    let line_text_for_drag_enter = line_text.clone();
     let pieces = virtual_text_line_pieces(selection, caret, line_index, &line_text);
     let line_class = if selection.is_none() && caret.line_index == line_index {
         "virtual-text-line-view active-line"
@@ -1041,24 +1038,7 @@ fn VirtualTextLineView(
         span {
             class: line_class,
             "data-line-number": "{line_number}",
-            onmousedown: move |event| {
-                if !is_primary_mouse_button(&event) {
-                    focus_virtual_text_input_layer();
-                    return;
-                }
-                event.prevent_default();
-                focus_virtual_text_input_layer();
-                on_drag_start.call((
-                    VirtualTextPoint {
-                        line_index,
-                        column_utf16: virtual_text_click_column_utf16(
-                            event.element_coordinates().x,
-                            &line_text_for_drag_start,
-                        ),
-                    },
-                    event.modifiers().shift(),
-                ));
-            },
+            "data-line-index": "{line_index}",
             oncontextmenu: move |event| {
                 event.prevent_default();
                 focus_virtual_text_input_layer();
@@ -1066,24 +1046,6 @@ fn VirtualTextLineView(
                 on_context_menu.call(VirtualTextContextMenu {
                     x: coordinates.x.round() as i32,
                     y: coordinates.y.round() as i32,
-                });
-            },
-            onmousemove: move |event| {
-                on_drag_update.call(VirtualTextPoint {
-                    line_index,
-                    column_utf16: virtual_text_click_column_utf16(
-                        event.element_coordinates().x,
-                        &line_text_for_drag_update,
-                    ),
-                });
-            },
-            onmouseenter: move |event| {
-                on_drag_update.call(VirtualTextPoint {
-                    line_index,
-                    column_utf16: virtual_text_click_column_utf16(
-                        event.element_coordinates().x,
-                        &line_text_for_drag_enter,
-                    ),
                 });
             },
             for (piece_index, piece) in pieces.into_iter().enumerate() {
@@ -1154,24 +1116,6 @@ fn update_virtual_text_drag(
 
 fn finish_virtual_text_drag(mut drag_selection: Signal<Option<VirtualTextDrag>>) {
     drag_selection.set(None);
-}
-
-fn is_primary_mouse_button(event: &MouseEvent) -> bool {
-    matches!(event.trigger_button(), None | Some(MouseButton::Primary))
-}
-
-fn virtual_text_click_column_utf16(x: f64, line_text: &str) -> usize {
-    const LINE_PADDING_LEFT: f64 = 12.0;
-    const MONOSPACE_CHAR_WIDTH: f64 = 7.8;
-
-    if !x.is_finite() {
-        return 0;
-    }
-
-    let column = ((x - LINE_PADDING_LEFT) / MONOSPACE_CHAR_WIDTH).round();
-    column
-        .max(0.0)
-        .min(virtual_text_utf16_len(line_text) as f64) as usize
 }
 
 fn focus_virtual_text_input_layer() {
@@ -1284,7 +1228,6 @@ fn virtual_text_caret_replacement(
 }
 
 fn replace_virtual_text_selection_or_caret(
-    buffer: &TextBuffer,
     caret: Signal<VirtualTextPoint>,
     selection: Signal<Option<VirtualTextSelection>>,
     on_change: EventHandler<TextRangeReplacement>,
@@ -1294,11 +1237,10 @@ fn replace_virtual_text_selection_or_caret(
     let replacement = current_selection
         .map(|selection| virtual_text_selection_replacement(selection, replacement_text.clone()))
         .unwrap_or_else(|| virtual_text_caret_replacement(*caret.read(), replacement_text));
-    commit_virtual_text_replacement(buffer, caret, selection, on_change, replacement);
+    commit_virtual_text_replacement(caret, selection, on_change, replacement);
 }
 
 fn commit_virtual_text_replacement(
-    buffer: &TextBuffer,
     mut caret: Signal<VirtualTextPoint>,
     mut selection: Signal<Option<VirtualTextSelection>>,
     on_change: EventHandler<TextRangeReplacement>,
@@ -1308,7 +1250,9 @@ fn commit_virtual_text_replacement(
         return;
     }
     let next_caret = virtual_text_caret_after_replacement(&replacement);
-    caret.set(clamp_virtual_text_point(next_caret, buffer));
+    // The buffer-change effect clamps against the updated document. Clamping
+    // against the old text would move insertions at line ends backwards.
+    caret.set(next_caret);
     selection.set(None);
     on_change.call(replacement);
     focus_virtual_text_input_layer();
@@ -1448,23 +1392,11 @@ fn handle_virtual_text_key(
         }
         "Enter" => {
             event.prevent_default();
-            replace_virtual_text_selection_or_caret(
-                buffer,
-                caret,
-                selection,
-                on_change,
-                "\n".to_string(),
-            );
+            replace_virtual_text_selection_or_caret(caret, selection, on_change, "\n".to_string());
         }
         "Tab" => {
             event.prevent_default();
-            replace_virtual_text_selection_or_caret(
-                buffer,
-                caret,
-                selection,
-                on_change,
-                "\t".to_string(),
-            );
+            replace_virtual_text_selection_or_caret(caret, selection, on_change, "\t".to_string());
         }
         "ArrowLeft" | "ArrowRight" | "ArrowUp" | "ArrowDown" | "Home" | "End" => {
             event.prevent_default();
@@ -1498,7 +1430,7 @@ fn delete_virtual_text_selection_or_adjacent(
             replacement: String::new(),
         }
     };
-    commit_virtual_text_replacement(buffer, caret, selection, on_change, replacement);
+    commit_virtual_text_replacement(caret, selection, on_change, replacement);
 }
 
 fn virtual_text_adjacent_delete_range(
@@ -1764,7 +1696,6 @@ fn cut_virtual_text_selection_to_clipboard(
     };
     write_virtual_text_clipboard(&text);
     commit_virtual_text_replacement(
-        buffer,
         caret,
         selection,
         on_change,
@@ -1905,9 +1836,9 @@ mod tests {
         let buffer = TextBuffer::new("line\n".repeat(20_001));
         let layout = text_wrap_layout(&buffer, 320);
 
-        assert_eq!(layout.line_tops.len(), 20_001);
-        assert_eq!(layout.line_heights.len(), 20_001);
-        assert_eq!(layout.logical_height, TEXT_ROW_HEIGHT * 20_001);
+        assert_eq!(layout.line_tops.len(), 20_002);
+        assert_eq!(layout.line_heights.len(), 20_002);
+        assert_eq!(layout.logical_height, TEXT_ROW_HEIGHT * 20_002);
     }
 
     #[test]

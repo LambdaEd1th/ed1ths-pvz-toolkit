@@ -31,13 +31,8 @@ impl TextBuffer {
     }
 
     pub(crate) fn line_count(&self) -> usize {
-        if self.rope.len_bytes() == 0 {
-            0
-        } else if self.rope.byte(self.rope.len_bytes() - 1) == b'\n' {
-            self.rope.len_lines().saturating_sub(1)
-        } else {
-            self.rope.len_lines()
-        }
+        // An empty document and the empty row after a final newline are editable.
+        self.rope.len_lines()
     }
 
     pub(crate) fn byte_count(&self) -> usize {
@@ -121,9 +116,12 @@ mod tests {
 
     #[test]
     fn line_semantics_match_editor_rows() {
-        assert_eq!(TextBuffer::new(String::new()).line_count(), 0);
-        assert_eq!(TextBuffer::new("a\n".to_string()).line_count(), 1);
+        assert_eq!(TextBuffer::new(String::new()).line_count(), 1);
+        assert_eq!(TextBuffer::new("a\n".to_string()).line_count(), 2);
         assert_eq!(TextBuffer::new("a\nb".to_string()).line_count(), 2);
+        let buffer = TextBuffer::new("a\r\n".to_string());
+        assert_eq!(buffer.line_text(1).as_deref(), Some(""));
+        assert_eq!(buffer.line_start_byte(1), Some(3));
     }
 
     #[test]
