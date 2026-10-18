@@ -1,10 +1,12 @@
-use crate::domain::ArchiveDocument;
+use crate::app::SortableTableHeader;
+use crate::domain::{ArchiveDocument, format_bytes};
 use crate::editing::{AddedFile, PacketEdits, RemovedPackets};
 use crate::resource_browser::{
     BrowserFilter, BrowserSelection, BrowserTarget, DirectoryIndex, NavigationHistory, item_window,
     parent_path,
 };
 use crate::resources::{self, ManifestData, ResourceLocation};
+use crate::view_model::{BrowserSort, BrowserSortKey};
 use crate::virtual_scroll::{TABLE_DEFAULT_VIEWPORT_HEIGHT, measured_table_viewport_height};
 use dioxus::prelude::*;
 use dioxus_html::{ScrollBehavior, geometry::PixelsVector2D};
@@ -36,6 +38,11 @@ pub fn ResourceExplorer(
     let mut group = use_signal(String::new);
     let mut kind = use_signal(String::new);
     let mut state = use_signal(|| "all".to_string());
+    let mut sort = use_signal(BrowserSort::default);
+    let sort_snapshot = sort();
+    let on_sort: EventHandler<BrowserSortKey> = EventHandler::new(move |key| {
+        sort.set(sort().toggled(key));
+    });
     let mut history = use_signal(NavigationHistory::default);
     let mut expanded = use_signal(|| BTreeSet::from([String::new()]));
     let mut selected = use_signal(BrowserSelection::default);
@@ -51,6 +58,13 @@ pub fn ResourceExplorer(
         &(archive.clone(), edits.clone(), removed.clone()),
         |(archive, edits, removed)| Arc::new(resources::physical_files(&archive, &edits, &removed)),
     ));
+    let sizes_data = use_resource(use_reactive(
+        &(archive.clone(), edits.clone(), removed.clone()),
+        |(archive, edits, removed)| async move {
+            Arc::new(crate::resource_sizes::load_file_sizes(archive, edits, removed).await)
+        },
+    ));
+    let sizes = use_memo(move || sizes_data.read().as_ref().cloned().unwrap_or_default());
     let manifest = use_memo(move || {
         let mut data = source
             .read()
@@ -63,8 +77,9 @@ pub fn ResourceExplorer(
     let catalog_data = use_resource(move || {
         let manifest = manifest.read().clone();
         let files = files.read().clone();
+        let sizes = sizes.read().clone();
         async move {
-            crate::processing::build_resource_catalog(manifest, files)
+            crate::processing::build_resource_catalog(manifest, files, sizes)
                 .await
                 .map(Arc::new)
         }
@@ -87,6 +102,7 @@ pub fn ResourceExplorer(
                 group: &group(),
                 kind: &kind(),
                 state: &state(),
+                sort: sort(),
             },
         ))
     });
@@ -309,8 +325,32 @@ pub fn ResourceExplorer(
                 }
                 main { class: if grid() { "rsb-res-results is-grid" } else { "rsb-res-results" },
                     div { class: "rsb-res-table-head",
-                        if grid() { span { if query().trim().is_empty() { "{current_name}" } else { "搜索结果 · 包含子目录" } } }
-                        else { span { "名称" } span { "类型 / 子组" } span { "映射状态" } }
+                        if grid() {
+                            span { if query().trim().is_empty() { "{current_name}" } else { "搜索结果 · 包含子目录" } }
+                        } else {
+                            SortableTableHeader {
+                                class: "rsb-res-col-name",
+                                label: "名称",
+                                sort_key: BrowserSortKey::Name,
+                                sort: sort_snapshot,
+                                on_sort,
+                            }
+                            SortableTableHeader {
+                                class: "rsb-res-col-type",
+                                label: "类型 / 子组",
+                                sort_key: BrowserSortKey::Type,
+                                sort: sort_snapshot,
+                                on_sort,
+                            }
+                            SortableTableHeader {
+                                class: "rsb-res-col-size",
+                                label: "文件大小",
+                                sort_key: BrowserSortKey::Size,
+                                sort: sort_snapshot,
+                                on_sort,
+                            }
+                            span { class: "rsb-res-col-badge", "映射状态" }
+                        }
                     }
                     div { class: "rsb-res-list", role: "list", aria_label: "资源列表",
                         tabindex: 0,
@@ -362,6 +402,9 @@ pub fn ResourceExplorer(
                                                             span { class: "rsb-res-name", strong { "{folder.name}" } small { "{item.count} 个资源" } }
                                                         }
                                                         span { class: "rsb-res-kind", span { "文件夹" } small { "{folder.children.len()} 个子目录" } }
+                                                        span { class: "rsb-res-size",
+                                                            if let Some(size) = folder.size { "{format_bytes(size)}" } else { "—" }
+                                                        }
                                                         span { class: "rsb-res-folder-arrow", ResourceIcon { kind: "right" } }
                                                     }
                                                 }
@@ -387,6 +430,11 @@ pub fn ResourceExplorer(
                                                             }
                                                         }
                                                         span { class: "rsb-res-kind", span { "{row.entry.kind}" } small { "{row.entry.subgroup}" } }
+                                                        span {
+                                                            class: "rsb-res-size",
+                                                            title: if row.entry.parent.is_empty() { "匹配到的包内文件大小" } else { "父图集文件大小" },
+                                                            if let Some(size) = row.size { "{format_bytes(size)}" } else { "—" }
+                                                        }
                                                         span { class: "rsb-res-badge {row.state.class()}", "{row.state.label()}" }
                                                     }
                                                 }
@@ -414,6 +462,7 @@ pub fn ResourceExplorer(
                                 if row.entry.atlas { dt { "图集" } dd { "是" } }
                                 if !row.entry.parent.is_empty() { dt { "父图集 ID" } dd { "{row.entry.parent}" } }
                                 if let Some(region) = row.entry.region { dt { "图集裁剪区域" } dd { "x={region.x}, y={region.y}\n{region.width} × {region.height}" } }
+                                if let Some(size) = row.size { dt { "文件大小" } dd { "{format_bytes(size)}" } }
                                 dt { "清单来源" } dd { "{row.entry.source}" }
                             }
                             for location in row.locations {
@@ -429,6 +478,7 @@ pub fn ResourceExplorer(
                             p { class: "rsb-res-explanation", "按清单中的逻辑路径组织，资源仍保存在各自的 RSG 中。" }
                             dl {
                                 dt { "包含资源（含子目录）" } dd { "{folder.resources}" }
+                                if let Some(size) = folder.size { dt { "包含大小" } dd { "{format_bytes(size)}" } }
                                 dt { "直接子目录" } dd { "{folder.children.len()}" }
                             }
                             button { class: "rsb-tool-button rsb-res-open-folder", onclick: move |_| navigate.call(path.clone()), "打开文件夹" }

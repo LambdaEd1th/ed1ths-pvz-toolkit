@@ -483,6 +483,7 @@ mod tests {
             }],
             explanation: String::new(),
             search: String::new(),
+            size: None,
         }
     }
     #[test]

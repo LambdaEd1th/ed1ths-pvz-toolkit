@@ -15,6 +15,7 @@ mod resource_edit;
 mod resource_editor;
 mod resource_explorer;
 mod resource_operations;
+mod resource_sizes;
 mod resources;
 mod view_model;
 mod virtual_scroll;

@@ -5702,7 +5702,7 @@ fn ArchiveTable(
 }
 
 #[component]
-fn SortableTableHeader(
+pub(crate) fn SortableTableHeader(
     class: &'static str,
     label: &'static str,
     sort_key: BrowserSortKey,

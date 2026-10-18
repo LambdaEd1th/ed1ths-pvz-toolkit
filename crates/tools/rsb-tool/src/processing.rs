@@ -78,12 +78,15 @@ pub async fn parse_resource_manifest(
 pub async fn build_resource_catalog(
     manifest: Arc<crate::resources::ManifestData>,
     files: Arc<Vec<crate::resources::ResourceLocation>>,
+    sizes: Arc<crate::resources::FileSizeMap>,
 ) -> Result<crate::resources::ResourceCatalog, String> {
     #[cfg(not(target_arch = "wasm32"))]
     {
         let (sender, receiver) = futures_channel::oneshot::channel();
         archive_pool().spawn(move || {
-            let _ = sender.send(crate::resources::build_catalog(&manifest, &files));
+            let _ = sender.send(crate::resources::build_catalog_with_sizes(
+                &manifest, &files, &sizes,
+            ));
         });
         receiver
             .await
@@ -91,7 +94,9 @@ pub async fn build_resource_catalog(
     }
     #[cfg(target_arch = "wasm32")]
     {
-        Ok(crate::resources::build_catalog(&manifest, &files))
+        Ok(crate::resources::build_catalog_with_sizes(
+            &manifest, &files, &sizes,
+        ))
     }
 }
 

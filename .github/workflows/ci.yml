@@ -173,6 +173,7 @@ jobs:
             sleep 0.5
           done
           npm run test:shell
+          npm run test:rsb-sort
           npm run test:rton-text
           RTON_TEST_BROWSER=webkit npm run test:rton-text
 

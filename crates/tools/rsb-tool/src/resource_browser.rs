@@ -1,6 +1,8 @@
 //! A virtual directory tree over logical manifest paths, independent of RSG storage.
 
 use crate::resources::{MappingState, ResourceCatalog, normalize_path};
+use crate::view_model::{BrowserSort, BrowserSortKey};
+use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
 
 const PROGRAM_FOLDER: &str = "\0program";
@@ -11,6 +13,8 @@ pub struct Directory {
     pub name: String,
     pub children: BTreeSet<String>,
     pub resources: usize,
+    /// Total unpacked size of unique physical files below this directory.
+    pub size: Option<u64>,
     name_from_manifest: bool,
 }
 
@@ -140,6 +144,7 @@ pub struct BrowserFilter<'a> {
     pub group: &'a str,
     pub kind: &'a str,
     pub state: &'a str,
+    pub sort: BrowserSort,
 }
 
 pub fn parent_path(path: &str) -> &str {
@@ -186,6 +191,11 @@ impl DirectoryIndex {
                         .to_string(),
                 )
             };
+            let folder_size = if matches!(row.state, MappingState::File | MappingState::Unlisted) {
+                row.size
+            } else {
+                None
+            };
             let mut path = String::new();
             for (depth, part) in folder
                 .split('/')
@@ -211,8 +221,15 @@ impl DirectoryIndex {
                 let directory = output.directories.entry(path.clone()).or_default();
                 directory.consider_name(name, row.state != MappingState::Unlisted);
                 directory.resources += 1;
+                if let Some(size) = folder_size {
+                    directory.size = Some(directory.size.unwrap_or(0).saturating_add(size));
+                }
             }
-            output.directories.get_mut("").unwrap().resources += 1;
+            let root = output.directories.get_mut("").unwrap();
+            root.resources += 1;
+            if let Some(size) = folder_size {
+                root.size = Some(root.size.unwrap_or(0).saturating_add(size));
+            }
             output.paths.push(ResourcePath { folder, name });
         }
         output.sorted_resources = (0..output.paths.len()).collect();
@@ -325,13 +342,76 @@ impl DirectoryIndex {
             let BrowserTarget::Folder(b) = &b.target else {
                 unreachable!()
             };
-            self.directories[a]
-                .name
-                .to_lowercase()
-                .cmp(&self.directories[b].name.to_lowercase())
+            let ordering = match filter.sort.key {
+                BrowserSortKey::Name => filter.sort.apply(compare_text(
+                    &self.directories[a].name,
+                    &self.directories[b].name,
+                )),
+                BrowserSortKey::Size => compare_size(
+                    self.directories[a].size,
+                    self.directories[b].size,
+                    filter.sort,
+                )
+                .then_with(|| compare_text(&self.directories[a].name, &self.directories[b].name)),
+                BrowserSortKey::Type => {
+                    compare_text(&self.directories[a].name, &self.directories[b].name)
+                }
+            };
+            ordering.then_with(|| a.cmp(b))
+        });
+        files.sort_by(|left, right| {
+            let (BrowserTarget::Resource(left), BrowserTarget::Resource(right)) =
+                (&left.target, &right.target)
+            else {
+                return Ordering::Equal;
+            };
+            let left_name = &self.paths[*left].name;
+            let right_name = &self.paths[*right].name;
+            let ordering = match filter.sort.key {
+                BrowserSortKey::Name => filter.sort.apply(compare_text(left_name, right_name)),
+                BrowserSortKey::Type => filter
+                    .sort
+                    .apply(
+                        compare_text(
+                            &catalog.rows[*left].entry.kind,
+                            &catalog.rows[*right].entry.kind,
+                        )
+                        .then_with(|| {
+                            compare_text(
+                                &catalog.rows[*left].entry.subgroup,
+                                &catalog.rows[*right].entry.subgroup,
+                            )
+                        }),
+                    )
+                    .then_with(|| compare_text(left_name, right_name)),
+                BrowserSortKey::Size => compare_size(
+                    catalog.rows[*left].size,
+                    catalog.rows[*right].size,
+                    filter.sort,
+                )
+                .then_with(|| compare_text(left_name, right_name)),
+            };
+            ordering
+                .then_with(|| left_name.cmp(right_name))
+                .then_with(|| left.cmp(right))
         });
         output.extend(files);
         output
+    }
+}
+
+fn compare_text(left: &str, right: &str) -> Ordering {
+    left.to_lowercase()
+        .cmp(&right.to_lowercase())
+        .then_with(|| left.cmp(right))
+}
+
+fn compare_size(left: Option<u64>, right: Option<u64>, sort: BrowserSort) -> Ordering {
+    match (left, right) {
+        (Some(left), Some(right)) => sort.apply(left.cmp(&right)),
+        (Some(_), None) => Ordering::Less,
+        (None, Some(_)) => Ordering::Greater,
+        (None, None) => Ordering::Equal,
     }
 }
 
@@ -412,7 +492,11 @@ pub fn item_window(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::resources::{ManifestData, ResourceEntry, build_catalog};
+    use crate::resources::{
+        FileSizeMap, ManifestData, ResourceEntry, ResourceLocation, build_catalog,
+        build_catalog_with_sizes, normalize_path,
+    };
+    use crate::view_model::BrowserSortDirection;
 
     fn catalog() -> ResourceCatalog {
         build_catalog(
@@ -558,6 +642,69 @@ mod tests {
                 .entry
                 .path,
             "images\\plants\\Pea.png"
+        );
+    }
+
+    #[test]
+    fn resource_items_sort_by_name_and_size_in_both_directions() {
+        let files = vec![
+            ResourceLocation {
+                packet_index: 0,
+                packet_name: "Packet".into(),
+                path: "a-large.bin".into(),
+            },
+            ResourceLocation {
+                packet_index: 0,
+                packet_name: "Packet".into(),
+                path: "b-small.bin".into(),
+            },
+        ];
+        let sizes = FileSizeMap::from([
+            ((0, normalize_path("a-large.bin")), 100_u64),
+            ((0, normalize_path("b-small.bin")), 10_u64),
+        ]);
+        let catalog = build_catalog_with_sizes(&ManifestData::default(), &files, &sizes);
+        assert_eq!(
+            catalog
+                .rows
+                .iter()
+                .find(|row| row.entry.path == "a-large.bin")
+                .and_then(|row| row.size),
+            Some(100)
+        );
+        let tree = DirectoryIndex::build(&catalog);
+        let names = |sort: BrowserSort| {
+            tree.items(
+                &catalog,
+                "",
+                BrowserFilter {
+                    sort,
+                    ..Default::default()
+                },
+            )
+            .into_iter()
+            .map(|item| match item.target {
+                BrowserTarget::Resource(index) => catalog.rows[index].entry.path.clone(),
+                BrowserTarget::Folder(path) => panic!("unexpected folder {path}"),
+            })
+            .collect::<Vec<_>>()
+        };
+        let sort = |key, direction| BrowserSort { key, direction };
+        assert_eq!(
+            names(sort(BrowserSortKey::Name, BrowserSortDirection::Ascending)),
+            ["a-large.bin", "b-small.bin"]
+        );
+        assert_eq!(
+            names(sort(BrowserSortKey::Name, BrowserSortDirection::Descending)),
+            ["b-small.bin", "a-large.bin"]
+        );
+        assert_eq!(
+            names(sort(BrowserSortKey::Size, BrowserSortDirection::Ascending)),
+            ["b-small.bin", "a-large.bin"]
+        );
+        assert_eq!(
+            names(sort(BrowserSortKey::Size, BrowserSortDirection::Descending)),
+            ["a-large.bin", "b-small.bin"]
         );
     }
 

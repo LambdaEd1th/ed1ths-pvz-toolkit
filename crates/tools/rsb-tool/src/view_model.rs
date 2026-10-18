@@ -66,7 +66,7 @@ impl BrowserSort {
         }
     }
 
-    fn apply(self, ordering: Ordering) -> Ordering {
+    pub(crate) fn apply(self, ordering: Ordering) -> Ordering {
         match self.direction {
             BrowserSortDirection::Ascending => ordering,
             BrowserSortDirection::Descending => ordering.reverse(),

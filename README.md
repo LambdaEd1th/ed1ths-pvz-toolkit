@@ -126,6 +126,7 @@ Shell keyboard/focus regressions run against a served Web build:
 
 ```sh
 UI_TEST_URL=http://127.0.0.1:8097 npm run test:shell
+UI_TEST_URL=http://127.0.0.1:8097 npm run test:rsb-sort
 ```
 
 The RSB address bar also opens a **Resource Explorer**. It discovers

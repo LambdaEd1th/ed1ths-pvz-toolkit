@@ -8,7 +8,8 @@
     "test:resource-edit": "node resource-edit.cjs",
     "test:rsb-tabs": "node rsb-tabs.cjs",
     "test:pam-images": "node pam-images.cjs",
-    "test:shell": "node shell-focus.cjs"
+    "test:shell": "node shell-focus.cjs",
+    "test:rsb-sort": "node rsb-sort.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

@@ -18,6 +18,9 @@ pub struct ResourceLocation {
     pub path: String,
 }
 
+/// Unpacked file sizes keyed by packet index and normalized logical path.
+pub type FileSizeMap = HashMap<(usize, String), u64>;
+
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct AtlasRegion {
     pub x: u32,
@@ -513,6 +516,8 @@ pub struct MappedResource {
     pub locations: Vec<ResourceLocation>,
     pub explanation: String,
     pub search: String,
+    /// Sum of the matched physical files' unpacked sizes, when known.
+    pub size: Option<u64>,
 }
 
 impl MappedResource {
@@ -521,6 +526,7 @@ impl MappedResource {
         state: MappingState,
         locations: Vec<ResourceLocation>,
         explanation: String,
+        size: Option<u64>,
     ) -> Self {
         let search = format!(
             "{} {} {} {} {} {} {}",
@@ -543,8 +549,22 @@ impl MappedResource {
             locations,
             explanation,
             search,
+            size,
         }
     }
+}
+
+fn locations_size(locations: &[ResourceLocation], sizes: &FileSizeMap) -> Option<u64> {
+    let mut total = None;
+    for location in locations {
+        if let Some(size) = sizes
+            .get(&(location.packet_index, normalize_path(&location.path)))
+            .copied()
+        {
+            total = Some(total.unwrap_or(0_u64).saturating_add(size));
+        }
+    }
+    total
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -587,7 +607,16 @@ fn path_candidates(entry: &ResourceEntry) -> Vec<String> {
     candidates
 }
 
+#[cfg(test)]
 pub fn build_catalog(manifest: &ManifestData, files: &[ResourceLocation]) -> ResourceCatalog {
+    build_catalog_with_sizes(manifest, files, &FileSizeMap::new())
+}
+
+pub fn build_catalog_with_sizes(
+    manifest: &ManifestData,
+    files: &[ResourceLocation],
+    sizes: &FileSizeMap,
+) -> ResourceCatalog {
     let mut paths = HashMap::<String, Vec<&ResourceLocation>>::new();
     let mut stems = HashMap::<String, Vec<&ResourceLocation>>::new();
     for file in files {
@@ -618,6 +647,7 @@ pub fn build_catalog(manifest: &ManifestData, files: &[ResourceLocation]) -> Res
                 MappingState::Program,
                 Vec::new(),
                 "清单声明由程序生成，没有独立的包内文件".into(),
+                None,
             ));
             continue;
         }
@@ -719,11 +749,13 @@ pub fn build_catalog(manifest: &ManifestData, files: &[ResourceLocation]) -> Res
             MappingState::Ambiguous => output.ambiguous += 1,
             MappingState::Unlisted | MappingState::Program => {}
         }
+        let size = locations_size(&locations, sizes);
         output.rows.push(MappedResource::new(
             entry.clone(),
             state,
             locations,
             explanation,
+            size,
         ));
     }
     for file in files {
@@ -739,11 +771,15 @@ pub fn build_catalog(manifest: &ManifestData, files: &[ResourceLocation]) -> Res
             source: "RSB 文件索引".into(),
             ..Default::default()
         };
+        let size = sizes
+            .get(&(file.packet_index, normalize_path(&file.path)))
+            .copied();
         output.rows.push(MappedResource::new(
             entry,
             MappingState::Unlisted,
             vec![file.clone()],
             "包内确实存在，但当前资源清单没有对应条目".into(),
+            size,
         ));
     }
     output.rows.sort_by(|left, right| {
