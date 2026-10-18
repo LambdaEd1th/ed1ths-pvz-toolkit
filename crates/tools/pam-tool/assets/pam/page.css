@@ -1454,3 +1454,13 @@ html.native-wgpu-host .pam-stage {
     min-height: 30px;
   }
 }
+
+/* The desktop renderer paints the stage into a native WGPU layer behind the
+ * WebView. Keep the preview card transparent even though the shared M3
+ * workspace-card rule gives cards an opaque surface. */
+html.native-wgpu-host .pam-preview-card.ui-workspace-card {
+  background: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
