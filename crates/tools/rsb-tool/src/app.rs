@@ -3784,13 +3784,6 @@ pub fn RsbArchivePage(
                     can_export_png,
                     can_go_up: !matches!(location_snapshot, BrowserLocation::Archive),
                     inspector_visible: inspector_visible(),
-                    resources_visible: resources_visible(),
-                    on_toggle_resources: move |_| {
-                        resources_visible.toggle();
-                        selection.set(None);
-                        inspector_visible.set(false);
-                        context_menu.set(None);
-                    },
                     on_open: move |document| open_archive_tab(
                         document,
                         archive_tabs,
@@ -4780,8 +4773,6 @@ fn ArchiveToolbar(
     can_export_png: bool,
     can_go_up: bool,
     inspector_visible: bool,
-    resources_visible: bool,
-    on_toggle_resources: EventHandler<()>,
     on_open: EventHandler<ArchiveDocument>,
     on_error: EventHandler<String>,
     on_up: EventHandler<()>,
@@ -4801,14 +4792,6 @@ fn ArchiveToolbar(
 ) -> Element {
     rsx! {
         div { class: "ui-island ui-tool-page-actions rsb-page-actions",
-            button {
-                r#type: "button",
-                class: if resources_visible { "rsb-tool-button is-active" } else { "rsb-tool-button" },
-                disabled: !has_archive,
-                aria_pressed: resources_visible,
-                onclick: move |_| on_toggle_resources.call(()),
-                "资源管理器"
-            }
             div { class: "rsb-toolbar-group",
                 OpenArchiveButton {
                     on_open,
