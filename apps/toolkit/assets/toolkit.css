@@ -3775,3 +3775,13 @@ button {
   border-radius: 24px !important;
   box-shadow: none !important;
 }
+
+
+/* In the native PAM renderer the WGPU surface is composed behind the WebView.
+ * The shell must not paint an opaque backdrop over the stage while PAM is
+ * active; the renderer supplies its own backdrop color. */
+html.native-wgpu-host .tk-backdrop,
+html.native-wgpu-host .tk-ambient {
+  background: transparent !important;
+  background-image: none !important;
+}
