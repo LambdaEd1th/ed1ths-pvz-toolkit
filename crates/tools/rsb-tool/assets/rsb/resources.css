@@ -761,17 +761,3 @@
   padding-left: 12px;
   border-left: 1px solid var(--rsb-border);
 }
-
-
-
-@media (min-width: 1024px) {
-  .rsb-packet-heading {
-    padding-left: 38px;
-  }
-
-  .rsb-page-host .rsb-address-row,
-  .rsb-page-host .rsb-res-addressbar,
-  .rsb-browser-secondary {
-    padding-left: 38px;
-  }
-}
