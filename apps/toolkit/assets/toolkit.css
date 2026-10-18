@@ -3649,3 +3649,90 @@ button {
 .ui-tool-surface :is(h1, h2, h3) {
   font-weight: 600 !important;
 }
+
+/* M3 text fields and selects inside every tool. */
+.ui-tool-surface :is(
+  input:not([type="file"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+  select
+) {
+  min-height: 40px !important;
+  border: 1px solid var(--tk-outline) !important;
+  border-radius: var(--tk-radius-md) !important;
+  background: var(--tk-surface-card) !important;
+  color: var(--tk-on-surface) !important;
+}
+
+.ui-tool-surface textarea {
+  min-height: 88px !important;
+  border: 1px solid var(--tk-outline) !important;
+  border-radius: var(--tk-radius-md) !important;
+  background: var(--tk-surface-card) !important;
+  color: var(--tk-on-surface) !important;
+}
+
+.ui-tool-surface :is(input, select, textarea):focus-visible {
+  outline: 2px solid var(--tk-primary);
+  outline-offset: 1px;
+}
+
+/* Dialog chrome: one label/title/button rhythm. */
+:is(
+  .pak-dialog,
+  .dzip-dialog,
+  .rsb-dialog,
+  .newton-dialog,
+  .rsp-dialog,
+  .pam-export-dialog,
+  .rton-unsaved-dialog
+) :is([class*="kicker"], [class*="eyebrow"]) {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  color: var(--tk-on-surface-variant) !important;
+}
+
+:is(
+  .pak-dialog,
+  .dzip-dialog,
+  .rsb-dialog,
+  .newton-dialog,
+  .rsp-dialog,
+  .pam-export-dialog,
+  .rton-unsaved-dialog
+) button {
+  min-height: 40px;
+  padding-inline: 16px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* M3 chips for empty-state format hints and document format labels. */
+:is(.pam-format-row, .rton-format-row, .rsb-format-row, .wem-empty-formats) span {
+  min-height: 30px !important;
+  padding: 6px 12px !important;
+  border: 1px solid var(--tk-outline-variant) !important;
+  border-radius: var(--tk-radius-sm) !important;
+  background: var(--tk-surface-container) !important;
+  color: var(--tk-on-surface-variant) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+:is(
+  .pak-format-pill,
+  .dzip-format-pill,
+  .rsp-format-pill,
+  .rsb-document-pill,
+  .pam-document-pill,
+  .rton-document-pill
+) {
+  min-height: 28px;
+  border: 1px solid var(--tk-outline-variant);
+  border-radius: var(--tk-radius-sm);
+  background: var(--tk-surface-container);
+  color: var(--tk-on-surface-variant);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
