@@ -772,3 +772,18 @@
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* Use the same surface hierarchy as file browsing instead of the stronger
+ * resource-specific surface, so both modes share one palette in every theme. */
+.rsb-resource-explorer {
+  background: var(--tk-surface-card);
+}
+
+.rsb-res-addressbar,
+.rsb-browser-secondary.rsb-resource-secondary {
+  background: var(--rsb-surface);
+}
+
+.rsb-res-details {
+  background: var(--rsb-surface);
+}

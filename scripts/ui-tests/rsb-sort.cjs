@@ -46,6 +46,12 @@ async function run(engineName, engine) {
   await tool.locator('.rsb-resource-entry').click();
   await tool.locator('.rsb-resource-explorer').waitFor();
   await sleep(800);
+  const surfaces = await page.evaluate(() => {
+    const card = document.querySelector('.tk-tool-slot--active .rsb-browser-card');
+    const explorer = document.querySelector('.tk-tool-slot--active .rsb-resource-explorer');
+    return [getComputedStyle(card).backgroundColor, getComputedStyle(explorer).backgroundColor];
+  });
+  assert.equal(surfaces[1], surfaces[0], 'resource mode should use the file browser surface color');
 
   const resourceHandle = tool.locator('.ui-tool-drawer-handle');
   assert.equal(await resourceHandle.isVisible(), true, 'resource browsing keeps the tool handle visible');
