@@ -823,12 +823,12 @@
 .rsb-search {
   display: flex;
   min-width: 0;
-  height: 38px;
+  height: 40px;
   align-items: center;
   box-sizing: border-box;
-  border: 1px solid var(--rsb-border);
-  border-radius: 14px;
-  background: var(--rsb-surface);
+  border: 1px solid var(--tk-outline-variant);
+  border-radius: var(--tk-radius-md);
+  background: var(--tk-surface-card);
 }
 
 .rsb-address-bar {

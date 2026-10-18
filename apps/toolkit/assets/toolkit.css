@@ -3652,7 +3652,7 @@ button {
 
 /* M3 text fields and selects inside every tool. */
 .ui-tool-surface :is(
-  input:not([type="file"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+  input:not([type="file"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="search"]),
   select
 ) {
   min-height: 40px !important;
@@ -3670,7 +3670,7 @@ button {
   color: var(--tk-on-surface) !important;
 }
 
-.ui-tool-surface :is(input, select, textarea):focus-visible {
+.ui-tool-surface :is(input:not([type="search"]), select, textarea):focus-visible {
   outline: 2px solid var(--tk-primary);
   outline-offset: 1px;
 }
@@ -3735,4 +3735,32 @@ button {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0;
+}
+
+
+/* Search fields are composite controls: the wrapper owns the outline, radius
+ * and focus ring, while the native input stays transparent. */
+.ui-tool-surface input[type="search"] {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--tk-on-surface);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.ui-tool-surface input[type="search"]::-webkit-search-decoration,
+.ui-tool-surface input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.ui-tool-surface :is(label, div):has(> input[type="search"]):focus-within {
+  border-color: var(--tk-primary) !important;
+  box-shadow: 0 0 0 1px var(--tk-primary);
+}
+
+.ui-tool-surface input[type="search"]:focus-visible {
+  outline: 0;
 }
