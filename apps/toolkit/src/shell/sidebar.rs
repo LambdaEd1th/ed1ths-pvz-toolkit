@@ -62,7 +62,7 @@ pub(crate) fn Sidebar(route: Signal<AppRoute>, open: Signal<bool>, compact: bool
                         NavItem {
                             active: active_route == tool.route,
                             glyph: tool.nav_glyph,
-                            label: tool.label(i18n),
+                            label: tool.label.to_string(),
                             kind: Some(tool.slug),
                             experimental: tool.experimental,
                             onclick: move |_| navigate(route, open, compact, tool.route),

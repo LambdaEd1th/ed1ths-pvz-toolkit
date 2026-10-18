@@ -244,34 +244,11 @@ async function run(engineName, engine) {
   await sleep(450);
   assert.equal(await page.evaluate(() => document.documentElement.lang), 'fr-FR', 'language menu should switch the locale');
   assert.match(await handle.getAttribute('aria-label'), /barre d’outils/, 'toolbar chrome should follow the locale');
-  assert.equal(
-    await page.locator('.tk-sidebar .tk-nav-item').filter({ hasText: 'Archive RSB' }).count(),
-    1,
-    'sidebar tool names should follow the locale',
-  );
-  assert.equal(
-    (await page.locator('.tk-breadcrumb strong').innerText()).trim(),
-    'Éditeur RTON',
-    'breadcrumb tool name should follow the locale',
-  );
-  assert.ok(
-    (await page.locator('.tk-workspace-card h3').evaluateAll(nodes => nodes.map(node => node.textContent))).includes('Archive RSB'),
-    'home tool cards should follow the locale',
-  );
-  assert.ok(
-    (await page.locator('.tk-about-scroll h3').evaluateAll(nodes => nodes.map(node => node.textContent))).includes('Archive RSB'),
-    'about tool headings should follow the locale',
-  );
   await page.locator('.tk-settings-language-control').click();
   await sleep(200);
   await page.locator('#tk-settings-language-menu button').filter({ hasText: 'English' }).click();
   await sleep(350);
   assert.equal(await page.evaluate(() => document.documentElement.lang), 'en-US', 'language menu should switch back');
-  assert.equal(
-    await page.locator('.tk-sidebar .tk-nav-item').filter({ hasText: 'RSB Archive' }).count(),
-    1,
-    'sidebar tool names should switch back to English',
-  );
   await closeSettings(page);
 
   step('toolbar labels passed');

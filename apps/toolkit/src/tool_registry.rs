@@ -1,4 +1,3 @@
-use crate::i18n::I18n;
 use crate::navigation::AppRoute;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -140,22 +139,6 @@ pub(crate) const TOOLS: [ToolDescriptor; 14] = [
         experimental: false,
     },
 ];
-
-pub(crate) fn localized_label(i18n: I18n, slug: &str, fallback: &str) -> String {
-    let key = format!("tool-{slug}-label");
-    let value = i18n.t(&key);
-    if value == key {
-        fallback.to_string()
-    } else {
-        value
-    }
-}
-
-impl ToolDescriptor {
-    pub(crate) fn label(self, i18n: I18n) -> String {
-        localized_label(i18n, self.slug, self.label)
-    }
-}
 
 #[cfg(test)]
 mod tests {

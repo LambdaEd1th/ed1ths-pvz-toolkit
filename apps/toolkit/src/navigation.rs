@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
 
 use crate::i18n::I18n;
-use crate::tool_registry::localized_label;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub(crate) enum AppRoute {
@@ -31,20 +30,20 @@ impl AppRoute {
             Self::Home => i18n.t("nav-home"),
             Self::Libraries => i18n.t("nav-libraries"),
             Self::About => i18n.t("nav-about"),
-            Self::Rsb => localized_label(i18n, "rsb", "RSB Archive"),
-            Self::RsbPatch => localized_label(i18n, "rsb-patch", "RSB Patch"),
-            Self::Pak => localized_label(i18n, "pak", "PAK Archive"),
-            Self::Dzip => localized_label(i18n, "dzip", "DZip Archive"),
-            Self::Smf => localized_label(i18n, "smf", "SMF Container"),
-            Self::CompiledText => localized_label(i18n, "compiled-text", "Compiled Text"),
-            Self::CryptData => localized_label(i18n, "crypt-data", "Crypt-Data"),
-            Self::Rton => localized_label(i18n, "rton", "RTON Editor"),
-            Self::Pam => localized_label(i18n, "pam", "PAM Editor"),
-            Self::Particle => localized_label(i18n, "particle", "Particle Editor"),
-            Self::Reanim => localized_label(i18n, "reanim", "REANIM Editor"),
-            Self::Wem => localized_label(i18n, "wem", "WEM Audio"),
-            Self::Bnk => localized_label(i18n, "bnk", "BNK Archive"),
-            Self::Newton => localized_label(i18n, "newton", "NEWTON Manifest"),
+            Self::Rsb => "RSB Archive".to_string(),
+            Self::RsbPatch => "RSB Patch".to_string(),
+            Self::Pak => "PAK Archive".to_string(),
+            Self::Dzip => "DZip Archive".to_string(),
+            Self::Smf => "SMF Container".to_string(),
+            Self::CompiledText => "Compiled Text".to_string(),
+            Self::CryptData => "Crypt-Data".to_string(),
+            Self::Rton => "RTON Editor".to_string(),
+            Self::Pam => "PAM Editor".to_string(),
+            Self::Particle => "Particle Editor".to_string(),
+            Self::Reanim => "REANIM Editor".to_string(),
+            Self::Wem => "WEM Audio".to_string(),
+            Self::Bnk => "BNK Archive".to_string(),
+            Self::Newton => "NEWTON Manifest".to_string(),
         }
     }
 }
