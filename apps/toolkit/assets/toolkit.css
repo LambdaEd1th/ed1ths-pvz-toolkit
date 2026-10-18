@@ -1101,6 +1101,12 @@ button {
   .tk-content-viewport:has(> .tk-tool-slot--active .ui-tool-page-toolbar) .ui-tool-page:not(:has(> .ui-tool-page-toolbar.is-open)) {
     padding-left: 22px;
   }
+
+  /* Reserve the full closed-handle width so the original 44px rounded tab
+   * sits in the gutter instead of overlapping the card. */
+  .tk-content-viewport:has(> .tk-tool-slot--active .ui-tool-drawer-handle) .ui-tool-page:not(:has(> .ui-tool-page-toolbar.is-open)) {
+    padding-left: 44px;
+  }
 }
 
 .tk-page-slot,

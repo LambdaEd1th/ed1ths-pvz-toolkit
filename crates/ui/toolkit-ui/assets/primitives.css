@@ -743,25 +743,26 @@
   top: var(--ui-tool-drawer-handle-top);
   left: 0;
   display: flex;
-  width: 22px;
+  width: 44px;
   min-height: 120px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 10px 3px;
-  border: 0;
-  border-radius: 0;
-  background: var(--tk-surface-container);
-  box-shadow: none;
+  gap: 7px;
+  padding: 13px 7px;
+  border: 1px solid var(--tk-outline-variant);
+  border-left: 0;
+  border-radius: 0 var(--tk-radius-lg) var(--tk-radius-lg) 0;
+  background: color-mix(in srgb, var(--tk-surface-card) 92%, transparent);
+  box-shadow: var(--tk-shadow-control);
   color: var(--tk-primary);
   cursor: ns-resize;
   pointer-events: auto;
   touch-action: none;
   user-select: none;
   will-change: top;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
+  -webkit-backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
   transition:
     left 420ms var(--tk-spring),
     opacity 240ms ease,
@@ -780,6 +781,7 @@
 
 .ui-tool-drawer-handle:hover {
   background: var(--tk-surface-container-high);
+  box-shadow: var(--tk-shadow-high);
 }
 
 .ui-tool-drawer-toolbar-icon {
@@ -812,6 +814,35 @@
 
 .ui-tool-page-toolbar.is-open .ui-tool-drawer-chevron {
   transform: rotate(180deg);
+}
+
+/* Below the desktop toolbar/drawer breakpoint the handle stays as a slim rail. */
+@media (max-width: 1200px) {
+  .ui-tool-drawer-handle {
+    width: 22px;
+    gap: 5px;
+    padding: 10px 3px;
+    border: 0;
+    border-radius: 0;
+    background: var(--tk-surface-container);
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* While the drawer is open the close tab sits beside it; a square edge keeps
+ * it from cutting the workspace card again. */
+.ui-tool-page-toolbar.is-open .ui-tool-drawer-handle {
+  width: 22px;
+  gap: 5px;
+  padding: 10px 3px;
+  border: 0;
+  border-radius: 0;
+  background: var(--tk-surface-card);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .ui-tool-drawer-handle:focus-visible,
