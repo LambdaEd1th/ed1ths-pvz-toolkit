@@ -92,13 +92,6 @@ pub(crate) fn AboutPage() -> Element {
                                     li {
                                         span { aria_hidden: "true" }
                                         p {
-                                            strong { "PopCap / Plants vs. Zombies" }
-                                            {i18n.t("about-research-body")}
-                                        }
-                                    }
-                                    li {
-                                        span { aria_hidden: "true" }
-                                        p {
                                             a {
                                                 class: "tk-about-credit-link",
                                                 href: TWINNING_URL,
