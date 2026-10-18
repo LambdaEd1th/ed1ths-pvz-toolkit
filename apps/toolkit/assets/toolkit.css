@@ -1086,12 +1086,28 @@ button {
 }
 
 @media (min-width: 1201px) {
+  /* Tool pages with the drawer handle extend to the screen/sidebar edge so the
+     handle itself is never clipped. Extra left padding keeps the workspace
+     panel's left and right gaps equal. */
   .tk-content-viewport:has(> .tk-tool-slot--active .ui-tool-page-toolbar) {
     left: 0;
   }
 
   .tk-content-viewport--sidebar:has(> .tk-tool-slot--active .ui-tool-page-toolbar) {
     left: 268px;
+  }
+
+  .tk-content-viewport:has(> .tk-tool-slot--active .ui-tool-page-toolbar) .ui-tool-page {
+    /* Some archive tools override the page inset to 2px, which clips the right
+       and bottom of the panel shadow. Keep one inset for every tool page so the
+       panel geometry and its shadow are identical. */
+    padding-top: 4px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+  }
+
+  .tk-content-viewport:has(> .tk-tool-slot--active .ui-tool-page-toolbar) .ui-tool-page:not(:has(> .ui-tool-page-toolbar.is-open)) {
+    padding-left: 22px;
   }
 }
 

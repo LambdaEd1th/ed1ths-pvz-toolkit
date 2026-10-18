@@ -53,7 +53,6 @@
   border: 1px solid var(--color-border);
   border-radius: 16px;
   background: var(--color-surface-soft);
-  box-shadow: none;
 }
 .pam-editor-canvas:not(:has(.pam-editor-canvas-heading)) { grid-template-rows: minmax(0, 1fr) auto; }
 .pam-editor-canvas-heading { justify-content: space-between; gap: 12px; height: 34px; padding: 0 12px; color: var(--color-text-subtle); font-size: 10px; border-bottom: 1px solid var(--color-border); }

@@ -208,7 +208,6 @@
   position: relative;
   overflow: auto;
   border-radius: var(--tk-radius-xl);
-  box-shadow: none;
   scrollbar-gutter: stable;
 }
 

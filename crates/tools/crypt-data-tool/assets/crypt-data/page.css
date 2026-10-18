@@ -212,7 +212,6 @@
   position: relative;
   overflow: hidden;
   border-radius: var(--tk-radius-xl);
-  box-shadow: none;
 }
 
 .crypt-empty {

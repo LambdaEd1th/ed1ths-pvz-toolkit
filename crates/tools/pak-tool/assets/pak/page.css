@@ -303,7 +303,6 @@
   border: 1px solid rgba(78, 117, 149, 0.22);
   border-radius: 24px;
   background: linear-gradient(145deg, rgba(7, 26, 38, 0.96), rgba(13, 23, 43, 0.97));
-  box-shadow: none;
 }
 
 .pak-document {

@@ -304,7 +304,6 @@
   border: 1px solid var(--wem-line);
   border-radius: 22px;
   background: color-mix(in srgb, var(--wem-panel) 91%, transparent);
-  box-shadow: var(--wem-shadow);
 }
 
 .wem-source-panel,

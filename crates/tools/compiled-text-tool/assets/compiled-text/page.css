@@ -58,7 +58,7 @@
 .compiled-new-text:hover { color: var(--tk-ink); background: var(--compiled-accent-soft); }
 .compiled-tab-add.is-disabled { opacity: .38; pointer-events: none; }
 
-.compiled-workspace-card { position: relative; overflow: hidden; border-radius: var(--tk-radius-xl); box-shadow: none; }
+.compiled-workspace-card { position: relative; overflow: hidden; border-radius: var(--tk-radius-xl); }
 .compiled-empty { display: flex; height: 100%; box-sizing: border-box; align-items: center; justify-content: center; flex-direction: column; padding: 34px; text-align: center; }
 .compiled-empty-visual { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; color: var(--tk-muted); }
 .compiled-empty-visual > span { display: grid; width: 54px; height: 54px; place-items: center; border: 1px solid var(--tk-line); border-radius: 18px; background: var(--tk-surface); }
