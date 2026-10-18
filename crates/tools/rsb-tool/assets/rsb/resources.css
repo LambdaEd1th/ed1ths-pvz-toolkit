@@ -443,3 +443,138 @@
 .rsb-page-host .rsb-address-bar {
   background: var(--rsb-surface-muted);
 }
+
+/* Persistent archive tree in file browsing, mirroring the resource tree. */
+.rsb-browser-grid {
+  grid-template-columns: 220px minmax(0, 1fr);
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  padding-left: 22px;
+}
+
+.rsb-browser-tree {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-right: 1px solid var(--rsb-border);
+  background: color-mix(in srgb, var(--rsb-surface-muted) 45%, transparent);
+}
+
+.rsb-browser-tree .rsb-tree-sheet {
+  display: grid;
+  height: 100%;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0;
+  padding: 0;
+}
+
+.rsb-browser-tree .rsb-panel-header {
+  padding: 12px;
+  border: 0;
+  border-bottom: 1px solid var(--rsb-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rsb-browser-tree .rsb-panel-header-title h2 {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.rsb-browser-tree .rsb-panel-header p {
+  font-size: 10px;
+}
+
+.rsb-browser-tree .rsb-panel-header-icon {
+  color: var(--rsb-accent-strong);
+}
+
+.rsb-browser-tree .rsb-panel-header-icon .rsb-glyph {
+  width: 16px;
+  height: 16px;
+}
+
+.rsb-browser-tree .rsb-tree-list {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 6px;
+}
+
+.rsb-browser-tree .rsb-tree-item {
+  min-height: 32px;
+  border-radius: var(--tk-radius-sm);
+}
+
+.rsb-browser-tree .rsb-tree-item span {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.rsb-browser-tree .rsb-tree-item small {
+  font-size: 10px;
+}
+
+.rsb-browser-tree .rsb-tree-summary {
+  margin: 10px 4px;
+  padding: 10px 6px;
+  border-radius: var(--tk-radius-sm);
+}
+
+.rsb-browser-tree .rsb-tree-summary span {
+  font-size: 10px;
+}
+
+.rsb-browser-table {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.rsb-browser-table .rsb-table-pane {
+  height: 100%;
+}
+
+@media (min-width: 1024px) {
+  .rsb-browser-grid {
+    padding-left: 22px;
+  }
+
+  .rsb-table-head,
+  .rsb-table-row {
+    padding-left: 14px;
+  }
+}
+
+@container rsb-workspace (max-width: 700px) {
+  .rsb-browser-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rsb-browser-tree {
+    display: none;
+  }
+}
+
+.rsb-browser-tree .rsb-panel-header {
+  display: flex;
+  height: 38px;
+  min-height: 38px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  padding: 0 12px;
+}
+
+.rsb-browser-tree .rsb-panel-header p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rsb-browser-tree .rsb-tree-summary {
+  display: none;
+}

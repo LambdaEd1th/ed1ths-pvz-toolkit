@@ -3535,7 +3535,6 @@ pub fn RsbArchivePage(
     let mut query = use_signal(String::new);
     let mut status = use_signal(|| AppStatus::new("打开或拖入一个 RSB 归档", StatusTone::Neutral));
     let mut dragging = use_signal(|| false);
-    let mut tree_visible = use_signal(|| false);
     let mut inspector_visible = use_signal(|| false);
     let mut resources_visible = use_signal(|| false);
     let mut ptx_preview = use_signal(|| None::<PtxPreviewState>);
@@ -3784,13 +3783,11 @@ pub fn RsbArchivePage(
                     },
                     can_export_png,
                     can_go_up: !matches!(location_snapshot, BrowserLocation::Archive),
-                    tree_visible: tree_visible(),
                     inspector_visible: inspector_visible(),
                     resources_visible: resources_visible(),
                     on_toggle_resources: move |_| {
                         resources_visible.toggle();
                         selection.set(None);
-                        tree_visible.set(false);
                         inspector_visible.set(false);
                         context_menu.set(None);
                     },
@@ -3951,19 +3948,9 @@ pub fn RsbArchivePage(
                             edit_dialog.set(Some(EditDialog::Properties(draft)));
                         }
                     },
-                    on_toggle_tree: move |_| {
-                        let open = !tree_visible();
-                        tree_visible.set(open);
-                        if open {
-                            inspector_visible.set(false);
-                        }
-                    },
                     on_toggle_inspector: move |_| {
                         let open = !inspector_visible();
                         inspector_visible.set(open);
-                        if open {
-                            tree_visible.set(false);
-                        }
                     },
                 } },
                 }
@@ -4063,7 +4050,6 @@ pub fn RsbArchivePage(
                                 button { class: "rsb-tool-button rsb-resource-entry", onclick: move |_| {
                                     resources_visible.set(true);
                                     selection.set(None);
-                                    tree_visible.set(false);
                                     inspector_visible.set(false);
                                     context_menu.set(None);
                                 }, "资源管理器" }
@@ -4091,6 +4077,34 @@ pub fn RsbArchivePage(
                         }
 
                         div { class: "rsb-browser-grid",
+                            aside { class: "rsb-browser-tree", aria_label: "归档目录",
+                                ArchiveTree {
+                                    archive: document.clone(),
+                                    edits: packet_edits.read().clone(),
+                                    removed_packets: removed_packets.read().clone(),
+                                    virtual_directories: virtual_directories_snapshot.clone(),
+                                    packet: packet_snapshot.clone(),
+                                    location: location_snapshot.clone(),
+                                    on_archive: move |_| {
+                                        location.set(BrowserLocation::Archive);
+                                        selection.set(None);
+                                        query.set(String::new());
+                                        navigation.request_scroll(0.0);
+                                    },
+                                    on_packet: move |index| enter_packet(
+                                        index,
+                                        archive,
+                                        packet,
+                                        packet_edits,
+                                        navigation,
+                                        status,
+                                    ),
+                                    on_directory: move |directory| {
+                                        enter_directory(directory, navigation);
+                                    },
+                                }
+                            }
+                            div { class: "rsb-browser-table",
                             ArchiveTable {
                                 archive: document.clone(),
                                 edits: packet_edits.read().clone(),
@@ -4168,6 +4182,7 @@ pub fn RsbArchivePage(
                                     on_open_wem,
                                 ),
                             }
+                            }
                         }
 
                         StatusBar {
@@ -4201,45 +4216,6 @@ pub fn RsbArchivePage(
                 }
 
                 if let Some(document) = archive_snapshot.as_ref() {
-                    ContextSheet {
-                        open: tree_visible(),
-                        side: "left",
-                        title: "归档目录",
-                        close_label: "关闭归档目录",
-                        class: "rsb-context-sheet-layer",
-                        on_close: move |_| tree_visible.set(false),
-                        ArchiveTree {
-                            archive: document.clone(),
-                            edits: packet_edits.read().clone(),
-                            removed_packets: removed_packets.read().clone(),
-                            virtual_directories: virtual_directories_snapshot.clone(),
-                            packet: packet_snapshot.clone(),
-                            location: location_snapshot.clone(),
-                            on_archive: move |_| {
-                                location.set(BrowserLocation::Archive);
-                                selection.set(None);
-                                query.set(String::new());
-                                navigation.request_scroll(0.0);
-                                tree_visible.set(false);
-                            },
-                            on_packet: move |index| {
-                                enter_packet(
-                                    index,
-                                    archive,
-                                    packet,
-                                    packet_edits,
-                                    navigation,
-                                    status,
-                                );
-                                tree_visible.set(false);
-                            },
-                            on_directory: move |directory| {
-                                enter_directory(directory, navigation);
-                                tree_visible.set(false);
-                            },
-                        }
-                    }
-
                     ContextSheet {
                         open: inspector_visible(),
                         title: "详情",
@@ -4803,7 +4779,6 @@ fn ArchiveToolbar(
     can_delete: bool,
     can_export_png: bool,
     can_go_up: bool,
-    tree_visible: bool,
     inspector_visible: bool,
     resources_visible: bool,
     on_toggle_resources: EventHandler<()>,
@@ -4822,7 +4797,6 @@ fn ArchiveToolbar(
     on_rename: EventHandler<()>,
     on_delete: EventHandler<()>,
     on_properties: EventHandler<()>,
-    on_toggle_tree: EventHandler<()>,
     on_toggle_inspector: EventHandler<()>,
 ) -> Element {
     rsx! {
@@ -4834,16 +4808,6 @@ fn ArchiveToolbar(
                 aria_pressed: resources_visible,
                 onclick: move |_| on_toggle_resources.call(()),
                 "资源管理器"
-            }
-            button {
-                r#type: "button",
-                class: if tree_visible { "rsb-tool-button rsb-tool-button--icon is-active" } else { "rsb-tool-button rsb-tool-button--icon" },
-                disabled: !has_archive,
-                title: "归档目录",
-                aria_label: "显示或隐藏归档目录",
-                aria_pressed: tree_visible,
-                onclick: move |_| on_toggle_tree.call(()),
-                Glyph { name: "tree" }
             }
             div { class: "rsb-toolbar-group",
                 OpenArchiveButton {
