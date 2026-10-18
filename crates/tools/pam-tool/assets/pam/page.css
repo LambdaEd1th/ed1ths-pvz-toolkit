@@ -834,6 +834,7 @@ html.native-wgpu-host .pam-stage {
   display: inline-flex;
   min-height: 32px;
   align-items: center;
+  justify-content: space-between;
   gap: 7px;
   padding: 0 10px;
   border: 1px solid var(--color-border);
@@ -844,7 +845,9 @@ html.native-wgpu-host .pam-stage {
 }
 
 .pam-select-value {
-  max-width: 140px;
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

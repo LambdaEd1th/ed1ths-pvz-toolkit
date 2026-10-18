@@ -1154,7 +1154,10 @@
 }
 
 .ui-select-value {
+  min-width: 0;
+  flex: 1 1 auto;
   overflow: hidden;
+  text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
