@@ -10,6 +10,7 @@ use pak_archive::{
 };
 use toolkit_ui::{
     DropIndicator, InlineNotice, ToolPage, ToolPageToolbar, WorkspaceCard, push_application_log,
+    use_modal_focus,
 };
 
 use crate::{PakNewtonOpenRequest, PakRtonOpenRequest, PakWemOpenRequest, platform};
@@ -876,10 +877,23 @@ fn EditDialogView(
         EditDialog::ArchiveProperties { .. } => ("归档属性", "应用", false),
         EditDialog::CloseDirty { .. } => ("尚未保存", "放弃更改", true),
     };
+    use_modal_focus("pak-edit-dialog", true, "#pak-edit-dialog", None, None);
+    let close_escape = on_cancel;
     rsx! {
-        div { class: "pak-dialog-layer", role: "presentation",
+        div {
+            id: "pak-edit-dialog",
+            class: "pak-dialog-layer",
+            role: "presentation",
+            onkeydown: move |event| {
+                if event.key() == Key::Escape && !(signals.busy)() {
+                    event.prevent_default();
+                    event.stop_propagation();
+                    close_escape.call(());
+                }
+            },
             button { class: "pak-dialog-backdrop", aria_label: "关闭", onclick: move |_| on_cancel.call(()) }
             section { class: "pak-dialog", role: "dialog", aria_modal: "true", aria_label: "{title}",
+                "data-modal-content": "true",
                 header { div { span { class: "pak-dialog-kicker", "PAK ARCHIVE" } h2 { "{title}" } } button { aria_label: "关闭", onclick: move |_| on_cancel.call(()), Glyph { name: "close" } } }
                 div { class: "pak-dialog-body",
                     match dialog.clone() {

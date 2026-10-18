@@ -15,7 +15,7 @@ const { chromium, webkit } = require('playwright');
   page.on('pageerror', error => errors.push(error.message));
   try {
     await page.goto(process.env.UI_TEST_URL || 'http://127.0.0.1:8097/');
-    await page.getByRole('button', { name: /RTON Editor/ }).first().click({ timeout: 60000 });
+    await page.locator('.tk-sidebar .tk-nav-item[data-tool="rton"]').first().click({ timeout: 60000 });
     const rton = page.locator('.tk-tool-slot--active .rton-page-host');
     const input = rton.locator('#rton-virtual-text-input-sink');
     const read = () => rton.evaluate(root => {

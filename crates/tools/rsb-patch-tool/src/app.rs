@@ -7,6 +7,7 @@ use rsb_patch_worker::{
 };
 use toolkit_ui::{
     DropIndicator, InlineNotice, ToolPage, ToolPageToolbar, WorkspaceCard, push_application_log,
+    use_modal_focus,
 };
 
 use crate::{platform, processing};
@@ -600,10 +601,28 @@ fn WorkflowSheet(
     } else {
         "应用并导出"
     };
+    use_modal_focus(
+        "rsb-patch-workflow",
+        true,
+        "#rsb-patch-workflow",
+        None,
+        None,
+    );
+    let close_escape = on_close;
     rsx! {
-        div { class: "rsp-dialog-layer",
+        div {
+            id: "rsb-patch-workflow",
+            class: "rsp-dialog-layer",
+            onkeydown: move |event| {
+                if event.key() == Key::Escape && !busy {
+                    event.prevent_default();
+                    event.stop_propagation();
+                    close_escape.call(());
+                }
+            },
             button { class: "rsp-dialog-backdrop", aria_label: "关闭", onclick: move |_| on_close.call(()) }
             section { class: "rsp-dialog", role: "dialog", aria_modal: "true", aria_label: "{title}",
+                "data-modal-content": "true",
                 header {
                     div {
                         span { "RSBP WORKFLOW" }

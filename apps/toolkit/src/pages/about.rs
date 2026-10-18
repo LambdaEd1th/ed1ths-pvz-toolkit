@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::i18n::use_i18n;
+use crate::tool_registry::localized_label;
 
 const REPOSITORY_URL: &str = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit";
 const TWINNING_URL: &str = "https://github.com/twinstar6980/Twinning";
@@ -161,7 +162,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "RSB" }
                                     div {
-                                        h3 { "RSB Archive" }
+                                        h3 { {localized_label(i18n, "rsb", "RSB Archive")} }
                                         code { "rsb-archive" }
                                     }
                                 }
@@ -171,7 +172,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "⇄" }
                                     div {
-                                        h3 { "RSB Patch" }
+                                        h3 { {localized_label(i18n, "rsb-patch", "RSB Patch")} }
                                         code { "rsb-patch" }
                                     }
                                 }
@@ -181,7 +182,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "PAK" }
                                     div {
-                                        h3 { "PAK Archive" }
+                                        h3 { {localized_label(i18n, "pak", "PAK Archive")} }
                                         code { "pak-archive" }
                                     }
                                 }
@@ -191,7 +192,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "◇" }
                                     div {
-                                        h3 { "DZip Archive" }
+                                        h3 { {localized_label(i18n, "dzip", "DZip Archive")} }
                                         code { "dzip-archive" }
                                     }
                                 }
@@ -201,7 +202,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "◇" }
                                     div {
-                                        h3 { "SMF Container" }
+                                        h3 { {localized_label(i18n, "smf", "SMF Container")} }
                                         code { "smf-container" }
                                     }
                                 }
@@ -211,7 +212,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "≋" }
                                     div {
-                                        h3 { "Compiled Text" }
+                                        h3 { {localized_label(i18n, "compiled-text", "Compiled Text")} }
                                         code { "compiled-text" }
                                     }
                                 }
@@ -221,7 +222,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "◈" }
                                     div {
-                                        h3 { "Crypt-Data" }
+                                        h3 { {localized_label(i18n, "crypt-data", "Crypt-Data")} }
                                         code { "crypt-data" }
                                     }
                                 }
@@ -231,7 +232,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "RTON" }
                                     div {
-                                        h3 { "RTON Editor" }
+                                        h3 { {localized_label(i18n, "rton", "RTON Editor")} }
                                         code { "serde-rton" }
                                     }
                                 }
@@ -241,7 +242,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "PAM" }
                                     div {
-                                        h3 { "PAM Editor" }
+                                        h3 { {localized_label(i18n, "pam", "PAM Editor")} }
                                         code { "pam-codec" }
                                     }
                                 }
@@ -251,7 +252,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "✦" }
                                     div {
-                                        h3 { "Particle Editor" }
+                                        h3 { {localized_label(i18n, "particle", "Particle Editor")} }
                                         code { "particle-codec" }
                                     }
                                 }
@@ -261,7 +262,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "◫" }
                                     div {
-                                        h3 { "REANIM Editor" }
+                                        h3 { {localized_label(i18n, "reanim", "REANIM Editor")} }
                                         code { "reanim-codec" }
                                     }
                                 }
@@ -271,7 +272,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "WEM" }
                                     div {
-                                        h3 { "WEM Audio" }
+                                        h3 { {localized_label(i18n, "wem", "WEM Audio")} }
                                         code { "wem-audio" }
                                     }
                                 }
@@ -281,7 +282,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "BNK" }
                                     div {
-                                        h3 { "BNK Archive" }
+                                        h3 { {localized_label(i18n, "bnk", "BNK Archive")} }
                                         code { "bnk-archive" }
                                     }
                                 }
@@ -291,7 +292,7 @@ pub(crate) fn AboutPage() -> Element {
                                 div { class: "tk-about-format-heading",
                                     span { aria_hidden: "true", "N" }
                                     div {
-                                        h3 { "NEWTON Manifest" }
+                                        h3 { {localized_label(i18n, "newton", "NEWTON Manifest")} }
                                         code { "newton-manifest" }
                                     }
                                 }

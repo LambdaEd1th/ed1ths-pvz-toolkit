@@ -58,15 +58,21 @@ async function ensureSidebar(page, open) {
   }
 }
 
-async function openRtonDrawer(page) {
+async function openToolDrawer(page, slug) {
   await ensureSidebar(page, true);
-  await page.locator('.tk-sidebar .tk-nav-item').filter({ hasText: 'RTON Editor' }).click();
+  await page.locator(`.tk-sidebar .tk-nav-item[data-tool="${slug}"]`).click();
   await sleep(700);
   const handle = page.locator('.tk-tool-slot--active .ui-tool-drawer-handle');
-  await handle.click();
-  await page.locator('.tk-tool-slot--active .ui-tool-page-toolbar.is-open').waitFor();
-  await sleep(450);
+  if (await handle.isVisible()) {
+    await handle.click();
+    await page.locator('.tk-tool-slot--active .ui-tool-page-toolbar.is-open').waitFor();
+    await sleep(450);
+  }
   return handle;
+}
+
+async function openRtonDrawer(page) {
+  return openToolDrawer(page, 'rton');
 }
 
 async function run(engineName, engine) {
@@ -238,14 +244,77 @@ async function run(engineName, engine) {
   await sleep(450);
   assert.equal(await page.evaluate(() => document.documentElement.lang), 'fr-FR', 'language menu should switch the locale');
   assert.match(await handle.getAttribute('aria-label'), /barre d’outils/, 'toolbar chrome should follow the locale');
+  assert.equal(
+    await page.locator('.tk-sidebar .tk-nav-item').filter({ hasText: 'Archive RSB' }).count(),
+    1,
+    'sidebar tool names should follow the locale',
+  );
+  assert.equal(
+    (await page.locator('.tk-breadcrumb strong').innerText()).trim(),
+    'Éditeur RTON',
+    'breadcrumb tool name should follow the locale',
+  );
+  assert.ok(
+    (await page.locator('.tk-workspace-card h3').evaluateAll(nodes => nodes.map(node => node.textContent))).includes('Archive RSB'),
+    'home tool cards should follow the locale',
+  );
+  assert.ok(
+    (await page.locator('.tk-about-scroll h3').evaluateAll(nodes => nodes.map(node => node.textContent))).includes('Archive RSB'),
+    'about tool headings should follow the locale',
+  );
   await page.locator('.tk-settings-language-control').click();
   await sleep(200);
   await page.locator('#tk-settings-language-menu button').filter({ hasText: 'English' }).click();
   await sleep(350);
   assert.equal(await page.evaluate(() => document.documentElement.lang), 'en-US', 'language menu should switch back');
+  assert.equal(
+    await page.locator('.tk-sidebar .tk-nav-item').filter({ hasText: 'RSB Archive' }).count(),
+    1,
+    'sidebar tool names should switch back to English',
+  );
   await closeSettings(page);
 
   step('toolbar labels passed');
+
+  // --- Per-tool dialogs use the shared modal focus layer ---
+  await openToolDrawer(page, 'newton');
+  await page.locator('.tk-tool-slot--active button[aria-label="新建清单"]').click();
+  await sleep(400);
+  await page.locator('.tk-tool-slot--active .newton-tab-close').first().click();
+  await page.locator('.newton-dialog').waitFor();
+  await assertFocusIn(page, '.newton-dialog', 'newton dialog initial focus');
+  assert.equal(await page.evaluate(() => document.querySelector('.tk-appbar').inert), true, 'newton dialog should make the shell inert');
+  for (let index = 0; index < 5; index += 1) {
+    await page.keyboard.press('Tab');
+    await assertFocusIn(page, '.newton-dialog', `newton dialog tab ${index + 1}`);
+  }
+  await page.keyboard.press('Escape');
+  await page.locator('.newton-dialog').waitFor({ state: 'detached' });
+  await sleep(300);
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.classList.contains('newton-tab-close')),
+    true,
+    'closing the newton dialog should restore focus to the tab close button',
+  );
+
+  await openToolDrawer(page, 'rsb-patch');
+  const patchCreate = page.locator('.tk-tool-slot--active button[aria-label="创建补丁"]');
+  await patchCreate.click();
+  await page.locator('.rsp-dialog').waitFor();
+  await assertFocusIn(page, '.rsp-dialog', 'rsb patch dialog initial focus');
+  for (let index = 0; index < 5; index += 1) {
+    await page.keyboard.press('Tab');
+    await assertFocusIn(page, '.rsp-dialog', `rsb patch dialog tab ${index + 1}`);
+  }
+  await page.keyboard.press('Escape');
+  await page.locator('.rsp-dialog').waitFor({ state: 'detached' });
+  await sleep(300);
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.getAttribute('aria-label')),
+    '创建补丁',
+    'closing the rsb patch dialog should restore focus to its trigger',
+  );
+  step('tool dialogs passed');
 
   // --- Mobile: sidebar as a modal, drawer focus handling ---
   const mobile = await context.newPage();

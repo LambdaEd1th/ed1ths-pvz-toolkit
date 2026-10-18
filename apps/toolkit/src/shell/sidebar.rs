@@ -62,7 +62,7 @@ pub(crate) fn Sidebar(route: Signal<AppRoute>, open: Signal<bool>, compact: bool
                         NavItem {
                             active: active_route == tool.route,
                             glyph: tool.nav_glyph,
-                            label: tool.label.to_string(),
+                            label: tool.label(i18n),
                             kind: Some(tool.slug),
                             experimental: tool.experimental,
                             onclick: move |_| navigate(route, open, compact, tool.route),
@@ -105,6 +105,7 @@ fn NavItem(
     rsx! {
         button {
             class: if active { "tk-nav-item tk-nav-item--active" } else { "tk-nav-item" },
+            "data-tool": kind.unwrap_or_default(),
             aria_current: if active { "page" } else { "false" },
             onclick: move |event| onclick.call(event),
             span { class: "{glyph_class}", aria_hidden: "true", "{glyph}" }

@@ -8,6 +8,7 @@ use newton_manifest::{
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use toolkit_ui::{
     DropIndicator, InlineNotice, ToolPage, ToolPageToolbar, WorkspaceCard, push_application_log,
+    use_modal_focus,
 };
 
 const NEWTON_PAGE_CSS: Asset = asset!("/assets/newton/page.css");
@@ -1714,14 +1715,32 @@ fn PanelHeading(eyebrow: &'static str, title: String, action: Element) -> Elemen
 
 #[component]
 fn CloseDialog(on_cancel: EventHandler<()>, on_discard: EventHandler<()>) -> Element {
+    use_modal_focus(
+        "newton-close-dialog",
+        true,
+        "#newton-close-dialog",
+        None,
+        None,
+    );
+    let close_escape = on_cancel;
     rsx! {
-        div { class: "newton-dialog-layer",
+        div {
+            id: "newton-close-dialog",
+            class: "newton-dialog-layer",
+            onkeydown: move |event| {
+                if event.key() == Key::Escape {
+                    event.prevent_default();
+                    event.stop_propagation();
+                    close_escape.call(());
+                }
+            },
             button {
                 class: "newton-dialog-backdrop",
                 aria_label: "取消关闭",
                 onclick: move |_| on_cancel.call(()),
             }
             section { class: "newton-dialog", role: "dialog", aria_modal: "true",
+                "data-modal-content": "true",
                 span { class: "newton-dialog-icon", Glyph { name: "warning" } }
                 h2 { "关闭已修改的清单？" }
                 p { "尚未导出的修改将会丢失。" }

@@ -136,7 +136,7 @@ function packetBytes(file, name) {
       FileReader.prototype.readAsArrayBuffer = function (blob) { record(blob); return read.call(this, blob); };
     });
     await page.goto(process.env.UI_TEST_URL || 'http://127.0.0.1:8097/');
-    await page.getByRole('button', { name: /RSB Archive/ }).first().click({ timeout: 60000 });
+    await page.locator('.tk-sidebar .tk-nav-item[data-tool="rsb"]').first().click({ timeout: 60000 });
     await dropArchive(page, first, 'first.rsb');
     await page.getByRole('tab', { name: 'first.rsb', exact: true }).waitFor();
     await page.getByRole('button', { name: '资源管理器', exact: true }).click();

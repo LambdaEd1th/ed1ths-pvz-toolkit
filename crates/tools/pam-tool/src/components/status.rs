@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use toolkit_ui::InlineNotice;
+use toolkit_ui::{InlineNotice, use_modal_focus};
 
 use crate::i18n::tr;
 use crate::state::{AppContext, Tone};
@@ -48,6 +48,14 @@ pub fn InlineStatus() -> Element {
 pub fn ExportOverlay() -> Element {
     let mut context = use_context::<AppContext>();
     let locale = context.preferences.read().locale;
+    let export_active = context.export.read().is_some();
+    use_modal_focus(
+        "pam-export-progress",
+        export_active,
+        "#pam-export-progress",
+        None,
+        None,
+    );
     let Some(progress) = context.export.read().clone() else {
         return rsx! {};
     };
@@ -58,8 +66,9 @@ pub fn ExportOverlay() -> Element {
         "pam-progress-fill"
     };
     rsx! {
-        div { class: "pam-modal-backdrop",
+        div { id: "pam-export-progress", class: "pam-modal-backdrop",
             div { class: "pam-export-dialog", role: "dialog", aria_modal: "true", aria_busy: "true",
+                "data-modal-content": "true",
                 div { class: "pam-export-title", "{progress.title}" }
                 div { class: "pam-export-detail", "{progress.detail}" }
                 div { class: "pam-progress-track",

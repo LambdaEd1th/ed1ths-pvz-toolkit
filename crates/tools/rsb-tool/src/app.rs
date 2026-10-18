@@ -36,6 +36,7 @@ use std::io::Write;
 use std::sync::Arc;
 use toolkit_ui::{
     ContextSheet, DropIndicator, ToolPage, ToolPageToolbar, WorkspaceCard, push_application_log,
+    use_modal_focus,
 };
 
 const RSB_PAGE_CSS: Asset = asset!("/assets/rsb/page.css");
@@ -6582,8 +6583,25 @@ fn EditArchiveDialog(
         EditDialog::Delete { .. } => ("删除项目", "删除会在保存 RSB 时生效", "删除", true),
         EditDialog::Properties(_) => ("属性", "修改会在保存 RSB 时统一写入", "应用", false),
     };
+    use_modal_focus(
+        "rsb-edit-archive-dialog",
+        true,
+        "#rsb-edit-archive-dialog",
+        None,
+        None,
+    );
+    let close_escape = on_cancel;
     rsx! {
-        div { class: "rsb-dialog-layer",
+        div {
+            id: "rsb-edit-archive-dialog",
+            class: "rsb-dialog-layer",
+            onkeydown: move |event| {
+                if event.key() == Key::Escape {
+                    event.prevent_default();
+                    event.stop_propagation();
+                    close_escape.call(());
+                }
+            },
             button {
                 r#type: "button",
                 class: "rsb-dialog-backdrop",
@@ -6592,6 +6610,7 @@ fn EditArchiveDialog(
             }
             section {
                 class: "rsb-dialog",
+                "data-modal-content": "true",
                 role: "dialog",
                 aria_modal: "true",
                 aria_label: title,
@@ -7068,8 +7087,25 @@ fn UnsavedTabDialog(
     on_cancel: EventHandler<()>,
     on_discard: EventHandler<()>,
 ) -> Element {
+    use_modal_focus(
+        "rsb-unsaved-tab-dialog",
+        true,
+        "#rsb-unsaved-tab-dialog",
+        None,
+        None,
+    );
+    let close_escape = on_cancel;
     rsx! {
-        div { class: "rsb-dialog-layer",
+        div {
+            id: "rsb-unsaved-tab-dialog",
+            class: "rsb-dialog-layer",
+            onkeydown: move |event| {
+                if event.key() == Key::Escape {
+                    event.prevent_default();
+                    event.stop_propagation();
+                    close_escape.call(());
+                }
+            },
             button {
                 r#type: "button",
                 class: "rsb-dialog-backdrop",
@@ -7078,6 +7114,7 @@ fn UnsavedTabDialog(
             }
             section {
                 class: "rsb-dialog rsb-dialog--compact",
+                "data-modal-content": "true",
                 role: "alertdialog",
                 aria_modal: "true",
                 aria_label: "未保存修改",
@@ -7239,6 +7276,8 @@ fn PreviewModal(
     on_context_menu: EventHandler<(PtxPreview, f64, f64)>,
     on_export: EventHandler<usize>,
 ) -> Element {
+    use_modal_focus("rsb-preview-modal", true, "#rsb-preview-modal", None, None);
+    let close_escape = on_close;
     let preview_url = preview.asset.url().to_string();
     let context_preview = preview.clone();
     let export_index = preview.file_index;
@@ -7283,7 +7322,16 @@ fn PreviewModal(
     );
 
     rsx! {
-        div { class: "rsb-preview-modal-layer",
+        div {
+            id: "rsb-preview-modal",
+            class: "rsb-preview-modal-layer",
+            onkeydown: move |event| {
+                if event.key() == Key::Escape {
+                    event.prevent_default();
+                    event.stop_propagation();
+                    close_escape.call(());
+                }
+            },
             button {
                 r#type: "button",
                 class: "rsb-preview-modal-backdrop",
@@ -7292,6 +7340,7 @@ fn PreviewModal(
             }
             section {
                 class: "rsb-preview-modal",
+                "data-modal-content": "true",
                 role: "dialog",
                 aria_modal: "true",
                 aria_label: "{preview.name} 纹理预览",
@@ -7512,6 +7561,15 @@ fn PreviewLoadingModal(
     on_context_menu: EventHandler<(PtxPreview, f64, f64)>,
     on_export: EventHandler<usize>,
 ) -> Element {
+    let loading = preview.is_none();
+    use_modal_focus(
+        "rsb-preview-loading-modal",
+        loading,
+        "#rsb-preview-loading-modal",
+        None,
+        None,
+    );
+    let close_escape = on_close;
     if let Some(preview) = preview {
         return rsx! {
             PreviewModal {
@@ -7524,7 +7582,16 @@ fn PreviewLoadingModal(
         };
     }
     rsx! {
-        div { class: "rsb-preview-modal-layer",
+        div {
+            id: "rsb-preview-loading-modal",
+            class: "rsb-preview-modal-layer",
+            onkeydown: move |event| {
+                if event.key() == Key::Escape {
+                    event.prevent_default();
+                    event.stop_propagation();
+                    close_escape.call(());
+                }
+            },
             button {
                 r#type: "button",
                 class: "rsb-preview-modal-backdrop",
@@ -7533,6 +7600,7 @@ fn PreviewLoadingModal(
             }
             section {
                 class: "rsb-preview-modal rsb-preview-modal--loading",
+                "data-modal-content": "true",
                 role: "dialog",
                 aria_modal: "true",
                 aria_label: "正在准备纹理预览",
@@ -7560,8 +7628,25 @@ fn PreviewLoadingModal(
 
 #[component]
 fn PreviewErrorModal(message: String, on_close: EventHandler<()>) -> Element {
+    use_modal_focus(
+        "rsb-preview-error-modal",
+        true,
+        "#rsb-preview-error-modal",
+        None,
+        None,
+    );
+    let close_escape = on_close;
     rsx! {
-        div { class: "rsb-preview-modal-layer",
+        div {
+            id: "rsb-preview-error-modal",
+            class: "rsb-preview-modal-layer",
+            onkeydown: move |event| {
+                if event.key() == Key::Escape {
+                    event.prevent_default();
+                    event.stop_propagation();
+                    close_escape.call(());
+                }
+            },
             button {
                 r#type: "button",
                 class: "rsb-preview-modal-backdrop",
@@ -7570,6 +7655,7 @@ fn PreviewErrorModal(message: String, on_close: EventHandler<()>) -> Element {
             }
             section {
                 class: "rsb-preview-modal rsb-preview-modal--error",
+                "data-modal-content": "true",
                 role: "alertdialog",
                 aria_modal: "true",
                 aria_label: "纹理预览失败",

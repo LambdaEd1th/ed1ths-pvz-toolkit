@@ -1,7 +1,7 @@
 // Shared focus containment for Toolkit overlays. Escape handling stays in
 // Dioxus so each layer can decide whether it closes or defers to a menu.
 (() => {
-  const VERSION = 1;
+  const VERSION = 2;
   const previous = window.toolkitModalFocus;
   if (previous?.version === VERSION) {
     previous.refresh?.();
@@ -58,6 +58,11 @@
   const topEntry = () => entries[entries.length - 1] || null;
 
   const focusEntry = entry => {
+    const preferred = entry.content.querySelector("[autofocus]");
+    if (preferred && isVisible(preferred)) {
+      preferred.focus({ preventScroll: true });
+      return;
+    }
     const focusable = focusableElements(entry.content);
     if (focusable.length) {
       focusable[0].focus({ preventScroll: true });
@@ -138,7 +143,9 @@
       }
     }
 
-    const content = layer.querySelector("[data-modal-content]") || layer;
+    const content = layer.matches("[data-modal-content]")
+      ? layer
+      : layer.querySelector("[data-modal-content]") || layer;
     const focused = document.activeElement;
     const entry = {
       id: options.id,

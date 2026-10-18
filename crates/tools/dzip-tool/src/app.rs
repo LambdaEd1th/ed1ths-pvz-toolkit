@@ -6,6 +6,7 @@ use dioxus_html::{FileData, HasFileData};
 use dzip::{ArchivePathKey, Compression, RangeSettings};
 use toolkit_ui::{
     DropIndicator, InlineNotice, ToolPage, ToolPageToolbar, WorkspaceCard, push_application_log,
+    use_modal_focus,
 };
 
 use crate::model::{ArchiveSummary, BuildRequest, DraftEntry, MaterializeRequest, NamedBytes};
@@ -961,10 +962,23 @@ fn EditDialogView(
         EditDialog::ArchiveProperties { .. } => ("归档设置", "应用", false),
         EditDialog::CloseDirty { .. } => ("尚未保存", "放弃更改", true),
     };
+    use_modal_focus("dzip-edit-dialog", true, "#dzip-edit-dialog", None, None);
+    let close_escape = on_cancel;
     rsx! {
-        div { class: "dzip-dialog-layer", role: "presentation",
+        div {
+            id: "dzip-edit-dialog",
+            class: "dzip-dialog-layer",
+            role: "presentation",
+            onkeydown: move |event| {
+                if event.key() == Key::Escape && !busy {
+                    event.prevent_default();
+                    event.stop_propagation();
+                    close_escape.call(());
+                }
+            },
             button { class: "dzip-dialog-backdrop", aria_label: "关闭", onclick: move |_| on_cancel.call(()) }
             section { class: "dzip-dialog", role: "dialog", aria_modal: "true", aria_label: "{title}",
+                "data-modal-content": "true",
                 header { div { span { class: "dzip-dialog-kicker", "DZIP ARCHIVE" } h2 { "{title}" } } button { aria_label: "关闭", onclick: move |_| on_cancel.call(()), Glyph { name: "close" } } }
                 div { class: "dzip-dialog-body",
                     match dialog.clone() {

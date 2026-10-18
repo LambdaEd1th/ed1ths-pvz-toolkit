@@ -5,7 +5,7 @@ use crate::resource_actions::{self, ResourceReader, ResourceZip};
 use crate::resources::ResourceCatalog;
 use dioxus::prelude::*;
 use std::sync::Arc;
-use toolkit_ui::{ToolKind, ToolOpenHandler};
+use toolkit_ui::{ToolKind, ToolOpenHandler, use_modal_focus};
 
 #[derive(Clone)]
 struct ImagePreview {
@@ -34,6 +34,13 @@ pub fn ResourceOperations(
     let mut zoom = use_signal(|| "fit".to_string());
     let mut open_as = use_signal(String::new);
     let mut warnings = use_signal(Vec::<String>::new);
+    use_modal_focus(
+        "rsb-image-preview",
+        preview().is_some(),
+        "#rsb-image-preview",
+        None,
+        None,
+    );
     use_effect(use_reactive(
         &(archive.clone(), edits.clone(), removed.clone()),
         move |_| {
@@ -246,10 +253,21 @@ pub fn ResourceOperations(
             }
         }
         if let Some(image) = preview() {
-            div { class: "rsb-res-image-dialog", role: "dialog", aria_modal: true, aria_label: "资源图片预览",
+            div {
+                id: "rsb-image-preview",
+                class: "rsb-res-image-dialog",
+                role: "dialog",
+                aria_modal: true,
+                aria_label: "资源图片预览",
                 tabindex: -1,
-                onmounted: move |event| async move { let _ = event.set_focus(true).await; },
-                onkeydown: move |event| { if event.key() == Key::Escape { preview.set(None); } },
+                "data-modal-content": "true",
+                onkeydown: move |event| {
+                    if event.key() == Key::Escape {
+                        event.prevent_default();
+                        event.stop_propagation();
+                        preview.set(None);
+                    }
+                },
                 header {
                     div { strong { "{image.name}" } small { "{image.width} × {image.height} · PNG · 保留透明度" } }
                     select { aria_label: "预览缩放", value: zoom(), onchange: move |event| zoom.set(event.value()),

@@ -3,16 +3,38 @@ use crate::i18n::tr;
 use crate::state::{AppContext, Status, Tone};
 use dioxus::prelude::*;
 use pam_editor_core::{FrameInfo, SpriteKey};
+use toolkit_ui::use_modal_focus;
 
 #[component]
 pub fn CloseConfirmation() -> Element {
     let mut context = use_context::<AppContext>();
     let locale = context.preferences.read().locale;
+    let pending = context.pending_close.read().is_some();
+    use_modal_focus(
+        "pam-close-confirmation",
+        pending,
+        "#pam-close-confirmation",
+        None,
+        None,
+    );
+    let mut pending_close = context.pending_close;
     let Some(target) = *context.pending_close.read() else {
         return rsx! {};
     };
-    rsx! { div { class: "pam-editor-confirm", role: "alertdialog", aria_modal: "true", aria_label: tr(locale, "discard_question"),
-        div { class: "pam-editor-confirm-card",
+    rsx! { div {
+        id: "pam-close-confirmation",
+        class: "pam-editor-confirm",
+        role: "alertdialog",
+        aria_modal: "true",
+        aria_label: tr(locale, "discard_question"),
+        onkeydown: move |event| {
+            if event.key() == Key::Escape {
+                event.prevent_default();
+                event.stop_propagation();
+                pending_close.set(None);
+            }
+        },
+        div { class: "pam-editor-confirm-card", "data-modal-content": "true",
             p { {tr(locale, "discard_question")} }
             button { class: "pam-button", onclick: move |_| context.pending_close.set(None), {tr(locale, "cancel")} }
             button { class: "pam-button", onclick: move |_| {

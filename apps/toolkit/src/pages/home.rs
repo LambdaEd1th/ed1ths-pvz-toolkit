@@ -33,67 +33,67 @@ pub(crate) fn HomeDashboard(on_navigate: EventHandler<AppRoute>) -> Element {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Rsb),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "▤" }
-                                {open_tool_label(i18n, "RSB Archive")}
+                                {open_tool_label(i18n, "rsb")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::RsbPatch),
                                 span { class: "tk-button-icon", aria_hidden: "true", "⇄" }
-                                {open_tool_label(i18n, "RSB Patch")}
+                                {open_tool_label(i18n, "rsb-patch")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Pak),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "PAK" }
-                                {open_tool_label(i18n, "PAK Archive")}
+                                {open_tool_label(i18n, "pak")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Dzip),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "DZ" }
-                                {open_tool_label(i18n, "DZip Archive")}
+                                {open_tool_label(i18n, "dzip")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Smf),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "SMF" }
-                                {open_tool_label(i18n, "SMF Container")}
+                                {open_tool_label(i18n, "smf")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::CompiledText),
                                 span { class: "tk-button-icon", aria_hidden: "true", "≋" }
-                                {open_tool_label(i18n, "Compiled Text")}
+                                {open_tool_label(i18n, "compiled-text")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Rton),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "{{ }}" }
-                                {open_tool_label(i18n, "RTON Editor")}
+                                {open_tool_label(i18n, "rton")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Pam),
                                 span { class: "tk-button-icon", aria_hidden: "true", "▶" }
-                                {open_tool_label(i18n, "PAM Editor")}
+                                {open_tool_label(i18n, "pam")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Wem),
                                 span { class: "tk-button-icon", aria_hidden: "true", "♫" }
-                                {open_tool_label(i18n, "WEM Audio")}
+                                {open_tool_label(i18n, "wem")}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Bnk),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "BNK" }
-                                {i18n.t_args("home-open-experimental-tool", &[("tool", "BNK Archive".to_string())])}
+                                {i18n.t_args("home-open-experimental-tool", &[("tool", tool_label(i18n, "bnk"))])}
                             }
                             button {
                                 class: "tk-button tk-button--secondary",
                                 onclick: move |_| on_navigate.call(AppRoute::Newton),
                                 span { class: "tk-button-icon tk-button-icon--code", aria_hidden: "true", "N" }
-                                {open_tool_label(i18n, "NEWTON Manifest")}
+                                {open_tool_label(i18n, "newton")}
                             }
                         }
                     }
@@ -244,6 +244,7 @@ fn home_sunflower_data_url() -> &'static str {
 #[component]
 fn WorkspaceCard(tool: ToolDescriptor, onclick: EventHandler<MouseEvent>) -> Element {
     let i18n = use_i18n();
+    let tool_name = tool.label(i18n);
     let description = i18n.t(&format!("tool-{}-description", tool.slug));
     let action = i18n.t(&format!("tool-{}-action", tool.slug));
     rsx! {
@@ -256,7 +257,7 @@ fn WorkspaceCard(tool: ToolDescriptor, onclick: EventHandler<MouseEvent>) -> Ele
                     span { class: "tk-status-chip" }
                 }
             }
-            h3 { "{tool.label}" }
+            h3 { "{tool_name}" }
             p { "{description}" }
             div { class: "tk-tag-list",
                 for tag in tool.tags {
@@ -297,6 +298,14 @@ fn LibraryRow(library: LibraryDescriptor) -> Element {
     }
 }
 
-fn open_tool_label(i18n: I18n, tool: &str) -> String {
-    i18n.t_args("home-open-tool", &[("tool", tool.to_string())])
+fn tool_label(i18n: I18n, slug: &str) -> String {
+    TOOLS
+        .iter()
+        .find(|tool| tool.slug == slug)
+        .map(|tool| tool.label(i18n))
+        .unwrap_or_default()
+}
+
+fn open_tool_label(i18n: I18n, slug: &str) -> String {
+    i18n.t_args("home-open-tool", &[("tool", tool_label(i18n, slug))])
 }

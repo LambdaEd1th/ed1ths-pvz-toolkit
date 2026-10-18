@@ -64,7 +64,7 @@ function fixture(imageNames) {
   page.on('pageerror', error => errors.push(error.message));
   try {
     await page.goto(process.env.UI_TEST_URL || 'http://127.0.0.1:8097/');
-    await page.getByRole('button', { name: /PAM Editor/ }).first().click({ timeout: 60000 });
+    await page.locator('.tk-sidebar .tk-nav-item[data-tool="pam"]').first().click({ timeout: 60000 });
     const pam = page.locator('.tk-tool-slot--active .pam-page-host');
     const toolbar = pam.locator('.pam-editor-toolbar');
     const exportButton = toolbar.getByRole('button', { name: /导出所有 Sprites|Export all Sprites/ });

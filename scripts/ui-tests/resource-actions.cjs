@@ -37,7 +37,7 @@ function zipEntries(bytes) {
   page.on('pageerror', error => { errors.push(error.message); console.error('PAGEERROR', error.message); });
   try {
     await page.goto(process.env.UI_TEST_URL || 'http://127.0.0.1:8097/');
-    await page.getByRole('button', { name: /RSB Archive/ }).first().click({ timeout: 60000 });
+    await page.locator('.tk-sidebar .tk-nav-item[data-tool="rsb"]').first().click({ timeout: 60000 });
     await page.locator('.rsb-page-host input[type=file][accept*=".rsb"]').first().setInputFiles(sample);
     await page.getByRole('button', { name: '资源管理器', exact: true }).click();
     const explorer = page.locator('.rsb-resource-explorer');
@@ -174,7 +174,7 @@ function zipEntries(bytes) {
     await page.screenshot({ path: path.join(os.tmpdir(), 'rsb-resource-pam-open.png') });
 
     await page.getByRole('button', { name: /Toggle navigation|切换导航/ }).click();
-    await page.getByRole('button', { name: /RSB Archive/ }).first().click();
+    await page.locator('.tk-sidebar .tk-nav-item[data-tool="rsb"]').first().click();
     await explorer.getByRole('combobox', { name: '映射状态' }).selectOption('unlisted');
     await search.fill('resources');
     const manifestRow = explorer.locator('[data-resource-id]').filter({ has: page.locator('.rsb-res-name strong', { hasText: /resources.rton/i }) });
@@ -182,30 +182,30 @@ function zipEntries(bytes) {
     const selectedDetails = await explorer.locator('.rsb-res-details').innerText();
     console.log('MANIFEST HANDOFF', selectedDetails);
     await explorer.getByRole('button', { name: '打开', exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('.tk-breadcrumb strong')?.textContent === 'RTON Editor', null, { timeout: 60000 });
+    await page.waitForFunction(() => document.querySelector('.tk-breadcrumb strong')?.textContent?.includes('RTON'), null, { timeout: 60000 });
     await page.waitForFunction(() => document.querySelector('.tk-tool-slot--active')?.textContent.match(/RESOURCES|resources/), null, { timeout: 60000 });
     console.log('RTON HANDOFF PASSED');
 
     await page.getByRole('button', { name: /Toggle navigation|切换导航/ }).click();
-    await page.getByRole('button', { name: /RSB Archive/ }).first().click();
+    await page.locator('.tk-sidebar .tk-nav-item[data-tool="rsb"]').first().click();
     await explorer.getByRole('combobox', { name: '映射状态' }).selectOption('all');
     await search.fill('.bnk');
     const bankRow = explorer.locator('[data-resource-id]').filter({ has: page.locator('.rsb-res-kind > span', { hasText: /SoundBank/ }) }).first();
     await bankRow.click();
     await explorer.getByRole('button', { name: '打开', exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('.tk-breadcrumb strong')?.textContent === 'BNK Archive');
+    await page.waitForFunction(() => document.querySelector('.tk-breadcrumb strong')?.textContent?.includes('BNK'));
     await page.locator('.tk-tool-slot--active .bnk-tab-select').first().waitFor();
     assert.match(await page.locator('.tk-tool-slot--active .bnk-tab-name').first().innerText(), /\.bnk$/i);
     console.log('BNK IN-MEMORY HANDOFF PASSED');
     await page.getByRole('button', { name: /Toggle navigation|切换导航/ }).click();
-    await page.getByRole('button', { name: /RSB Archive/ }).first().click();
+    await page.locator('.tk-sidebar .tk-nav-item[data-tool="rsb"]').first().click();
     await explorer.getByRole('combobox', { name: '打开方式' }).selectOption('SMF');
     await explorer.getByRole('button', { name: '打开', exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('.tk-breadcrumb strong')?.textContent === 'SMF Container');
+    await page.waitForFunction(() => document.querySelector('.tk-breadcrumb strong')?.textContent?.includes('SMF'));
     await page.locator('.tk-tool-slot--active .smf-tab-select').first().waitFor();
     console.log('EXPLICIT OPEN-WITH HANDOFF PASSED');
     await page.getByRole('button', { name: /Toggle navigation|切换导航/ }).click();
-    await page.getByRole('button', { name: /RSB Archive/ }).first().click();
+    await page.locator('.tk-sidebar .tk-nav-item[data-tool="rsb"]').first().click();
     await explorer.getByRole('navigation', { name: '资源路径' }).getByRole('button', { name: '逻辑资源', exact: true }).click();
     await page.setViewportSize({ width: 390, height: 844 });
     const overflow = await explorer.evaluate(element => ({ width: element.clientWidth, scroll: element.scrollWidth }));

@@ -19,7 +19,7 @@ async function bytes(download) {
   const original = fs.readFileSync(fixture);
   try {
     await page.goto(process.env.UI_TEST_URL || 'http://127.0.0.1:8097/');
-    await page.getByRole('button', { name: /RSB Archive/ }).first().click({ timeout: 60000 });
+    await page.locator('.tk-sidebar .tk-nav-item[data-tool="rsb"]').first().click({ timeout: 60000 });
     await page.locator('.rsb-page-host input[type=file][accept*=".rsb"]').first().setInputFiles(fixture);
     await page.getByRole('button', { name: '资源管理器', exact: true }).click();
     const explorer = page.locator('.rsb-resource-explorer:not([hidden])');
