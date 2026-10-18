@@ -3764,3 +3764,14 @@ button {
 .ui-tool-surface input[type="search"]:focus-visible {
   outline: 0;
 }
+
+/* Tools without a drawer handle use the same single inset panel frame as
+ * WEM Audio: 12px page padding, a 24px card radius and no outer shadow. */
+.ui-tool-page:not(:has(> .ui-tool-page-toolbar)) {
+  padding: 12px !important;
+}
+
+.ui-tool-page:not(:has(> .ui-tool-page-toolbar)) > .ui-workspace-card {
+  border-radius: 24px !important;
+  box-shadow: none !important;
+}
