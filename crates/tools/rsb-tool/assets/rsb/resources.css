@@ -183,3 +183,263 @@
   .rsb-res-file-cell { gap: 6px; }
   .rsb-res-file-cell > .rsb-res-icon { width: 19px; height: 19px; }
 }
+
+/* ---------------------------------------------------------------------------
+ * Shared RSB browser chrome
+ * Both the physical packet browser and the logical resource browser use the
+ * same heading, address row, table chrome, 50px rows and flat status footer.
+ * ------------------------------------------------------------------------- */
+.rsb-res-heading {
+  min-height: 58px;
+  padding: 12px 16px;
+}
+
+.rsb-res-title > .rsb-res-header-icon {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  place-items: center;
+  color: var(--rsb-accent-strong);
+}
+
+.rsb-res-title > .rsb-res-header-icon .rsb-glyph {
+  width: 18px;
+  height: 18px;
+}
+
+.rsb-res-title strong {
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.rsb-res-title > span {
+  font-size: 11px;
+}
+
+.rsb-page-host .rsb-res-actions .rsb-tool-button,
+.rsb-page-host .rsb-resource-entry {
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: var(--tk-radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.rsb-page-host .rsb-address-row {
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 280px);
+  gap: 8px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--rsb-border);
+  background: var(--rsb-surface);
+}
+
+.rsb-page-host .rsb-res-addressbar {
+  padding: 8px 14px;
+}
+
+.rsb-page-host .rsb-res-search {
+  min-height: 40px;
+  border-color: var(--tk-outline-variant);
+  border-radius: var(--tk-radius-md);
+  background: var(--tk-surface-card);
+}
+
+.rsb-page-host .rsb-res-search input {
+  min-height: 38px;
+  font-size: 11px;
+}
+
+.rsb-page-host .rsb-res-filterbar select,
+.rsb-page-host .rsb-res-open-as {
+  min-height: 34px;
+  border-color: var(--tk-outline-variant);
+  border-radius: var(--tk-radius-sm);
+  background: var(--tk-surface-card);
+  color: var(--rsb-text);
+  font-size: 11px;
+}
+
+.rsb-page-host .rsb-res-operationbar .rsb-tool-button {
+  min-height: 32px;
+  padding: 5px 10px;
+  font-size: 11px;
+}
+
+.rsb-table-head,
+.rsb-res-table-head {
+  height: 38px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--rsb-border);
+  background: var(--rsb-surface-muted);
+  color: var(--rsb-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.rsb-table-pane {
+  grid-template-rows: 38px minmax(0, 1fr);
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rsb-browser-grid {
+  padding: 0;
+}
+
+.rsb-table-body {
+  padding: 0 0 8px;
+}
+
+.rsb-res-results {
+  grid-template-rows: 38px minmax(0, 1fr);
+}
+
+.rsb-table-row,
+.rsb-page-host .rsb-res-item {
+  min-height: 50px;
+  border: 0;
+  border-radius: 0;
+  font-size: 11px;
+}
+
+.rsb-table-row {
+  padding: 0 14px;
+}
+
+.rsb-name-cell strong,
+.rsb-res-name strong {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.rsb-name-cell small,
+.rsb-res-name small,
+.rsb-res-kind small {
+  font-size: 10px;
+}
+
+.rsb-res-kind span,
+.rsb-res-size {
+  font-size: 11px;
+}
+
+.rsb-table-row:hover,
+.rsb-page-host .rsb-res-item:hover {
+  background: var(--rsb-surface-muted);
+}
+
+.rsb-table-row.is-selected,
+.rsb-page-host .rsb-res-item.is-selected {
+  border-color: transparent;
+  background: var(--rsb-accent-soft);
+  color: var(--rsb-text);
+}
+
+.rsb-file-icon,
+.rsb-res-file-cell > .rsb-res-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--tk-radius-sm);
+}
+
+.rsb-res-file-cell > .rsb-res-icon {
+  padding: 5px;
+  background: var(--rsb-surface-muted);
+  color: var(--rsb-muted);
+}
+
+.rsb-res-file-cell > .icon-folder {
+  background: color-mix(in srgb, #d4a64d 15%, transparent);
+  color: #b18436;
+}
+
+.rsb-res-file-cell > .icon-image {
+  background: color-mix(in srgb, #7aaf97 15%, transparent);
+  color: #568b74;
+}
+
+.rsb-res-file-cell > .icon-animation {
+  background: color-mix(in srgb, #a696d9 15%, transparent);
+  color: #7d6bbb;
+}
+
+.rsb-res-file-cell > .icon-audio {
+  background: color-mix(in srgb, #cd9a75 15%, transparent);
+  color: #ad7350;
+}
+
+.rsb-res-tree-title {
+  font-size: 11px;
+}
+
+.rsb-res-tree-title small,
+.rsb-res-tree-link small {
+  font-size: 10px;
+}
+
+.rsb-page-host .rsb-res-tree-link {
+  font-size: 11px;
+}
+
+.rsb-res-badge {
+  font-size: 10px;
+  border-radius: var(--tk-radius-xs);
+}
+
+.rsb-status-bar,
+.rsb-res-footer {
+  min-height: 36px;
+  margin: 0;
+  padding: 7px 16px;
+  border: 0;
+  border-top: 1px solid var(--rsb-border);
+  border-radius: 0;
+  background: var(--rsb-surface-muted);
+  color: var(--rsb-muted);
+  font-size: 11px;
+}
+
+.rsb-status-bar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+@container rsb-workspace (max-width: 700px) {
+  .rsb-page-host .rsb-address-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* The floating tool handle overlaps the card's left edge. Keep packet content
+ * clear of it while retaining the overlap effect. */
+@media (min-width: 1024px) {
+  .rsb-packet-heading {
+    padding-left: 38px;
+  }
+
+  .rsb-page-host .rsb-address-row {
+    padding-left: 38px;
+  }
+
+  .rsb-browser-grid {
+    padding-left: 8px;
+  }
+
+  .rsb-table-head,
+  .rsb-table-row {
+    padding-left: 22px;
+  }
+}
+
+
+.rsb-page-host .rsb-address-bar {
+  background: var(--rsb-surface-muted);
+}

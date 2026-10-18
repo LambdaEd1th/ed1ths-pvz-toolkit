@@ -4053,17 +4053,27 @@ pub fn RsbArchivePage(
                                 locate_resource_file(target, archive, packet, packet_edits, navigation, preview_signals, ptx_infos, inspector_visible, status);
                             },
                         }
+                        header { class: "rsb-res-heading rsb-packet-heading",
+                            div { class: "rsb-res-title",
+                                span { class: "rsb-res-header-icon", Glyph { name: "archive" } }
+                                strong { "包内浏览" }
+                                span { "RSB v{document.header.version} · 物理路径" }
+                            }
+                            div { class: "rsb-res-actions",
+                                button { class: "rsb-tool-button rsb-resource-entry", onclick: move |_| {
+                                    resources_visible.set(true);
+                                    selection.set(None);
+                                    tree_visible.set(false);
+                                    inspector_visible.set(false);
+                                    context_menu.set(None);
+                                }, "资源管理器" }
+                            }
+                        }
+
                         AddressBar {
                             archive: document.clone(),
                             packet: packet_snapshot.clone(),
                             location: location_snapshot.clone(),
-                            on_resources: move |_| {
-                                resources_visible.set(true);
-                                selection.set(None);
-                                tree_visible.set(false);
-                                inspector_visible.set(false);
-                                context_menu.set(None);
-                            },
                             on_archive: move |_| {
                                 location.set(BrowserLocation::Archive);
                                 selection.set(None);
@@ -5257,7 +5267,6 @@ fn AddressBar(
     on_archive: EventHandler<()>,
     on_directory: EventHandler<Vec<String>>,
     on_query: EventHandler<String>,
-    on_resources: EventHandler<()>,
 ) -> Element {
     let packet_name = packet.as_ref().map(|value| value.record.info.name.clone());
     let directory = match &location {
@@ -5293,7 +5302,6 @@ fn AddressBar(
                     }
                 }
             }
-            button { class: "rsb-tool-button rsb-resource-entry", onclick: move |_| on_resources.call(()), "资源管理器" }
             label { class: "rsb-search",
                 Glyph { name: "search" }
                 input {
