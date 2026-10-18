@@ -91,6 +91,49 @@ async function run(engineName, engine) {
   const reversed = (await rows()).map(row => row.name);
   assert.deepEqual(reversed, [...names].reverse());
 
+  // Resource image preview uses the same texture viewer as the packet browser.
+  await explorer.locator('input[aria-label="搜索资源"]').fill('test');
+  await page.waitForFunction(() => document.querySelectorAll('.tk-tool-slot--active .rsb-res-row').length > 0);
+  await explorer.locator('.rsb-res-row').first().click();
+  await sleep(250);
+  await explorer.locator('.rsb-res-operationbar button').filter({ hasText: '预览图片' }).click();
+  const preview = tool.locator('.rsb-preview-modal');
+  await preview.waitFor({ timeout: 20000 });
+  assert.equal(await tool.locator('.rsb-res-image-dialog').count(), 0, 'old resource preview UI must be gone');
+  assert.match(await preview.locator('header').innerText(), /PNG/);
+  assert.match(await preview.locator('footer').innerText(), /PNG/);
+  assert.equal(
+    await preview.locator('.rsb-preview-view-controls button').filter({ hasText: '1:1' }).count(),
+    1,
+    'resource preview should expose the shared zoom controls',
+  );
+  await page.keyboard.press('Escape');
+  await preview.waitFor({ state: 'detached' });
+  console.log(`${engineName}: unified resource texture preview passed`);
+
+  // The packet browser still uses the same viewer and keeps its context menu.
+  await explorer.locator('button').filter({ hasText: '返回包内文件' }).click();
+  await sleep(500);
+  await tool.locator('.rsb-table-row').filter({ hasText: 'Textures_768' }).first().dblclick();
+  await sleep(800);
+  const atlases = tool.locator('.rsb-table-row').filter({ hasText: 'atlases' }).first();
+  if (await atlases.count()) {
+    await atlases.dblclick();
+    await sleep(600);
+  }
+  await tool.locator('.rsb-table-row').filter({ hasText: 'test.ptx' }).first().dblclick();
+  const packetPreview = tool.locator('.rsb-preview-modal');
+  await packetPreview.waitFor({ timeout: 20000 });
+  assert.match(await packetPreview.locator('footer').innerText(), /PTX #/);
+  await packetPreview.locator('.rsb-preview-modal-canvas').click({ button: 'right', position: { x: 80, y: 80 } });
+  await sleep(250);
+  assert.equal(await tool.locator('.rsb-preview-context-menu').count(), 1, 'packet preview should keep its context menu');
+  await page.keyboard.press('Escape');
+  await sleep(250);
+  await page.keyboard.press('Escape');
+  await packetPreview.waitFor({ state: 'detached' });
+  console.log(`${engineName}: packet texture preview and context menu passed`);
+
   assert.deepEqual(errors, [], `${engineName} page errors`);
   await browser.close();
   console.log(`${engineName}: RSB resource sorting and file sizes passed`);

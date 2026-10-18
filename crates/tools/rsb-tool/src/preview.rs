@@ -1,4 +1,4 @@
-use crate::domain::{ArchiveChannelOrderMode, ArchiveDocument, PacketDocument};
+use crate::domain::{ArchiveChannelOrderMode, ArchiveDocument, PacketDocument, format_bytes};
 use crate::{platform, processing};
 use rsb_archive::{
     ChannelOrder, PtxDescriptor, PtxFormat, PtxFormatCode, PtxRsbMetadata, RsbPtxInfo,
@@ -91,6 +91,66 @@ impl std::fmt::Debug for PreviewAsset {
 impl Drop for PreviewAssetInner {
     fn drop(&mut self) {
         platform::release_preview_url(&self.url);
+    }
+}
+
+/// Display data shared by the packet texture viewer and resource image preview.
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) struct PreviewImage {
+    pub(crate) name: String,
+    pub(crate) asset: PreviewAsset,
+    pub(crate) width: u32,
+    pub(crate) height: u32,
+    pub(crate) rendered_width: u32,
+    pub(crate) rendered_height: u32,
+    pub(crate) format: String,
+    pub(crate) apple_channel_order: bool,
+    pub(crate) footer_meta: Vec<String>,
+}
+
+impl PreviewImage {
+    pub(crate) fn from_ptx(preview: &PtxPreview) -> Self {
+        let mut footer_meta = vec![
+            format!("PTX #{}", preview.global_index),
+            format_bytes(preview.payload_size as u64),
+        ];
+        if preview.rendered_width != preview.width || preview.rendered_height != preview.height {
+            footer_meta.push(format!(
+                "预览 {} × {}",
+                preview.rendered_width, preview.rendered_height
+            ));
+        }
+        Self {
+            name: preview.name.clone(),
+            asset: preview.asset.clone(),
+            width: preview.width,
+            height: preview.height,
+            rendered_width: preview.rendered_width,
+            rendered_height: preview.rendered_height,
+            format: preview.format.clone(),
+            apple_channel_order: preview.apple_channel_order,
+            footer_meta,
+        }
+    }
+
+    pub(crate) fn from_png(
+        name: String,
+        asset: PreviewAsset,
+        width: u32,
+        height: u32,
+        png_len: usize,
+    ) -> Self {
+        Self {
+            name,
+            asset,
+            width,
+            height,
+            rendered_width: width,
+            rendered_height: height,
+            format: "PNG".into(),
+            apple_channel_order: false,
+            footer_meta: vec![format_bytes(png_len as u64), "PNG".into()],
+        }
     }
 }
 

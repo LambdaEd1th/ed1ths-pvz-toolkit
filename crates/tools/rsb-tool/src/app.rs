@@ -6,9 +6,9 @@ use crate::editing::{self, AddedFile, PacketEdits, RemovedPackets};
 #[cfg(target_arch = "wasm32")]
 use crate::loader;
 use crate::preview::{
-    ArchiveChannelOrderDetection, ArchiveChannelOrderInference, PreviewCache, PreviewQuality,
-    PtxPreview, PtxPreviewState, decode_prepared, detect_archive_channel_order, prepare_png_export,
-    prepare_preview,
+    ArchiveChannelOrderDetection, ArchiveChannelOrderInference, PreviewCache, PreviewImage,
+    PreviewQuality, PtxPreview, PtxPreviewState, decode_prepared, detect_archive_channel_order,
+    prepare_png_export, prepare_preview,
 };
 use crate::view_model::{
     ArchiveRowFilter, ArchiveRowSource, ArchiveTableRow, BrowserSort, BrowserSortKey,
@@ -4486,31 +4486,36 @@ pub fn RsbArchivePage(
 
                 if preview_open() {
                     match detail_preview_snapshot.clone() {
-                        Some(PtxPreviewState::Ready(decoded)) => rsx! {
-                            PreviewModal {
-                                preview: decoded,
-                                loading: false,
-                                on_close: move |_| {
-                                    preview_context_menu.set(None);
-                                    preview_open.set(false);
-                                },
-                                on_context_menu: move |(preview, x, y)| {
-                                    context_menu.set(None);
-                                    preview_context_menu.set(Some(PtxPreviewContextMenuState {
-                                        preview,
-                                        x,
-                                        y,
-                                    }));
-                                },
-                                on_export: move |file_index| {
-                                    spawn(export_ptx_png(
-                                        Some(RowSelection::File(file_index)),
-                                        archive,
-                                        packet,
-                                        ptx_infos,
-                                        status,
-                                    ));
-                                },
+                        Some(PtxPreviewState::Ready(decoded)) => {
+                            let image = PreviewImage::from_ptx(&decoded);
+                            let context_preview = decoded.clone();
+                            let export_index = decoded.file_index;
+                            rsx! {
+                                PreviewModal {
+                                    id: "rsb-preview-modal".to_string(),
+                                    image,
+                                    on_close: move |_| {
+                                        preview_context_menu.set(None);
+                                        preview_open.set(false);
+                                    },
+                                    on_context_menu: Some(EventHandler::new(move |(x, y): (f64, f64)| {
+                                        context_menu.set(None);
+                                        preview_context_menu.set(Some(PtxPreviewContextMenuState {
+                                            preview: context_preview.clone(),
+                                            x,
+                                            y,
+                                        }));
+                                    })),
+                                    on_export: move |_| {
+                                        spawn(export_ptx_png(
+                                            Some(RowSelection::File(export_index)),
+                                            archive,
+                                            packet,
+                                            ptx_infos,
+                                            status,
+                                        ));
+                                    },
+                                }
                             }
                         },
                         Some(PtxPreviewState::Loading { .. }) => {
@@ -7269,21 +7274,21 @@ fn set_preview_zoom(
 }
 
 #[component]
-fn PreviewModal(
-    preview: PtxPreview,
-    loading: bool,
+pub(crate) fn PreviewModal(
+    id: String,
+    image: PreviewImage,
+    #[props(default)] loading: bool,
     on_close: EventHandler<()>,
-    on_context_menu: EventHandler<(PtxPreview, f64, f64)>,
-    on_export: EventHandler<usize>,
+    #[props(default)] on_context_menu: Option<EventHandler<(f64, f64)>>,
+    on_export: EventHandler<()>,
 ) -> Element {
-    use_modal_focus("rsb-preview-modal", true, "#rsb-preview-modal", None, None);
+    let focus_selector = format!("#{id}");
+    use_modal_focus(&id, true, &focus_selector, None, None);
     let close_escape = on_close;
-    let preview_url = preview.asset.url().to_string();
-    let context_preview = preview.clone();
-    let export_index = preview.file_index;
+    let preview_url = image.asset.url().to_string();
     let image_size = PreviewSize {
-        width: f64::from(preview.rendered_width.max(1)),
-        height: f64::from(preview.rendered_height.max(1)),
+        width: f64::from(image.rendered_width.max(1)),
+        height: f64::from(image.rendered_height.max(1)),
     };
     let mut viewport = use_signal(|| PreviewSize {
         width: 720.0,
@@ -7313,17 +7318,17 @@ fn PreviewModal(
     let zoom_percent = (zoom * 100.0).round().clamp(1.0, 1600.0) as u32;
     let image_style = format!(
         "width: {}px; height: {}px; margin-left: -{}px; margin-top: -{}px; transform: translate({}px, {}px) scale({zoom});",
-        preview.rendered_width.max(1),
-        preview.rendered_height.max(1),
-        f64::from(preview.rendered_width.max(1)) / 2.0,
-        f64::from(preview.rendered_height.max(1)) / 2.0,
+        image.rendered_width.max(1),
+        image.rendered_height.max(1),
+        f64::from(image.rendered_width.max(1)) / 2.0,
+        f64::from(image.rendered_height.max(1)) / 2.0,
         pan_snapshot.x,
         pan_snapshot.y,
     );
 
     rsx! {
         div {
-            id: "rsb-preview-modal",
+            id: "{id}",
             class: "rsb-preview-modal-layer",
             onkeydown: move |event| {
                 if event.key() == Key::Escape {
@@ -7343,13 +7348,13 @@ fn PreviewModal(
                 "data-modal-content": "true",
                 role: "dialog",
                 aria_modal: "true",
-                aria_label: "{preview.name} 纹理预览",
+                aria_label: "{image.name} 纹理预览",
                 header {
                     div { class: "rsb-preview-modal-title",
-                        strong { "{preview.name}" }
+                        strong { "{image.name}" }
                         span {
-                            "{preview.width} × {preview.height} · {preview.format}"
-                            if preview.apple_channel_order { " · Apple channel order" }
+                            "{image.width} × {image.height} · {image.format}"
+                            if image.apple_channel_order { " · Apple channel order" }
                         }
                     }
                     button {
@@ -7370,8 +7375,10 @@ fn PreviewModal(
                     oncontextmenu: move |event| {
                         event.prevent_default();
                         event.stop_propagation();
-                        let point = event.client_coordinates();
-                        on_context_menu.call((context_preview.clone(), point.x, point.y));
+                        if let Some(on_context_menu) = on_context_menu {
+                            let point = event.client_coordinates();
+                            on_context_menu.call((point.x, point.y));
+                        }
                     },
                     onresize: move |event| {
                         let Ok(size) = event.get_content_box_size() else {
@@ -7449,7 +7456,7 @@ fn PreviewModal(
                         style: "{image_style}",
                         img {
                             src: preview_url,
-                            alt: "{preview.name}",
+                            alt: "{image.name}",
                             decoding: "async",
                             draggable: "false",
                         }
@@ -7528,7 +7535,7 @@ fn PreviewModal(
                             class: "rsb-preview-export-button",
                             title: "导出 PNG",
                             aria_label: "导出原始尺寸 PNG",
-                            onclick: move |_| on_export.call(export_index),
+                            onclick: move |_| on_export.call(()),
                             Glyph { name: "export" }
                         }
                     }
@@ -7541,10 +7548,8 @@ fn PreviewModal(
                 }
                 footer {
                     div { class: "rsb-preview-footer-meta",
-                        span { "PTX #{preview.global_index}" }
-                        span { "{format_bytes(preview.payload_size as u64)}" }
-                        if preview.rendered_width != preview.width || preview.rendered_height != preview.height {
-                            span { "预览 {preview.rendered_width} × {preview.rendered_height}" }
+                        for meta in &image.footer_meta {
+                            span { "{meta}" }
                         }
                     }
                     span { class: "rsb-preview-footer-hint", "滚轮缩放 · 拖拽移动 · 双击切换适应/1:1" }
@@ -7571,13 +7576,19 @@ fn PreviewLoadingModal(
     );
     let close_escape = on_close;
     if let Some(preview) = preview {
+        let context_preview = preview.clone();
+        let export_index = preview.file_index;
+        let image = PreviewImage::from_ptx(&preview);
         return rsx! {
             PreviewModal {
-                preview,
+                id: "rsb-preview-modal".to_string(),
+                image,
                 loading: true,
                 on_close,
-                on_context_menu,
-                on_export,
+                on_context_menu: Some(EventHandler::new(move |(x, y): (f64, f64)| {
+                    on_context_menu.call((context_preview.clone(), x, y));
+                })),
+                on_export: move |_| on_export.call(export_index),
             }
         };
     }

@@ -1,13 +1,14 @@
+use crate::app::PreviewModal;
 use crate::domain::ArchiveDocument;
 use crate::editing::{PacketEdits, RemovedPackets};
-use crate::preview::PreviewAsset;
+use crate::preview::{PreviewAsset, PreviewImage};
 use crate::resource_actions::{self, ResourceReader, ResourceZip};
 use crate::resources::ResourceCatalog;
 use dioxus::prelude::*;
 use std::sync::Arc;
-use toolkit_ui::{ToolKind, ToolOpenHandler, use_modal_focus};
+use toolkit_ui::{ToolKind, ToolOpenHandler};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 struct ImagePreview {
     asset: PreviewAsset,
     name: String,
@@ -31,16 +32,8 @@ pub fn ResourceOperations(
     let mut busy = use_signal(|| false);
     let mut cancelled = use_signal(|| false);
     let mut preview = use_signal(|| None::<ImagePreview>);
-    let mut zoom = use_signal(|| "fit".to_string());
     let mut open_as = use_signal(String::new);
     let mut warnings = use_signal(Vec::<String>::new);
-    use_modal_focus(
-        "rsb-image-preview",
-        preview().is_some(),
-        "#rsb-image-preview",
-        None,
-        None,
-    );
     use_effect(use_reactive(
         &(archive.clone(), edits.clone(), removed.clone()),
         move |_| {
@@ -110,7 +103,6 @@ pub fn ResourceOperations(
                                         image.name, image.width, image.height
                                     ));
                                     preview.set(Some(image));
-                                    zoom.set("fit".into());
                                 }
                                 Err(error) => message.set(format!("预览失败：{error}")),
                             }
@@ -253,41 +245,46 @@ pub fn ResourceOperations(
             }
         }
         if let Some(image) = preview() {
-            div {
-                id: "rsb-image-preview",
-                class: "rsb-res-image-dialog",
-                role: "dialog",
-                aria_modal: true,
-                aria_label: "资源图片预览",
-                tabindex: -1,
-                "data-modal-content": "true",
-                onkeydown: move |event| {
-                    if event.key() == Key::Escape {
-                        event.prevent_default();
-                        event.stop_propagation();
-                        preview.set(None);
-                    }
-                },
-                header {
-                    div { strong { "{image.name}" } small { "{image.width} × {image.height} · PNG · 保留透明度" } }
-                    select { aria_label: "预览缩放", value: zoom(), onchange: move |event| zoom.set(event.value()),
-                        option { value: "fit", "适应窗口" } option { value: "1", "100%" } option { value: "2", "200%" } option { value: "4", "400%" }
-                    }
-                    button { class: "rsb-tool-button", onclick: { let image = image.clone(); move |_| {
-                        let image = image.clone(); spawn(async move {
-                            let name = image.name.rsplit('/').next().unwrap_or(&image.name);
-                            let stem = name.rsplit_once('.').map(|(stem, _)| stem).unwrap_or(name);
-                            if let Err(error) = crate::platform::save_bytes(&format!("{stem}.png"), &image.png).await { message.set(error); }
-                        });
-                    } }, "导出 PNG" }
-                    button { class: "rsb-tool-button", onclick: move |_| preview.set(None), "关闭预览" }
-                }
-                div { class: if zoom() == "fit" { "rsb-res-image-stage is-fit" } else { "rsb-res-image-stage" },
-                    img { src: "{image.asset.url()}", alt: "{image.name}",
-                        style: if zoom() == "fit" { String::new() } else { format!("width: {}px; height: {}px", image.width * zoom().parse::<u32>().unwrap_or(1), image.height * zoom().parse::<u32>().unwrap_or(1)) }
-                    }
-                }
+            ResourceImagePreview {
+                image,
+                on_close: move |_| preview.set(None),
+                on_error: move |error| message.set(error),
             }
+        }
+    }
+}
+
+#[component]
+fn ResourceImagePreview(
+    image: ImagePreview,
+    on_close: EventHandler<()>,
+    on_error: EventHandler<String>,
+) -> Element {
+    let modal_image = PreviewImage::from_png(
+        image.name.clone(),
+        image.asset.clone(),
+        image.width,
+        image.height,
+        image.png.len(),
+    );
+    let export_name = image.name.clone();
+    let export_png = Arc::clone(&image.png);
+    rsx! {
+        PreviewModal {
+            id: "rsb-resource-preview-modal".to_string(),
+            image: modal_image,
+            on_close,
+            on_export: move |_| {
+                let name = export_name.clone();
+                let png = Arc::clone(&export_png);
+                spawn(async move {
+                    let file_name = name.rsplit('/').next().unwrap_or(&name);
+                    let stem = file_name.rsplit_once('.').map(|(stem, _)| stem).unwrap_or(file_name);
+                    if let Err(error) = crate::platform::save_bytes(&format!("{stem}.png"), &png).await {
+                        on_error.call(error);
+                    }
+                });
+            },
         }
     }
 }
