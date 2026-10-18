@@ -189,7 +189,9 @@ smf-container = { path = "crates/formats/smf-container" }
 [profile.release]
 lto = "thin"
 opt-level = "s"
-strip = true
+# LLVM 23's --strip-all removes wasm-bindgen's __wasm_bindgen_unstable custom
+# section. Keep debuginfo stripping only so release Web builds stay bindgenable.
+strip = "debuginfo"
 
 [profile.release.package.dzip]
 codegen-units = 1

@@ -27,6 +27,10 @@ jobs:
   build_native:
     name: Build Native (${{ matrix.artifact }})
     runs-on: ${{ matrix.os }}
+    env:
+      # The workspace release profile keeps wasm-bindgen metadata, so strip
+      # native release binaries here instead.
+      CARGO_PROFILE_RELEASE_STRIP: symbols
     strategy:
       fail-fast: false
       matrix:
