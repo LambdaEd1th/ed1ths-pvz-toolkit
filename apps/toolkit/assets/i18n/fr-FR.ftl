@@ -171,6 +171,7 @@ about-research-title = Recherche sur les formats et conception de l’interface
 about-research-body = Sujet d'étude des formats de fichiers et de leur compatibilité
 about-twinning-body = Implémentation de référence des formats PopCap et source de recherche sur la compatibilité
 about-moesekai-body = Référence pour la mise en page de l’interface et le langage visuel du Toolkit
+about-vgmstream-body = Référence de recherche et de décodage pour Wwise WEM, ADPCM et autres formats audio en streaming
 about-license-title = Licence et open source
 about-license-prefix = Le code source de ce projet est sous licence 
 about-license-suffix = . Les bibliothèques de formats indépendantes peuvent être référencées directement depuis l'espace de travail.

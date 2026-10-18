@@ -171,6 +171,7 @@ about-research-title = 格式研究与界面设计
 about-research-body = 文件格式与兼容性研究对象
 about-twinning-body = PopCap 格式参考实现与兼容性研究来源
 about-moesekai-body = Toolkit 界面布局与视觉语言的参考来源
+about-vgmstream-body = Wwise WEM、ADPCM 等流式音频格式的研究与解码参考
 about-license-title = 许可证与开源
 about-license-prefix = 本项目源代码遵循
 about-license-suffix = 。独立格式库可直接从工作区引用。

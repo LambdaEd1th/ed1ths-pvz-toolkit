@@ -5,6 +5,7 @@ use crate::i18n::use_i18n;
 const REPOSITORY_URL: &str = "https://github.com/LambdaEd1th/ed1ths-pvz-toolkit";
 const TWINNING_URL: &str = "https://github.com/twinstar6980/Twinning";
 const MOESEKAI_URL: &str = "https://github.com/StarMoe-org/Moesekai";
+const VGMSTREAM_URL: &str = "https://github.com/vgmstream/vgmstream";
 const MAINTAINER_URL: &str = "https://space.bilibili.com/8217621";
 const MAINTAINER_AVATAR_URL: &str = "https://github.com/LambdaEd1th.png?size=192";
 const TECH_STACK: [&str; 6] = [
@@ -125,6 +126,22 @@ pub(crate) fn AboutPage() -> Element {
                                                 }
                                             }
                                             {i18n.t("about-moesekai-body")}
+                                        }
+                                    }
+                                    li {
+                                        span { aria_hidden: "true" }
+                                        p {
+                                            a {
+                                                class: "tk-about-credit-link",
+                                                href: VGMSTREAM_URL,
+                                                target: "_blank",
+                                                rel: "noopener noreferrer",
+                                                strong {
+                                                    "vgmstream"
+                                                    b { aria_hidden: "true", "↗" }
+                                                }
+                                            }
+                                            {i18n.t("about-vgmstream-body")}
                                         }
                                     }
                                 }

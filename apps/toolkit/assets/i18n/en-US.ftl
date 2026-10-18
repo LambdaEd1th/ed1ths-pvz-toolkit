@@ -171,6 +171,7 @@ about-research-title = Format research & UI design
 about-research-body = File-format and compatibility research target
 about-twinning-body = Reference implementation for PopCap formats and a source of compatibility research
 about-moesekai-body = Reference for Toolkit's UI layout and visual design language
+about-vgmstream-body = Research and decoding reference for Wwise WEM, ADPCM, and other streamed audio formats
 about-license-title = License & open source
 about-license-prefix = This project's source code is licensed under 
 about-license-suffix = . Independent format libraries can be referenced directly from the workspace.
