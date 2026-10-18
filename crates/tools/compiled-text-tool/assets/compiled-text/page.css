@@ -8,9 +8,9 @@
 }
 
 .compiled-page-host {
-  --compiled-accent: #a682d8;
-  --compiled-accent-strong: #bda0e5;
-  --compiled-accent-soft: color-mix(in srgb, var(--compiled-accent) 16%, transparent);
+  --compiled-accent: var(--tk-accent);
+  --compiled-accent-strong: var(--tk-accent-strong);
+  --compiled-accent-soft: var(--tk-accent-soft);
   position: relative;
   color: var(--tk-ink);
   user-select: none;

@@ -7,11 +7,11 @@
 }
 
 .ui-island {
-  border: 1px solid var(--tk-island-border);
-  background: var(--tk-island-glass);
+  border: 1px solid var(--tk-outline-variant);
+  background: var(--tk-surface-card);
   box-shadow: var(--tk-shadow);
-  backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
-  -webkit-backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .ui-pill-tabs {
@@ -20,9 +20,9 @@
   align-items: center;
   gap: 3px;
   padding: 3px;
-  border: 1px solid var(--tk-border);
+  border: 1px solid var(--tk-outline-variant);
   border-radius: 999px;
-  background: var(--tk-surface-muted);
+  background: var(--tk-surface-container);
 }
 
 .ui-pill-tabs > [role="tab"] {
@@ -41,9 +41,9 @@
 
 .ui-pill-tabs > [role="tab"][aria-selected="true"],
 .ui-pill-tabs > [role="tab"].active {
-  background: var(--tk-accent-soft);
-  color: var(--tk-accent-strong);
-  box-shadow: var(--tk-shadow-control);
+  background: var(--tk-primary-container);
+  color: var(--tk-on-primary-container);
+  box-shadow: none;
 }
 
 .ui-document-tab-strip {
@@ -101,9 +101,9 @@
   flex: 0 1 clamp(150px, 22vw, 260px);
   align-items: center;
   border: 0;
-  border-radius: 12px 12px 0 0;
-  background: color-mix(in srgb, var(--tk-surface-strong) 48%, transparent);
-  color: var(--tk-muted);
+  border-radius: var(--tk-radius-sm) var(--tk-radius-sm) 0 0;
+  background: transparent;
+  color: var(--tk-on-surface-variant);
   container-type: inline-size;
   touch-action: none;
   transition:
@@ -114,14 +114,14 @@
 }
 
 .ui-document-tab-strip .ui-document-tab:hover {
-  background: color-mix(in srgb, var(--tk-surface-strong) 76%, var(--tk-accent-soft));
-  color: var(--tk-ink);
+  background: var(--tk-surface-container);
+  color: var(--tk-on-surface);
 }
 
 .ui-document-tab-strip .ui-document-tab.is-active {
   z-index: 1;
-  background: var(--tk-accent-soft);
-  color: var(--tk-ink);
+  background: var(--tk-surface-container-high);
+  color: var(--tk-on-surface);
 }
 
 .ui-document-tab-strip .ui-document-tab::after {
@@ -129,9 +129,9 @@
   right: 10px;
   bottom: -1px;
   left: 10px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--tk-accent);
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--tk-primary);
   content: "";
   opacity: 0;
   transition: opacity 150ms ease;
@@ -317,16 +317,16 @@
   padding: 0;
   place-items: center;
   border: 0;
-  border-radius: var(--tk-radius-sm);
+  border-radius: var(--tk-radius-lg);
   background: transparent;
-  color: inherit;
+  color: var(--tk-on-surface-variant);
   cursor: pointer;
-  transition: background 160ms ease, color 160ms ease, transform 160ms var(--tk-spring);
+  transition: background 160ms ease, color 160ms ease;
 }
 
 .ui-icon-button:hover {
-  background: var(--tk-accent-soft);
-  color: var(--tk-accent-strong);
+  background: var(--tk-surface-container-high);
+  color: var(--tk-on-surface);
 }
 
 .ui-icon-button:focus-visible,
@@ -337,7 +337,7 @@
 }
 
 .ui-icon-button:active {
-  transform: scale(0.94);
+  background: var(--tk-surface-container-highest);
 }
 
 .ui-segmented {
@@ -346,33 +346,46 @@
   grid-auto-columns: 1fr;
   gap: 3px;
   padding: 3px;
-  border: 1px solid var(--tk-border);
-  border-radius: var(--tk-radius-sm);
-  background: var(--tk-surface-muted);
+  border: 1px solid var(--tk-outline-variant);
+  border-radius: var(--tk-radius-lg);
+  background: var(--tk-surface-container);
 }
 
 .ui-segmented-item {
   min-height: 34px;
   padding: 0 12px;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--tk-radius-md);
   background: transparent;
-  color: var(--tk-muted);
+  color: var(--tk-on-surface-variant);
   cursor: pointer;
   font: inherit;
   font-size: 12px;
-  font-weight: 700;
-  transition: 160ms ease;
+  font-weight: 600;
+  transition: background 160ms ease, color 160ms ease;
 }
 
 .ui-segmented-item:hover {
-  color: var(--tk-ink);
+  color: var(--tk-on-surface);
 }
 
 .ui-segmented-item.is-active {
-  background: var(--tk-surface-strong);
-  color: var(--tk-accent-strong);
-  box-shadow: 0 3px 12px rgba(25, 72, 67, 0.09);
+  background: var(--tk-primary-container);
+  color: var(--tk-on-primary-container);
+  box-shadow: none;
+}
+
+.ui-tool-surface :where(input:not([type="file"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--tk-outline);
+  border-radius: var(--tk-radius-sm);
+  background: var(--tk-surface-card);
+  color: var(--tk-on-surface);
+}
+
+.ui-tool-surface :where(button, [role="button"]) {
+  border-radius: var(--tk-radius-lg);
 }
 
 .ui-tool-surface {
@@ -421,7 +434,7 @@
   left: 12%;
   width: 260px;
   height: 260px;
-  background: color-mix(in srgb, var(--tk-accent) 13%, transparent);
+  background: color-mix(in srgb, var(--tk-primary-container) 9%, transparent);
 }
 
 .ui-tool-page::after {
@@ -429,7 +442,7 @@
   bottom: -130px;
   width: 320px;
   height: 320px;
-  background: color-mix(in srgb, var(--tk-complement) 9%, transparent);
+  background: color-mix(in srgb, var(--tk-tertiary-container) 7%, transparent);
 }
 
 .ui-tool-page-toolbar {
@@ -474,9 +487,9 @@
   width: var(--ui-tool-drawer-width);
   min-height: 0;
   flex-direction: column;
-  border: 1px solid var(--tk-island-border);
+  border: 1px solid var(--tk-outline-variant);
   border-radius: var(--tk-radius-xl);
-  background: color-mix(in srgb, var(--tk-island-glass) 76%, var(--tk-surface-strong));
+  background: color-mix(in srgb, var(--tk-surface-card) 88%, transparent);
   box-shadow: var(--tk-shadow-high);
   opacity: 0;
   overflow: visible;
@@ -737,12 +750,12 @@
   justify-content: center;
   gap: 7px;
   padding: 13px 7px;
-  border: 1px solid var(--tk-island-border);
+  border: 1px solid var(--tk-outline-variant);
   border-left: 0;
-  border-radius: 0 18px 18px 0;
-  background: color-mix(in srgb, var(--tk-island-glass) 96%, var(--tk-surface-strong));
+  border-radius: 0 var(--tk-radius-lg) var(--tk-radius-lg) 0;
+  background: color-mix(in srgb, var(--tk-surface-card) 92%, transparent);
   box-shadow: var(--tk-shadow-control);
-  color: var(--tk-accent-strong);
+  color: var(--tk-primary);
   cursor: ns-resize;
   pointer-events: auto;
   touch-action: none;
@@ -767,7 +780,7 @@
 }
 
 .ui-tool-drawer-handle:hover {
-  background: color-mix(in srgb, var(--tk-accent-soft) 38%, var(--tk-island-glass));
+  background: var(--tk-surface-container-high);
   box-shadow: var(--tk-shadow-high);
 }
 
@@ -820,7 +833,7 @@
   gap: 5px;
   padding: 5px 7px;
   overflow-x: auto;
-  border-radius: 22px;
+  border-radius: var(--tk-radius-lg);
   scrollbar-width: none;
 }
 
@@ -833,9 +846,12 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border-radius: 28px;
-  background: color-mix(in srgb, var(--tk-island-glass) 88%, transparent);
-  box-shadow: var(--tk-shadow-high);
+  border: 1px solid var(--tk-outline-variant);
+  border-radius: var(--tk-radius-lg);
+  background: var(--tk-surface-card);
+  box-shadow: var(--tk-shadow);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .ui-workspace-drop-indicator {

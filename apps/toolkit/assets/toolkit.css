@@ -18,7 +18,7 @@ body,
 }
 
 body {
-  background: linear-gradient(135deg, var(--tk-page-start), var(--tk-page-end));
+  background: var(--tk-background);
   color: var(--tk-ink);
 }
 
@@ -43,7 +43,7 @@ button {
   position: relative;
   min-height: 100vh;
   overflow-x: hidden;
-  background: linear-gradient(135deg, var(--tk-page-start), var(--tk-page-end));
+  background: var(--tk-background);
   color: var(--tk-ink);
   transition: background 280ms ease, color 280ms ease;
 }
@@ -86,21 +86,17 @@ button {
   inset: 0;
   z-index: 0;
   background:
-    linear-gradient(rgba(51, 204, 187, 0.026) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(51, 204, 187, 0.026) 1px, transparent 1px),
-    radial-gradient(circle at 12% 0%, rgba(51, 204, 187, 0.16), transparent 28rem),
-    radial-gradient(circle at 92% 34%, rgba(255, 102, 153, 0.1), transparent 34rem);
-  background-size: 42px 42px, 42px 42px, auto, auto;
+    radial-gradient(circle at 16% -6%, color-mix(in srgb, var(--tk-primary-container) 10%, transparent), transparent 34rem),
+    radial-gradient(circle at 96% 108%, color-mix(in srgb, var(--tk-tertiary-container) 8%, transparent), transparent 38rem),
+    var(--tk-background);
   pointer-events: none;
 }
 
 .tk-theme-dark .tk-backdrop {
   background:
-    linear-gradient(rgba(124, 211, 200, 0.024) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(124, 211, 200, 0.024) 1px, transparent 1px),
-    radial-gradient(circle at 12% 0%, rgba(51, 204, 187, 0.13), transparent 30rem),
-    radial-gradient(circle at 92% 34%, rgba(255, 117, 168, 0.08), transparent 34rem);
-  background-size: 42px 42px, 42px 42px, auto, auto;
+    radial-gradient(circle at 16% -6%, color-mix(in srgb, var(--tk-primary-container) 9%, transparent), transparent 34rem),
+    radial-gradient(circle at 96% 108%, color-mix(in srgb, var(--tk-tertiary-container) 7%, transparent), transparent 38rem),
+    var(--tk-background);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -110,20 +106,15 @@ button {
 
   .tk-theme-system .tk-backdrop {
     background:
-      linear-gradient(rgba(124, 211, 200, 0.024) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(124, 211, 200, 0.024) 1px, transparent 1px),
-      radial-gradient(circle at 12% 0%, rgba(51, 204, 187, 0.13), transparent 30rem),
-      radial-gradient(circle at 92% 34%, rgba(255, 117, 168, 0.08), transparent 34rem);
-    background-size: 42px 42px, 42px 42px, auto, auto;
+      radial-gradient(circle at 16% -6%, color-mix(in srgb, var(--tk-primary-container) 9%, transparent), transparent 34rem),
+      radial-gradient(circle at 96% 108%, color-mix(in srgb, var(--tk-tertiary-container) 7%, transparent), transparent 38rem),
+      var(--tk-background);
   }
 
   .tk-theme-system .tk-settings-panel {
-    border-color: rgba(148, 163, 184, 0.22);
-    background: rgba(15, 23, 42, 0.68);
-    box-shadow:
-      0 25px 50px -12px rgba(0, 0, 0, 0.42),
-      0 0 0 1px rgba(255, 255, 255, 0.05) inset,
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    border-color: var(--tk-outline-variant);
+    background: color-mix(in srgb, var(--tk-surface-card) 94%, transparent);
+    box-shadow: var(--tk-shadow-high);
   }
 
   .tk-theme-system .tk-preview-window {
@@ -145,7 +136,7 @@ button {
   left: 10%;
   width: 17rem;
   height: 17rem;
-  background: rgba(51, 204, 187, 0.09);
+  background: color-mix(in srgb, var(--tk-primary-container) 9%, transparent);
 }
 
 .tk-ambient--two {
@@ -153,16 +144,23 @@ button {
   right: -8rem;
   width: 25rem;
   height: 25rem;
-  background: rgba(255, 102, 153, 0.08);
+  background: color-mix(in srgb, var(--tk-tertiary-container) 7%, transparent);
 }
 
-.tk-island,
-.tk-glass-card {
-  border: 1px solid var(--tk-border-light);
-  background: var(--tk-surface);
+.tk-island {
+  border: 1px solid var(--tk-island-border);
+  background: color-mix(in srgb, var(--tk-surface-card) 76%, transparent);
   box-shadow: var(--tk-shadow);
   backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
   -webkit-backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
+}
+
+.tk-glass-card {
+  border: 1px solid var(--tk-outline-variant);
+  background: var(--tk-surface-card);
+  box-shadow: var(--tk-shadow);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .tk-appbar {
@@ -177,7 +175,7 @@ button {
   align-items: center;
   justify-content: space-between;
   padding: 0 13px;
-  border-radius: 24px;
+  border-radius: var(--tk-radius-xl);
   transition: background 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
 }
 
@@ -211,18 +209,19 @@ button {
   height: 40px;
   flex: 0 0 auto;
   place-items: center;
-  border-radius: 14px;
-  transition: background 160ms ease, transform 160ms ease;
+  border-radius: var(--tk-radius-lg);
+  transition: background 160ms ease, color 160ms ease;
 }
 
 .tk-icon-button:hover {
-  background: var(--tk-accent-soft);
+  background: var(--tk-surface-container-high);
+  color: var(--tk-on-surface);
 }
 
 .tk-icon-button:active,
 .tk-settings-button:active,
 .tk-settings-close:active {
-  transform: scale(0.96);
+  background: var(--tk-surface-container-highest);
 }
 
 .tk-menu-icon {
@@ -258,7 +257,7 @@ button {
 
 .tk-brand-copy strong {
   overflow: hidden;
-  font-family: "Manrope", sans-serif;
+  font-family: var(--tk-font-ui);
   font-size: 14px;
   letter-spacing: -0.025em;
   text-overflow: ellipsis;
@@ -320,8 +319,8 @@ button {
 
 .tk-settings-button:hover,
 .tk-settings-button[aria-expanded="true"] {
-  background: var(--tk-accent-soft);
-  color: var(--tk-accent-strong);
+  background: var(--tk-secondary-container);
+  color: var(--tk-on-secondary-container);
 }
 
 .tk-settings-icon {
@@ -361,26 +360,19 @@ button {
   max-height: 80vh;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.18),
-    0 0 0 1px rgba(255, 255, 255, 0.5) inset,
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--tk-outline-variant);
+  border-radius: var(--tk-radius-xl);
+  background: color-mix(in srgb, var(--tk-surface-card) 94%, transparent);
+  box-shadow: var(--tk-shadow-high);
   animation: tk-settings-panel-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
+  -webkit-backdrop-filter: blur(var(--tk-island-blur)) saturate(var(--tk-island-saturate));
 }
 
 .tk-theme-dark .tk-settings-panel {
-  border-color: rgba(148, 163, 184, 0.22);
-  background: rgba(15, 23, 42, 0.68);
-  box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.42),
-    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-color: var(--tk-outline-variant);
+  background: color-mix(in srgb, var(--tk-surface-card) 94%, transparent);
+  box-shadow: var(--tk-shadow-high);
 }
 
 .tk-settings-header {
@@ -414,12 +406,12 @@ button {
 
 .tk-settings-close {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   place-items: center;
-  border-radius: 8px;
-  color: var(--tk-faint);
-  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+  border-radius: var(--tk-radius-sm);
+  color: var(--tk-on-surface-variant);
+  transition: background 160ms ease, color 160ms ease;
 }
 
 .tk-settings-close:hover {
@@ -438,22 +430,22 @@ button {
   gap: 4px;
   margin: 14px 20px 0;
   padding: 4px;
-  border: 1px solid var(--tk-border);
-  border-radius: 12px;
-  background: var(--tk-surface-sunken);
+  border: 1px solid var(--tk-outline-variant);
+  border-radius: var(--tk-radius-md);
+  background: var(--tk-surface-container);
 }
 
 .tk-settings-nav button {
-  min-height: 32px;
+  min-height: 36px;
   padding: 0 12px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--tk-radius-sm);
   background: transparent;
-  color: var(--tk-muted);
+  color: var(--tk-on-surface-variant);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  transition: background 160ms ease, color 160ms ease;
 }
 
 .tk-settings-nav button:hover {
@@ -461,14 +453,14 @@ button {
 }
 
 .tk-settings-nav button.is-active {
-  background: var(--tk-surface-strong);
-  box-shadow: 0 1px 4px color-mix(in srgb, var(--tk-ink) 13%, transparent);
-  color: var(--tk-accent-strong);
+  background: var(--tk-secondary-container);
+  color: var(--tk-on-secondary-container);
+  box-shadow: none;
 }
 
 .tk-settings-nav button:focus-visible {
-  outline: 0;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tk-accent) 42%, transparent) inset;
+  outline: 2px solid var(--tk-primary);
+  outline-offset: 2px;
 }
 
 .tk-settings-content {
@@ -556,9 +548,9 @@ button {
   gap: 3px;
   padding: 5px;
   overflow-y: auto;
-  border: 1px solid var(--tk-border);
-  border-radius: 13px;
-  background: var(--tk-surface-opaque);
+  border: 1px solid var(--tk-outline-variant);
+  border-radius: var(--tk-radius-md);
+  background: var(--tk-surface-card);
   box-shadow: var(--tk-shadow-high);
   opacity: 0;
   pointer-events: none;
@@ -615,48 +607,48 @@ button {
 .tk-settings-panel .ui-segmented {
   gap: 0;
   padding: 4px;
-  border: 0;
-  border-radius: 12px;
-  background: var(--tk-surface-sunken);
+  border: 1px solid var(--tk-outline-variant);
+  border-radius: var(--tk-radius-md);
+  background: var(--tk-surface-container);
 }
 
 .tk-settings-panel .ui-segmented-item {
-  min-height: 32px;
+  min-height: 36px;
   padding: 8px 12px;
-  border-radius: 8px;
-  color: var(--tk-muted);
+  border-radius: var(--tk-radius-sm);
+  color: var(--tk-on-surface-variant);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 16px;
   box-shadow: none;
 }
 
 .tk-settings-panel .ui-segmented-item:hover {
-  color: var(--tk-ink);
+  color: var(--tk-on-surface);
 }
 
 .tk-settings-panel .ui-segmented-item.is-active {
-  background: var(--tk-accent);
-  color: #fff;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.13);
+  background: var(--tk-primary-container);
+  color: var(--tk-on-primary-container);
+  box-shadow: none;
 }
 
 .tk-settings-panel .ui-segmented-item:focus-visible {
-  outline: 0;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tk-accent) 55%, transparent) inset;
+  outline: 2px solid var(--tk-primary);
+  outline-offset: 2px;
 }
 
 .tk-settings-panel .ui-segmented-item.is-active:focus-visible {
-  box-shadow:
-    0 1px 3px rgba(15, 23, 42, 0.13),
-    0 0 0 2px rgba(255, 255, 255, 0.55) inset;
+  outline: 2px solid var(--tk-primary);
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 .tk-settings-info {
   overflow: hidden;
-  border: 1px solid var(--tk-border);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--tk-surface-muted) 72%, transparent);
+  border: 1px solid var(--tk-outline-variant);
+  border-radius: var(--tk-radius-md);
+  background: var(--tk-surface-container-low);
 }
 
 .tk-settings-info div {
@@ -879,7 +871,7 @@ button {
   flex-direction: column;
   overflow: hidden;
   padding: 14px 10px 11px;
-  border-radius: 26px;
+  border-radius: var(--tk-radius-xl);
   opacity: 0;
   transform: translateX(calc(-100% - 12px));
   transition:
@@ -929,7 +921,7 @@ button {
   gap: 8px;
   padding: 0 10px;
   border: 0;
-  border-radius: 13px;
+  border-radius: var(--tk-radius-md);
   background: transparent;
   color: var(--tk-muted);
   font-size: 12px;
@@ -950,13 +942,13 @@ button {
 }
 
 .tk-nav-item--active {
-  background: var(--tk-accent-soft);
-  color: var(--tk-accent-strong);
+  background: var(--tk-secondary-container);
+  color: var(--tk-on-secondary-container);
 }
 
 .tk-nav-item--active:hover {
-  background: var(--tk-accent-soft);
-  color: var(--tk-accent-strong);
+  background: var(--tk-secondary-container);
+  color: var(--tk-on-secondary-container);
 }
 
 .tk-nav-glyph {
@@ -966,7 +958,7 @@ button {
   place-items: center;
   border-radius: 9px;
   color: currentColor;
-  font-family: "Manrope", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
   font-size: 13px;
   font-style: normal;
   font-weight: 700;
@@ -1166,7 +1158,7 @@ button {
 
 .tk-about-hero h1 {
   margin: 8px 0 0;
-  font-family: "Manrope", sans-serif;
+  font-family: var(--tk-font-ui);
   font-size: clamp(32px, 4.2vw, 48px);
   font-weight: 850;
   letter-spacing: -0.045em;
@@ -1191,22 +1183,20 @@ button {
 .tk-about-card {
   min-width: 0;
   padding: 24px;
-  border: 1px solid var(--tk-border);
-  border-radius: 24px;
-  background: color-mix(in srgb, var(--tk-surface-strong) 88%, transparent);
+  border: 1px solid var(--tk-outline-variant);
+  border-radius: var(--tk-radius-lg);
+  background: var(--tk-surface-card);
   box-shadow: var(--tk-shadow);
-  backdrop-filter: blur(20px) saturate(170%);
-  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   transition:
-    transform 220ms var(--tk-spring),
     border-color 220ms ease,
     box-shadow 220ms ease;
 }
 
 .tk-about-card:hover {
-  border-color: color-mix(in srgb, var(--tk-accent) 24%, var(--tk-border));
+  border-color: color-mix(in srgb, var(--tk-primary) 28%, var(--tk-outline-variant));
   box-shadow: var(--tk-shadow-high);
-  transform: translateY(-2px);
 }
 
 .tk-about-span-2 {
@@ -1317,21 +1307,21 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-color: color-mix(in srgb, var(--tk-accent) 18%, var(--tk-border));
+  border-color: color-mix(in srgb, var(--tk-primary) 22%, var(--tk-outline-variant));
   background:
     radial-gradient(
       circle at 50% 18%,
-      color-mix(in srgb, var(--tk-accent) 18%, transparent),
+      color-mix(in srgb, var(--tk-primary-container) 16%, transparent),
       transparent 44%
     ),
-    linear-gradient(150deg, var(--tk-surface-strong), var(--tk-surface-sunken));
+    var(--tk-surface-card);
   box-shadow: var(--tk-shadow);
-  color: var(--tk-ink);
+  color: var(--tk-on-surface);
   text-align: center;
 }
 
 .tk-about-card--maintainer:hover {
-  border-color: color-mix(in srgb, var(--tk-accent) 36%, var(--tk-border));
+  border-color: color-mix(in srgb, var(--tk-primary) 40%, var(--tk-outline-variant));
 }
 
 .tk-about-card-label {
@@ -1362,7 +1352,7 @@ button {
   background: linear-gradient(145deg, #49cdbd, #238e83);
   box-shadow: 0 18px 35px rgba(42, 190, 173, 0.24);
   color: white;
-  font-family: "Manrope", sans-serif;
+  font-family: var(--tk-font-ui);
   font-size: 30px;
   font-weight: 850;
   text-decoration: none;
@@ -1713,11 +1703,11 @@ button {
   align-items: center;
   overflow: hidden;
   padding: 44px 42px;
-  border-radius: 30px;
+  border-radius: var(--tk-radius-xl);
   background:
-    linear-gradient(120deg, var(--tk-surface-strong), var(--tk-surface) 62%),
-    var(--tk-surface);
-  box-shadow: var(--tk-shadow-high);
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--tk-primary-container) 10%, transparent), transparent 28rem),
+    var(--tk-surface-card);
+  box-shadow: var(--tk-shadow);
 }
 
 .tk-welcome-card::after {
@@ -1761,7 +1751,7 @@ button {
 .tk-welcome-copy h1 {
   max-width: 590px;
   margin: 0;
-  font-family: "Manrope", sans-serif;
+  font-family: var(--tk-font-ui);
   font-size: clamp(34px, 4.3vw, 54px);
   font-weight: 800;
   letter-spacing: -0.055em;
@@ -1791,35 +1781,35 @@ button {
   gap: 9px;
   padding: 0 17px;
   border: 0;
-  border-radius: 14px;
-  font-size: 11px;
-  font-weight: 700;
+  border-radius: var(--tk-radius-lg);
+  font-size: 12px;
+  font-weight: 650;
   cursor: pointer;
-  transition: transform 180ms var(--tk-spring), box-shadow 180ms ease, background 180ms ease;
+  transition: background 180ms ease, box-shadow 180ms ease;
 }
 
 .tk-button:hover {
-  transform: translateY(-2px);
+  box-shadow: var(--tk-shadow);
 }
 
 .tk-button:active {
-  transform: translateY(0) scale(0.98);
+  background: color-mix(in srgb, var(--tk-primary) 88%, black);
 }
 
 .tk-button--primary {
-  background: var(--tk-accent-strong);
-  box-shadow: 0 12px 28px rgba(17, 143, 133, 0.23);
-  color: white;
+  background: var(--tk-primary);
+  box-shadow: none;
+  color: var(--tk-on-primary);
 }
 
 .tk-button--primary:hover {
-  box-shadow: 0 16px 34px rgba(17, 143, 133, 0.3);
+  box-shadow: var(--tk-shadow);
 }
 
 .tk-button--secondary {
-  border: 1px solid var(--tk-border);
-  background: var(--tk-surface-muted);
-  color: var(--tk-ink);
+  border: 1px solid var(--tk-outline-variant);
+  background: var(--tk-surface-container-high);
+  color: var(--tk-on-surface);
 }
 
 .tk-button-icon {
@@ -2073,7 +2063,7 @@ button {
 .tk-panel-heading h2,
 .tk-start-panel h2 {
   margin: 0;
-  font-family: "Manrope", sans-serif;
+  font-family: var(--tk-font-ui);
   font-size: 25px;
   letter-spacing: -0.04em;
 }
@@ -2108,13 +2098,12 @@ button {
   border-radius: 50%;
   background: var(--tk-card-glow);
   content: "";
-  opacity: 0.65;
+  opacity: 0.32;
   pointer-events: none;
 }
 
 .tk-workspace-card:hover {
   box-shadow: var(--tk-shadow-high);
-  transform: translateY(-3px);
 }
 
 .tk-workspace-card--pam {
@@ -2236,7 +2225,7 @@ button {
   position: relative;
   z-index: 1;
   margin: 18px 0 7px;
-  font-family: "Manrope", sans-serif;
+  font-family: var(--tk-font-ui);
   font-size: 21px;
   letter-spacing: -0.035em;
 }
@@ -2279,23 +2268,23 @@ button {
   left: 22px;
   z-index: 2;
   display: flex;
-  height: 39px;
+  height: 40px;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 12px;
-  background: var(--tk-card-soft);
-  color: var(--tk-card-accent);
-  font-size: 10px;
-  font-weight: 700;
+  padding: 0 14px;
+  border: 1px solid var(--tk-outline-variant);
+  border-radius: var(--tk-radius-sm);
+  background: var(--tk-surface-container);
+  color: var(--tk-on-surface);
+  font-size: 11px;
+  font-weight: 650;
   cursor: pointer;
-  transition: transform 180ms var(--tk-spring), background 180ms ease;
+  transition: background 180ms ease, box-shadow 180ms ease;
 }
 
 .tk-launch-button:hover {
-  background: color-mix(in srgb, var(--tk-card-soft) 70%, var(--tk-card-accent) 10%);
-  transform: translateY(-1px);
+  background: var(--tk-surface-container-high);
+  box-shadow: var(--tk-shadow-control);
 }
 
 .tk-launch-button b {
@@ -2311,6 +2300,20 @@ button {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
   gap: 16px;
+}
+
+.tk-nav-glyph {
+  color: var(--tk-on-surface-variant);
+}
+
+.tk-nav-item--active .tk-nav-glyph {
+  color: var(--tk-on-secondary-container);
+}
+
+.tk-workspace-card {
+  --tk-card-accent: var(--tk-primary);
+  --tk-card-soft: var(--tk-secondary-container);
+  --tk-card-glow: color-mix(in srgb, var(--tk-primary-container) 14%, transparent);
 }
 
 .tk-library-panel,
@@ -2486,7 +2489,7 @@ button {
   border-radius: 10px;
   background: var(--tk-surface-muted);
   color: var(--tk-accent-strong);
-  font-family: "Manrope", sans-serif;
+  font-family: var(--tk-font-ui);
   font-size: 9px;
   font-weight: 800;
 }
@@ -2611,7 +2614,7 @@ button {
   max-width: 670px;
   margin: 10px 0 0;
   color: var(--tk-ink);
-  font-family: "Manrope", sans-serif;
+  font-family: var(--tk-font-ui);
   font-size: clamp(31px, 4vw, 48px);
   font-weight: 850;
   letter-spacing: -0.045em;
@@ -2656,7 +2659,7 @@ button {
 
 .tk-libraries-summary strong {
   color: var(--tk-accent-strong);
-  font-family: "Manrope", sans-serif;
+  font-family: var(--tk-font-ui);
   font-size: 19px;
   font-weight: 850;
   white-space: nowrap;
@@ -2927,7 +2930,7 @@ button {
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --tk-workbench-grid-line: rgba(124, 211, 200, 0.024);
   --tk-workbench-ambient-primary: rgba(51, 204, 187, 0.13);
-  --tk-workbench-ambient-secondary: rgba(255, 102, 153, 0.08);
+  --tk-workbench-ambient-secondary: color-mix(in srgb, var(--tk-tertiary-container) 8%, transparent);
   display: grid;
   width: 100%;
   height: 100vh;
@@ -2960,7 +2963,7 @@ button {
     inset 0 1px 0 rgba(255, 255, 255, 0.65);
   --tk-workbench-grid-line: rgba(28, 106, 100, 0.026);
   --tk-workbench-ambient-primary: rgba(51, 204, 187, 0.17);
-  --tk-workbench-ambient-secondary: rgba(255, 102, 153, 0.1);
+  --tk-workbench-ambient-secondary: color-mix(in srgb, var(--tk-tertiary-container) 9%, transparent);
   background:
     linear-gradient(var(--tk-workbench-grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--tk-workbench-grid-line) 1px, transparent 1px),
@@ -2986,7 +2989,7 @@ button {
       inset 0 1px 0 rgba(255, 255, 255, 0.65);
     --tk-workbench-grid-line: rgba(28, 106, 100, 0.026);
     --tk-workbench-ambient-primary: rgba(51, 204, 187, 0.17);
-    --tk-workbench-ambient-secondary: rgba(255, 102, 153, 0.1);
+    --tk-workbench-ambient-secondary: color-mix(in srgb, var(--tk-tertiary-container) 9%, transparent);
     background:
       linear-gradient(var(--tk-workbench-grid-line) 1px, transparent 1px),
       linear-gradient(90deg, var(--tk-workbench-grid-line) 1px, transparent 1px),
@@ -3129,7 +3132,7 @@ button {
   border-radius: 11px;
   background: color-mix(in srgb, var(--tk-workbench-muted) 12%, transparent);
   color: var(--tk-workbench-muted);
-  font-family: "Manrope", sans-serif;
+  font-family: var(--tk-font-ui);
   font-size: 10px;
   font-weight: 800;
 }
@@ -3578,4 +3581,17 @@ button {
   to {
     transform: rotate(360deg);
   }
+}
+
+
+/* One M3 surface for every tool's primary workspace panel. Per-tool CSS may
+ * still style the content inside, but the outer card itself uses the same
+ * surface, outline, shape and elevation everywhere. */
+.tk-tool-slot--active .ui-workspace-card {
+  border: 1px solid var(--tk-outline-variant) !important;
+  border-radius: var(--tk-radius-lg) !important;
+  background: var(--tk-surface-card) !important;
+  box-shadow: var(--tk-shadow) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }

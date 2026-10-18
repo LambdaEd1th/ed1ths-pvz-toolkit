@@ -8,9 +8,9 @@
 }
 
 .smf-page-host {
-  --smf-accent: #ce769f;
-  --smf-accent-strong: #e18eb5;
-  --smf-accent-soft: rgba(206, 118, 159, 0.14);
+  --smf-accent: var(--tk-accent);
+  --smf-accent-strong: var(--tk-accent-strong);
+  --smf-accent-soft: var(--tk-accent-soft);
   position: relative;
   color: var(--tk-ink);
   user-select: none;

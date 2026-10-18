@@ -8,9 +8,9 @@
 }
 
 .crypt-page-host {
-  --crypt-accent: #5faac2;
-  --crypt-accent-strong: #78bdd2;
-  --crypt-accent-soft: rgba(95, 170, 194, 0.14);
+  --crypt-accent: var(--tk-accent);
+  --crypt-accent-strong: var(--tk-accent-strong);
+  --crypt-accent-soft: var(--tk-accent-soft);
   position: relative;
   color: var(--tk-ink);
   user-select: none;
