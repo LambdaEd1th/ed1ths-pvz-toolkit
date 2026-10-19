@@ -1353,3 +1353,10 @@
 .rton-editor-stage .virtual-text-line-number {
   background: var(--tk-surface-card);
 }
+
+/* The localization-loading state fills the tool slot without the workspace
+ * card. Paint it with the same card surface so there is no color flash before
+ * the editor mounts. */
+.rton-loading-screen {
+  background: var(--tk-surface-card);
+}
