@@ -1341,3 +1341,15 @@
     display: none;
   }
 }
+
+/* Keep the loaded text editor on the same card surface as the empty drop
+ * stage. The legacy editor stylesheet paints these inner layers with
+ * --color-stage, which made the main panel change color after opening a file. */
+.rton-editor-stage > .editor-surface .virtual-text-preview,
+.rton-editor-stage > .editor-surface .code-editor {
+  background: transparent;
+}
+
+.rton-editor-stage .virtual-text-line-number {
+  background: var(--tk-surface-card);
+}
