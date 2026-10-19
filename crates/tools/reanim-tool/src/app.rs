@@ -772,7 +772,7 @@ fn decode_document(name: &str, bytes: &[u8]) -> Result<(Reanim, ReanimVersion), 
             .map_err(|error| format!("JSON 无法解析：{error}"));
     }
     if lower.ends_with(".yaml") || lower.ends_with(".yml") {
-        return serde_yaml::from_slice(bytes)
+        return yaml_serde::from_slice(bytes)
             .map(|reanim| (reanim, ReanimVersion::PC))
             .map_err(|error| format!("YAML 无法解析：{error}"));
     }

@@ -14,7 +14,7 @@ pub fn parse_text(text: &str, format: TextFormat) -> Result<DecodedDocument> {
     let mut value = match format {
         TextFormat::Json => parse_editor_json(text)?,
         TextFormat::Yaml if is_empty_yaml_document(text) => Value::Object(Vec::new()),
-        TextFormat::Yaml => serde_yaml::from_str::<Value>(text)?,
+        TextFormat::Yaml => yaml_serde::from_str::<Value>(text)?,
         TextFormat::Toml => toml::from_str::<Value>(text)?,
     };
     normalize_editor_value(&mut value);
@@ -31,7 +31,7 @@ pub fn value_to_text(value: &Value, format: TextFormat) -> Result<String> {
             ensure_json_safe_value(value)?;
             serde_json::to_string_pretty(value).map_err(CoreError::Json)
         }
-        TextFormat::Yaml => serde_yaml::to_string(value).map_err(CoreError::Yaml),
+        TextFormat::Yaml => yaml_serde::to_string(value).map_err(CoreError::Yaml),
         TextFormat::Toml => toml::to_string_pretty(value).map_err(CoreError::TomlSer),
     }
 }
@@ -48,7 +48,7 @@ pub fn value_to_text_limited(
     match format {
         TextFormat::Json => value_to_json_limited(value, max_bytes),
         TextFormat::Yaml => {
-            let text = serde_yaml::to_string(value).map_err(CoreError::Yaml)?;
+            let text = yaml_serde::to_string(value).map_err(CoreError::Yaml)?;
             Ok(limit_text(text, max_bytes))
         }
         TextFormat::Toml => {

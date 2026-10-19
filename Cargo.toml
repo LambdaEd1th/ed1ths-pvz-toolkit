@@ -161,7 +161,7 @@ serde = { version = "1.0.229", features = ["derive"] }
 serde-wasm-bindgen = "0.6.5"
 serde_bytes = "0.11.19"
 serde_json = { version = "1.0.151", features = ["float_roundtrip"] }
-serde_yaml = "0.9.34"
+yaml_serde = "0.10.7"
 semver = "1.0.28"
 symphonia = { version = "0.6.1", default-features = false, features = [
     "aac",

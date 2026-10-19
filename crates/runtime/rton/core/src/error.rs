@@ -7,7 +7,7 @@ pub enum CoreError {
     #[error("Invalid JSON: {0}")]
     Json(#[from] serde_json::Error),
     #[error("Invalid YAML: {0}")]
-    Yaml(#[from] serde_yaml::Error),
+    Yaml(#[from] yaml_serde::Error),
     #[error("Invalid TOML: {0}")]
     TomlDe(#[from] toml::de::Error),
     #[error("Cannot write TOML: {0}")]

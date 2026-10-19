@@ -2289,7 +2289,7 @@ fn decode_manifest(format: ManifestFormat, bytes: &[u8]) -> Result<ResourceManif
             serde_json::from_slice(bytes).map_err(|error| format!("JSON 解析失败：{error}"))
         }
         ManifestFormat::Yaml => {
-            serde_yaml::from_slice(bytes).map_err(|error| format!("YAML 解析失败：{error}"))
+            yaml_serde::from_slice(bytes).map_err(|error| format!("YAML 解析失败：{error}"))
         }
         ManifestFormat::Toml => {
             let text =
@@ -2308,7 +2308,7 @@ fn encode_manifest(format: ManifestFormat, manifest: &ResourceManifest) -> Resul
             bytes.push(b'\n');
             Ok(bytes)
         }
-        ManifestFormat::Yaml => serde_yaml::to_string(manifest)
+        ManifestFormat::Yaml => yaml_serde::to_string(manifest)
             .map(String::into_bytes)
             .map_err(|error| format!("YAML 序列化失败：{error}")),
         ManifestFormat::Toml => toml::to_string_pretty(manifest)

@@ -23,7 +23,7 @@ pub enum FormatError {
     #[error("PAM core error: {0}")]
     Core(#[from] pam_editor_core::CoreError),
     #[error("YAML error: {0}")]
-    Yaml(#[from] serde_yaml::Error),
+    Yaml(#[from] yaml_serde::Error),
     #[error("TOML decode error: {0}")]
     TomlDecode(#[from] toml::de::Error),
     #[error("TOML encode error: {0}")]
