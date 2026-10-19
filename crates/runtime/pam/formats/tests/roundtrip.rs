@@ -14,7 +14,9 @@ fn workspace_root() -> std::path::PathBuf {
 }
 
 fn sample_files(name: &str) -> Vec<InputFile> {
-    let root = workspace_root().join("sample").join(name);
+    let root = workspace_root()
+        .join("crates/formats/pam-codec/sample")
+        .join(name);
     let mut paths = std::fs::read_dir(root)
         .expect("sample directory")
         .map(|entry| entry.expect("sample entry").path())
