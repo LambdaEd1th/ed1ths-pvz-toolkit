@@ -214,7 +214,7 @@ mod tests {
         let zip = zip::ZipArchive::new(Cursor::new(result.unwrap())).unwrap();
         assert_eq!(
             zip.file_names()
-                .filter(|name| name.ends_with(".png"))
+                .filter(|name| name.as_deref().is_ok_and(|name| name.ends_with(".png")))
                 .count(),
             3
         );

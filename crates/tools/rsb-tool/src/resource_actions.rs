@@ -588,7 +588,10 @@ mod tests {
         let mut archive = zip::ZipArchive::new(std::fs::File::open(&path).unwrap()).unwrap();
         assert_eq!(count, 2);
         assert_eq!(archive.len(), 2);
-        assert_eq!(archive.by_index(0).unwrap().name(), "folder/a.txt");
+        assert_eq!(
+            archive.by_index(0).unwrap().name().unwrap().as_ref(),
+            "folder/a.txt"
+        );
         let _ = std::fs::remove_file(path);
     }
 
@@ -599,8 +602,14 @@ mod tests {
         zip.add("images/A.png", b"two").unwrap();
         let mut read = zip::ZipArchive::new(Cursor::new(zip.into_bytes().unwrap())).unwrap();
         assert_eq!(read.len(), 2);
-        assert_eq!(read.by_index(0).unwrap().name(), "images/a.png");
-        assert_eq!(read.by_index(1).unwrap().name(), "images/A (2).png");
+        assert_eq!(
+            read.by_index(0).unwrap().name().unwrap().as_ref(),
+            "images/a.png"
+        );
+        assert_eq!(
+            read.by_index(1).unwrap().name().unwrap().as_ref(),
+            "images/A (2).png"
+        );
         assert_eq!(safe_path("C:\\..\\x\0.png", ""), "C_/x_.png");
     }
 

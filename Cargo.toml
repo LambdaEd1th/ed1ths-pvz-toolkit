@@ -109,12 +109,12 @@ toolkit-ui = { path = "crates/ui/toolkit-ui" }
 wem_audio_worker = { path = "crates/runtime/wem/worker" }
 
 # Third-party dependencies.
-arboard = "3.6.1"
+arboard = "3.7.0"
 base64 = "0.23.1"
 bytemuck = { version = "1.25.2", features = ["derive"] }
 byteorder = "1.5.0"
 console_error_panic_hook = "0.1.7"
-crc32fast = "1.5.1"
+crc32fast = "1.5.2"
 dioxus = { version = "0.7.10", default-features = false }
 dioxus-free-icons = { version = "0.10.0", features = ["lucide"] }
 dioxus-html = "0.7.10"
@@ -134,10 +134,10 @@ image = { version = "0.25.10", default-features = false, features = [
     "png",
     "webp",
 ] }
-js-sys = "0.3.105"
+js-sys = "0.3.106"
 log = { version = "0.4.34", features = ["std"] }
 memmap2 = "0.9.11"
-objc2 = "0.6.4"
+objc2 = "0.6.5"
 objc2-app-kit = { version = "0.3.2", default-features = false, features = [
     "std",
     "NSApplication",
@@ -160,7 +160,7 @@ roxmltree = "0.21.1"
 serde = { version = "1.0.229", features = ["derive"] }
 serde-wasm-bindgen = "0.6.5"
 serde_bytes = "0.11.19"
-serde_json = { version = "1.0.151", features = ["float_roundtrip"] }
+serde_json = { version = "1.0.154", features = ["float_roundtrip"] }
 yaml_serde = "0.10.7"
 semver = "1.0.28"
 symphonia = { version = "0.6.1", default-features = false, features = [
@@ -169,14 +169,14 @@ symphonia = { version = "0.6.1", default-features = false, features = [
     "ogg",
     "vorbis",
 ] }
-thiserror = "2.0.20"
-toml = "1.1.6"
+thiserror = "2.0.21"
+toml = "1.1.8"
 unic-langid = "0.9.6"
-wasm-bindgen = "0.2.128"
-wasm-bindgen-futures = "0.4.78"
-web-sys = "0.3.105"
+wasm-bindgen = "0.2.129"
+wasm-bindgen-futures = "0.4.79"
+web-sys = "0.3.106"
 wgpu = { version = "30.0.1", features = ["webgl"] }
-zip = { version = "8.6.0", default-features = false, features = [
+zip = { version = "9.0.5", default-features = false, features = [
     "deflate-flate2-zlib-rs",
     "unreserved",
 ] }
