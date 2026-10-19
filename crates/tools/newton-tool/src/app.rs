@@ -1790,6 +1790,8 @@ fn Glyph(name: String) -> Element {
     rsx! {
         svg {
             class: "newton-glyph",
+            width: "17",
+            height: "17",
             view_box: "0 0 24 24",
             fill: "none",
             stroke: "currentColor",
