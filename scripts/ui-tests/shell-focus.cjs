@@ -92,6 +92,14 @@ async function run(engineName, engine) {
   await sleep(1200);
   step('shell ready');
 
+  const overlappingCards = await page.evaluate(() => [...document.querySelectorAll('.tk-workspace-card')].flatMap(card => {
+    const tags = card.querySelector('.tk-tag-list')?.getBoundingClientRect();
+    const button = card.querySelector('.tk-launch-button')?.getBoundingClientRect();
+    if (!tags || !button || tags.bottom <= button.top) return [];
+    return [card.querySelector('h3')?.textContent?.trim() || 'unnamed card'];
+  }));
+  assert.deepEqual(overlappingCards, [], 'home workspace tags must not overlap their launch button');
+
   // --- Settings: initial focus, containment, Escape, focus restoration ---
   await openSettings(page);
   step('settings opened');
